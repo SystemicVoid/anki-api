@@ -14,7 +14,6 @@ Create high-quality Anki flashcards from the provided content following the **EA
 Parse the provided arguments:
 - **URL**: If starts with `http`, scrape using `./scrape.sh <url>`
 - **File path**: If file exists, read directly
-- **Deck name**: Use `--deck <name>` or default to "Default"
 - **Tags**: Use `--tags <tag1,tag2>` or auto-generate from topic
 
 ## Workflow
@@ -58,8 +57,7 @@ Flashcard(
     back="Clear explanation of the underlying reason",
     context="Additional context or related concepts",
     tags=["topic", "subtopic", "concept"],
-    source="<url or file>",
-    deck="<deck_name>",
+    source="<url or file>"
 )
 
 # Pattern 2: Practical Application
@@ -68,8 +66,7 @@ Flashcard(
     back="Use cases and scenarios with reasoning",
     context="Contrast with alternatives if relevant",
     tags=["topic", "subtopic", "application"],
-    source="<url or file>",
-    deck="<deck_name>",
+    source="<url or file>"
 )
 
 # Pattern 3: Common Pitfalls
@@ -78,8 +75,7 @@ Flashcard(
     back="The mistake and why it happens",
     context="How to avoid or fix it",
     tags=["topic", "subtopic", "pitfalls"],
-    source="<url or file>",
-    deck="<deck_name>",
+    source="<url or file>"
 )
 ```
 

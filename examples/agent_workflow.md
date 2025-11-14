@@ -84,8 +84,7 @@ cards = [
         context="Decorators are functions that take another function as argument "
                 "and return a modified version. They use @ syntax.",
         tags=["python", "decorators", "design-patterns"],
-        source="https://realpython.com/primer-on-python-decorators/",
-        deck="Programming",
+        source="https://realpython.com/primer-on-python-decorators/"
     ),
 
     Flashcard(
@@ -94,8 +93,7 @@ cards = [
         context="The @ symbol is syntactic sugar for: "
                 "function_name = decorator_name(function_name)",
         tags=["python", "decorators", "syntax"],
-        source="https://realpython.com/primer-on-python-decorators/",
-        deck="Programming",
+        source="https://realpython.com/primer-on-python-decorators/"
     ),
 
     Flashcard(
@@ -105,8 +103,7 @@ cards = [
              "the wrapped function loses its identity.",
         context="Example: @wraps(func) before defining the wrapper function",
         tags=["python", "decorators", "functools", "best-practices"],
-        source="https://realpython.com/primer-on-python-decorators/",
-        deck="Programming",
+        source="https://realpython.com/primer-on-python-decorators/"
     ),
 
     Flashcard(
@@ -116,8 +113,7 @@ cards = [
         context="Example: @repeat(num_times=3) requires a factory function "
                 "that returns the actual decorator",
         tags=["python", "decorators", "advanced"],
-        source="https://realpython.com/primer-on-python-decorators/",
-        deck="Programming",
+        source="https://realpython.com/primer-on-python-decorators/"
     ),
 
     Flashcard(
@@ -127,8 +123,7 @@ cards = [
              "and then return wrapper_result.",
         context="Without returning, the decorated function always returns None",
         tags=["python", "decorators", "common-mistakes"],
-        source="https://realpython.com/primer-on-python-decorators/",
-        deck="Programming",
+        source="https://realpython.com/primer-on-python-decorators/"
     ),
 ]
 

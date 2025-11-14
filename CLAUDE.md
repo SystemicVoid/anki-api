@@ -58,9 +58,7 @@ cards = [
         back="Answer with explanation",
         context="Additional context for future understanding",
         tags=["domain", "topic", "type"],
-        source="https://example.com/article",
-        deck="Default",
-        model="Basic"
+        source="https://example.com/article"
     )
 ]
 
