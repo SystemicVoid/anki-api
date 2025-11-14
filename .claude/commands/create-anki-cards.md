@@ -18,6 +18,10 @@ Parse the provided arguments:
 
 ## Workflow
 
+### 0. Prep the environment
+- Install deps once with `uv sync`.
+- Ensure Anki is running, then verify with `uv run anki ping` so downstream commands do not fail mid-run.
+
 ### 1. Acquire Content
 
 **If URL provided:**
@@ -41,41 +45,46 @@ Read and identify:
 
 ### 3. Generate Flashcards
 
-Use `src.schema` to create cards:
+Use `src.schema` to create cards and keep all data in the `Flashcard` dataclass:
 
 ```python
-from src.schema import Flashcard, save_cards_to_json
 from datetime import datetime
 
-cards = []
+from src.schema import Flashcard, save_cards_to_json, validate_card
 
-# For each concept, create cards using these patterns:
+cards: list[Flashcard] = []
 
 # Pattern 1: Conceptual Understanding
-Flashcard(
-    front="Why does [concept] work/exist?",
-    back="Clear explanation of the underlying reason",
-    context="Additional context or related concepts",
-    tags=["topic", "subtopic", "concept"],
-    source="<url or file>"
+cards.append(
+    Flashcard(
+        front="Why does [concept] work/exist?",
+        back="Clear explanation of the underlying reason",
+        context="Additional context or related concepts",
+        tags=["topic", "subtopic", "concept"],
+        source="<url or file>"
+    )
 )
 
 # Pattern 2: Practical Application
-Flashcard(
-    front="When should you use [technique]?",
-    back="Use cases and scenarios with reasoning",
-    context="Contrast with alternatives if relevant",
-    tags=["topic", "subtopic", "application"],
-    source="<url or file>"
+cards.append(
+    Flashcard(
+        front="When should you use [technique]?",
+        back="Use cases and scenarios with reasoning",
+        context="Contrast with alternatives if relevant",
+        tags=["topic", "subtopic", "application"],
+        source="<url or file>"
+    )
 )
 
 # Pattern 3: Common Pitfalls
-Flashcard(
-    front="What is a common mistake when [doing X]?",
-    back="The mistake and why it happens",
-    context="How to avoid or fix it",
-    tags=["topic", "subtopic", "pitfalls"],
-    source="<url or file>"
+cards.append(
+    Flashcard(
+        front="What is a common mistake when [doing X]?",
+        back="The mistake and why it happens",
+        context="How to avoid or fix it",
+        tags=["topic", "subtopic", "pitfalls"],
+        source="<url or file>"
+    )
 )
 ```
 
@@ -97,6 +106,23 @@ Ensure each card meets these criteria:
 - Avoid time-dependent references ("recently", "currently")
 - Define abbreviations in context
 
+Validate programmatically with `validate_card` to avoid missing rules:
+
+```python
+for card in cards:
+    warnings = validate_card(card)
+    errors = [w for w in warnings if w.severity == "error"]
+    if errors:
+        raise ValueError(
+            f"Fix errors before saving {card.front!r}: "
+            + "; ".join(str(w) for w in errors)
+        )
+    if warnings:
+        print(f"EAT warnings for {card.front!r}:")
+        for warning in warnings:
+            print(f"  - {warning}")
+```
+
 ### 5. Save and Report
 
 ```python
@@ -111,7 +137,10 @@ save_cards_to_json(cards, output_file)
 **Report to user:**
 - Number of cards generated
 - Output file path
+- Validation summary (any warnings or confirmations that all cards passed)
 - Next step command: `uv run anki review <file>`
+
+Encourage the user to run `uv run anki review <file>` (or `uv run anki add <file>` if they've already approved cards) so the CLI handles Anki-side validation and submission.
 
 ## Guidelines
 
