@@ -1,5 +1,6 @@
 """Command-line interface for anki-api."""
 
+import re
 import sys
 from pathlib import Path
 from typing import List
@@ -7,6 +8,7 @@ from typing import List
 import click
 
 from src.anki_client import AnkiClient, AnkiConnectError
+from src.documents import export_docx_to_markdown
 from src.schema import (
     Flashcard,
     load_cards_from_json,
@@ -14,6 +16,8 @@ from src.schema import (
     validate_card,
     ValidationWarning,
 )
+
+SCRAPED_DIR = Path("scraped")
 
 
 def get_client() -> AnkiClient:
@@ -39,6 +43,23 @@ def print_warning(message: str) -> None:
 def print_info(message: str) -> None:
     """Print info message in blue."""
     click.secho(message, fg="blue")
+
+
+def slugify_filename(name: str) -> str:
+    """Convert a filename stem into a safe, kebab-cased slug."""
+    slug = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+    return slug or "document"
+
+
+def default_docx_output_path(docx_file: Path) -> Path:
+    """Return a unique markdown path under scraped/ for a DOCX file."""
+    slug = slugify_filename(docx_file.stem)
+    destination = SCRAPED_DIR / f"{slug}.md"
+    counter = 1
+    while destination.exists():
+        counter += 1
+        destination = SCRAPED_DIR / f"{slug}-{counter}.md"
+    return destination
 
 
 def print_card(card: Flashcard, index: int = None, total: int = None) -> None:
@@ -151,6 +172,35 @@ def list_models():
     except AnkiConnectError as e:
         print_error(str(e))
         sys.exit(1)
+
+
+@main.command("extract-docx")
+@click.argument("file", type=click.Path(exists=True, path_type=Path))
+@click.option(
+    "--output",
+    type=click.Path(path_type=Path),
+    help="Optional markdown output path (default: scraped/<filename>.md)",
+)
+def extract_docx(file: Path, output: Path | None):
+    """Convert a DOCX file into markdown for downstream card generation."""
+    destination = output or default_docx_output_path(file)
+
+    try:
+        export_docx_to_markdown(file, destination)
+    except ValueError as e:
+        print_error(str(e))
+        sys.exit(1)
+    except Exception as e:
+        print_error(f"Failed to extract DOCX: {e}")
+        sys.exit(1)
+
+    print_success("✓ Extracted DOCX contents to markdown")
+    print_info(f"  Source: {file}")
+    print_info(f"  Output: {destination}")
+
+    click.echo("\nNext steps for agents:")
+    click.echo(f"  • Review {destination} to identify flashcard-worthy sections")
+    click.echo("  • Use src.schema.Flashcard to craft cards and save to cards/*.json")
 
 
 @main.command()
