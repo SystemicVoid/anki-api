@@ -211,11 +211,11 @@ def extract_docx(file: Path, output: Path | None):
     help="Override deck name for all cards (default: use card's deck)",
 )
 @click.option(
-    "--skip-validation",
+    "--show-warnings",
     is_flag=True,
-    help="Skip EAT principle validation warnings",
+    help="Display EAT principle validation warnings during review",
 )
-def review(file: Path, deck: str, skip_validation: bool):
+def review(file: Path, deck: str, show_warnings: bool):
     """Review and approve cards from a JSON file before adding to Anki.
 
     Interactively review each card with options to:
@@ -260,9 +260,9 @@ def review(file: Path, deck: str, skip_validation: bool):
         # Print card
         print_card(card, idx, len(cards))
 
-        # Validate card
-        if not skip_validation:
-            warnings = validate_card(card)
+        # Validate card (always run validation, but only display if flag is set)
+        warnings = validate_card(card)
+        if show_warnings:
             print_validation_warnings(warnings)
 
         # Get user action
@@ -392,7 +392,12 @@ def add(file: Path, deck: str):
 @click.option("--deck", default="Default", help="Deck name (default: Default)")
 @click.option("--tags", default="", help="Comma-separated tags")
 @click.option("--context", default="", help="Additional context")
-def quick(front: str, back: str, deck: str, tags: str, context: str):
+@click.option(
+    "--show-warnings",
+    is_flag=True,
+    help="Display EAT principle validation warnings",
+)
+def quick(front: str, back: str, deck: str, tags: str, context: str, show_warnings: bool):
     """Quickly create a single flashcard.
 
     Example:
@@ -420,9 +425,9 @@ def quick(front: str, back: str, deck: str, tags: str, context: str):
         model="Basic",
     )
 
-    # Validate and show warnings
+    # Validate card (always run validation, but only display if flag is set)
     warnings = validate_card(card)
-    if warnings:
+    if show_warnings and warnings:
         print_warning("Validation warnings:")
         print_validation_warnings(warnings)
         click.echo()
