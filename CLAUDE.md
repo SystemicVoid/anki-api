@@ -35,7 +35,10 @@ uv run anki <command>
 uv run anki list-decks
 uv run anki review cards/example.json
 uv run anki find "tag:python"
+uv run anki extract-docx docs/source.docx --output scraped/source.md
 ```
+
+Need to read DOCX material without the CLI? Import `extract_docx_text` from `src.documents` to pull markdown-friendly text directly inside agent workflows.
 
 ### Web Scraping Workflow
 ```bash

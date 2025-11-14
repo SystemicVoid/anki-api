@@ -4,7 +4,7 @@
 - `src/` holds the production code: `cli.py` exposes the Click entrypoint behind `uv run anki`, `anki_client.py` wraps AnkiConnect HTTP calls, and `schema.py` keeps Flashcard dataclasses plus validators.
 - `cards/` stores JSON payloads for review; keep filenames kebab-cased.
 - `scraped/` contains markdown pulled via `./scrape.sh <url>` and is the usual starting point for new study sets.
-- `tests/` is currently empty—add `test_<module>.py` here as coverage grows so pytest auto-discovers them.
+- `tests/` houses pytest suites; keep files named `test_<module>.py` so pytest auto-discovers them.
 
 ## Build, Test, and Development Commands
 - `uv sync` installs project dependencies pinned by `uv.lock`.
@@ -12,6 +12,7 @@
 - `uv run anki review cards/sample.json --deck "Learning"` performs the interactive approval loop; omit `--deck` to keep file-assigned decks.
 - `uv run pytest` executes the Python test suite; scope with `-k validator` when iterating quickly.
 - `./scrape.sh https://example.com/article` writes markdown into `scraped/` for subsequent processing.
+- `uv run anki extract-docx source.docx --output scraped/source.md` converts DOCX references into markdown inside `scraped/` (omit `--output` to auto-suffix).
 
 ## Coding Style & Naming Conventions
 - Python 3.11+, 4-space indentation, and type hints everywhere (match existing dataclasses and function signatures).
