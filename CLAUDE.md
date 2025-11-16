@@ -136,12 +136,60 @@ The system enforces three principles through `src/schema.py`:
 - **WARNING** for time-dependent references ("recently", "currently")
 - **INFO** for undefined abbreviations (uppercase words without context)
 
+## Card Formatting
+
+**CRITICAL**: Anki does not render Markdown. All card content must use plain text formatting only.
+
+### Standard Format
+
+```
+[Main answer text, potentially with enumerated points]
+
+---
+
+[Contextual information without any label]
+```
+
+### Formatting Rules
+
+- **NO markdown formatting**: No bold (`**text**`), italic (`*text*`), code blocks, or other markdown
+- **NO HTML tags**: No `<br>`, `<b>`, `<i>`, or any HTML
+- **Line breaks**: Use plain newlines (`\n`) only
+- **Separator**: Use `---` with blank lines before and after (`\n\n---\n\n`)
+- **Context section**: Start directly with content (no "Context:" prefix)
+
+### Lists (for visual clarity)
+
+Use newlines between items to create visually clear, scannable content:
+
+- **Ordered lists**: `1.\n2.\n3.` format
+- **Unordered lists**: `-\n-\n-` format
+
+**Example:**
+```
+Three factors converged:
+1. Compute power increased, enabling training of massive models
+2. Large-scale quality datasets became available
+3. Algorithmic innovations like transformers (2017) enabled efficient parallel processing
+
+---
+
+Historical AI limitations weren't theoretical but practical. Modern systems like ChatGPT require all three elements. Quality matters as much as quantity for data—medical textbooks provide better training than equivalent volumes of Twitter posts.
+```
+
+### Answer vs. Context Balance
+
+- **Answer**: Core concept, direct response to question
+- **Context**: Detailed explanations, examples, caveats, related information
+- **Guideline**: Bias slightly towards moving verbose details to context section
+
 ## Claude Code Slash Command
 
 **`/create-anki-cards`** - Primary command for flashcard generation
 - Location: `.claude/commands/create-anki-cards.md`
 - Handles URL scraping or direct file reading
 - Applies EAT validation automatically
+- Applies proper formatting rules (no markdown, plain text only)
 - Generates timestamped JSON output in `cards/` directory
 - Provides next-step instructions for review
 
