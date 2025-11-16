@@ -88,7 +88,48 @@ cards.append(
 )
 ```
 
-### 4. Apply EAT Validation
+### 4. Card Formatting Rules
+
+**IMPORTANT**: Anki does not render Markdown. Use only plain text formatting:
+
+**Structure:**
+```
+[Main answer text]
+
+---
+
+[Contextual information]
+```
+
+**Formatting rules:**
+- **NO markdown** (no bold `**text**`, no italic `*text*`, no code blocks)
+- **NO HTML tags** (no `<br>`, `<b>`, etc.)
+- **Separator**: Use `---` with blank lines before and after (`\n\n---\n\n`)
+- **Context section**: Start directly with content (no "Context:" label)
+- **Line breaks**: Use plain newlines only
+
+**Lists** (for visual clarity):
+- **Ordered lists**: Use `1.\n2.\n3.` format with newlines between items
+- **Unordered lists**: Use `-\n-\n-` format with newlines between items
+
+**Example:**
+```
+Three factors converged:
+1. Compute power increased, enabling training of massive models
+2. Large-scale quality datasets became available
+3. Algorithmic innovations like transformers (2017) enabled efficient parallel processing
+
+---
+
+Historical AI limitations weren't theoretical but practical. Modern systems like ChatGPT require all three elements. Quality matters as much as quantity for data—medical textbooks provide better training than equivalent volumes of Twitter posts.
+```
+
+**Answer vs. Context Balance:**
+- Keep answers concise and focused on core concepts
+- Move detailed explanations, examples, and caveats to context section
+- Bias slightly towards context for verbose details
+
+### 5. Apply EAT Validation
 
 Ensure each card meets these criteria:
 
@@ -123,7 +164,7 @@ for card in cards:
             print(f"  - {warning}")
 ```
 
-### 5. Save and Report
+### 6. Save and Report
 
 ```python
 # Generate timestamp-based filename
