@@ -6,6 +6,22 @@ import json
 import re
 
 
+def convert_newlines_to_html(text: str) -> str:
+    """Convert plain newlines to HTML <br> tags for Anki display.
+
+    Anki displays card content as HTML, so plain newlines are collapsed.
+    This function converts \\n to <br> tags for proper rendering.
+
+    Args:
+        text: Text with plain newlines
+
+    Returns:
+        Text with <br> tags for HTML rendering
+    """
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    return normalized.replace('\n', '<br>')
+
+
 @dataclass
 class Flashcard:
     """Represents a single flashcard with EAT principles validation.
@@ -33,14 +49,18 @@ class Flashcard:
         # Combine back and context if context exists
         back_content = self.back
         if self.context:
-            back_content += f"\n\n---\n**Context:** {self.context}"
+            back_content += f"\n\n---\n\n{self.context}"
+
+        # Convert newlines to HTML for Anki display
+        front_html = convert_newlines_to_html(self.front)
+        back_html = convert_newlines_to_html(back_content)
 
         return {
             "deckName": self.deck,
             "modelName": self.model,
             "fields": {
-                "Front": self.front,
-                "Back": back_content,
+                "Front": front_html,
+                "Back": back_html,
             },
             "tags": self.tags,
         }
