@@ -14,7 +14,7 @@ class AnkiConnectError(Exception):
 class AnkiClient:
     """Client for communicating with AnkiConnect."""
 
-    def __init__(self, url: str = "http://localhost:8765"):
+    def __init__(self, url: str = "http://localhost:8775"):
         """Initialize the AnkiConnect client.
 
         Args:

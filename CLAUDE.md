@@ -197,7 +197,7 @@ Historical AI limitations weren't theoretical but practical. Modern systems like
 
 **AnkiConnect API**
 - Must be installed in Anki Desktop: https://ankiweb.net/shared/info/2055492159
-- Default URL: http://localhost:8765
+- Default URL: http://localhost:8775
 - Anki must be running for all operations
 
 **crawl4ai Web Scraper**
