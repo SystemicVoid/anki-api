@@ -42,6 +42,32 @@
   animation-fill-mode: both;
 }
 
+.generateButton {
+  margin-top: var(--space-xl);
+  padding: var(--space-md) var(--space-xl);
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+  animation: slideDown var(--transition-slow) ease-out;
+  animation-delay: 200ms;
+  animation-fill-mode: both;
+}
+
+.generateButton:hover {
+  background: var(--accent-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.generateButton:active {
+  transform: translateY(0);
+}
+
 .fileList {
   list-style: none;
   display: flex;

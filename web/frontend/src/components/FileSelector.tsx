@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listCardFiles } from '../api/client';
 import type { FileStat } from '../types';
+import { GenerateModal } from './GenerateModal';
 import styles from './FileSelector.module.css';
 
 function getReviewedPercentage(file: FileStat): number {
@@ -26,6 +27,7 @@ export function FileSelector() {
   const [files, setFiles] = useState<FileStat[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -78,6 +80,13 @@ export function FileSelector() {
         <header className={styles.header}>
           <h1 className={styles.title}>Anki Review</h1>
           <p className={styles.subtitle}>Select a card file to review</p>
+
+          <button
+            onClick={() => setShowGenerateModal(true)}
+            className={styles.generateButton}
+          >
+            + Generate New Cards
+          </button>
         </header>
 
         {files.length === 0 ? (
@@ -126,6 +135,11 @@ export function FileSelector() {
           </ul>
         )}
       </div>
+
+      <GenerateModal
+        isOpen={showGenerateModal}
+        onClose={() => setShowGenerateModal(false)}
+      />
     </div>
   );
 }
