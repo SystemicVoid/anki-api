@@ -5,6 +5,7 @@ import type {
   AddCardResponse,
   FileListResponse,
   Card,
+  FileStat,
 } from '../types';
 
 const API_BASE = '/api';
@@ -17,7 +18,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
   return response.json();
 }
 
-export async function listCardFiles(): Promise<string[]> {
+export async function listCardFiles(): Promise<FileStat[]> {
   const response = await fetch(`${API_BASE}/cards/files`);
   const data = await handleResponse<FileListResponse>(response);
   return data.files;
@@ -64,6 +65,16 @@ export async function approveCard(filename: string, index: number): Promise<Card
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+    }
+  );
+  return handleResponse<CardWithValidation>(response);
+}
+
+export async function skipCard(filename: string, index: number): Promise<CardWithValidation> {
+  const response = await fetch(
+    `${API_BASE}/cards/${encodeURIComponent(filename)}/${index}/skip`,
+    {
+      method: 'POST',
     }
   );
   return handleResponse<CardWithValidation>(response);
