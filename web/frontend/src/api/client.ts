@@ -57,3 +57,14 @@ export async function addCardToAnki(card: Card): Promise<AddCardResponse> {
   });
   return handleResponse<AddCardResponse>(response);
 }
+
+export async function approveCard(filename: string, index: number): Promise<CardWithValidation> {
+  const response = await fetch(
+    `${API_BASE}/cards/${encodeURIComponent(filename)}/${index}/approve`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    }
+  );
+  return handleResponse<CardWithValidation>(response);
+}

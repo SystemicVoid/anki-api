@@ -25,7 +25,14 @@ export function CardDisplay({ card }: Props) {
     <article className={styles.card}>
       {/* Question */}
       <section className={styles.questionSection}>
-        <span className={styles.label}>Question</span>
+        <span className={styles.label}>
+          Question
+          {cardData.anki_id && (
+            <span className={styles.addedBadge} title="Already added to Anki">
+              ✓ Added
+            </span>
+          )}
+        </span>
         <h2 className={styles.question}>{cardData.front}</h2>
       </section>
 

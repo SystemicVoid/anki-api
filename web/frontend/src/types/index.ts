@@ -6,6 +6,7 @@ export interface Card {
   source: string;
   deck: string;
   model: string;
+  anki_id?: number | null;
 }
 
 export interface ValidationWarning {

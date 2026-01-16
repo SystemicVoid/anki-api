@@ -39,6 +39,7 @@ class Flashcard:
     source: str = ""  # Original URL or file path
     deck: str = "Default"
     model: str = "Basic"
+    anki_id: Optional[int] = None  # ID of the note in Anki, if added
 
     def to_anki_note(self) -> dict:
         """Convert to AnkiConnect note format.

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { CardWithValidation, Card, AnkiStatus } from '../types';
-import { loadCards, updateCard, pingAnki, addCardToAnki } from '../api/client';
+import { loadCards, updateCard, pingAnki, approveCard } from '../api/client';
 
 export interface ReviewSessionState {
   filename: string;
@@ -47,10 +47,14 @@ export function useReviewSession(filename: string | null) {
           pingAnki(),
         ]);
 
+        // Calculate initial added count based on anki_id presence
+        const initialAdded = cardsResponse.cards.filter(c => c.card.anki_id).length;
+
         setState((prev) => ({
           ...prev,
           filename: currentFilename,
           cards: cardsResponse.cards,
+          addedCount: initialAdded,
           isLoading: false,
           error: null,
           ankiStatus: ankiResponse,
@@ -80,35 +84,34 @@ export function useReviewSession(filename: string | null) {
   }, []);
 
   const approve = useCallback(async () => {
-    if (!currentCard) return;
+    if (!currentCard || !filename) return;
 
     setState((prev) => ({ ...prev, isSubmitting: true }));
 
     try {
-      const response = await addCardToAnki(currentCard.card);
+      // Use the new approveCard endpoint which persists ID to file
+      const updatedCard = await approveCard(filename, state.currentIndex);
 
-      if (response.success) {
-        setState((prev) => ({
+      setState((prev) => {
+        const newCards = [...prev.cards];
+        newCards[prev.currentIndex] = updatedCard; // Update card with anki_id
+
+        return {
           ...prev,
+          cards: newCards,
           addedCount: prev.addedCount + 1,
           isSubmitting: false,
-        }));
-        goToNext();
-      } else {
-        setState((prev) => ({
-          ...prev,
-          isSubmitting: false,
-          error: response.error || 'Failed to add card',
-        }));
-      }
+        };
+      });
+      goToNext();
     } catch (err) {
       setState((prev) => ({
         ...prev,
         isSubmitting: false,
-        error: err instanceof Error ? err.message : 'Failed to add card',
+        error: err instanceof Error ? err.message : 'Failed to approve card',
       }));
     }
-  }, [currentCard, goToNext]);
+  }, [currentCard, filename, state.currentIndex, goToNext]);
 
   const skip = useCallback(() => {
     setState((prev) => ({
