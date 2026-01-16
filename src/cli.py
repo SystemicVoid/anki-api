@@ -197,7 +197,8 @@ def run_claude_generation(source: str, tags: str | None) -> bool:
     prompt = f"/create-anki-cards {source}"
     if tags:
         prompt += f" --tags {tags}"
-    result = subprocess.run(cmd + [prompt])
+    # Run from PROJECT_DIR so Claude Code finds the skill in .claude/commands/
+    result = subprocess.run(cmd + [prompt], cwd=PROJECT_DIR)
     return result.returncode == 0
 
 
