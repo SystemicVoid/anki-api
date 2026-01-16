@@ -27,9 +27,10 @@ Based on principles from [LeanAnki](https://leananki.com/creating-better-flashca
    - Download: https://apps.ankiweb.net/
    - AnkiConnect: https://ankiweb.net/shared/info/2055492159
 
-2. **Python 3.11+** (via `uv`)
+2. **Node.js 20+** & **pnpm** (for Web Frontend)
+3. **Python 3.11+** (via `uv`)
 
-3. **crawl4ai** (for web scraping)
+4. **crawl4ai** (for web scraping)
    - Already installed at `/home/hugo/Documents/Engineering/crawl4ai`
 
 ## Installation

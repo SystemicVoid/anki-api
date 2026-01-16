@@ -38,6 +38,20 @@ uv run anki find "tag:python"
 uv run anki extract-docx docs/source.docx --output scraped/source.md
 ```
 
+### Web Development
+```bash
+# Start Backend API
+uv run anki serve --reload
+
+# Start Frontend (React)
+cd web/frontend
+pnpm dev
+
+# Build Frontend
+cd web/frontend
+pnpm build
+```
+
 Need to read DOCX material without the CLI? Import `extract_docx_text` from `src.documents` to pull markdown-friendly text directly inside agent workflows.
 
 ### Web Scraping Workflow
@@ -91,6 +105,10 @@ save_cards_to_json(cards, f"cards/topic_{timestamp}.json")
 - Interactive review workflow with approve/edit/skip/quit options
 - Colored output using click.secho()
 - Entry point: `anki` command (defined in pyproject.toml)
+
+**web/** - Web Interface
+- **backend/**: FastAPI application (`main.py`, `models.py`, `routes/`)
+- **frontend/**: React + TypeScript application (Vite based)
 
 ### Data Flow
 
