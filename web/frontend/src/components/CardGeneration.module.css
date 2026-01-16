@@ -1,0 +1,247 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--space-xl);
+}
+
+.content {
+  max-width: 700px;
+  width: 100%;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: var(--space-xl);
+  animation: slideDown 0.6s ease-out;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-sm);
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  color: var(--text-tertiary);
+  margin: 0;
+  word-break: break-word;
+}
+
+.tags {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: var(--space-xs) 0 0;
+}
+
+.messagesContainer {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-xl);
+  max-height: 500px;
+  overflow-y: auto;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.connecting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-2xl);
+  color: var(--text-tertiary);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--bg-tertiary);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.message {
+  display: flex;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  margin-bottom: var(--space-md);
+  border-radius: var(--radius-md);
+  animation: slideUp 0.3s ease-out;
+  border-left: 3px solid transparent;
+}
+
+.messageIcon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  line-height: 1.5;
+}
+
+.messageContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.messageContent p {
+  margin: 0;
+  color: var(--text-primary);
+  line-height: 1.6;
+  word-wrap: break-word;
+}
+
+.messageStatus {
+  background: var(--color-info-bg);
+  border-left-color: var(--color-info);
+}
+
+.messageText {
+  background: var(--bg-tertiary);
+  border-left-color: var(--accent-secondary);
+}
+
+.messageTool {
+  background: var(--bg-primary);
+  border-left-color: var(--text-tertiary);
+}
+
+.toolName {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.toolInput {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  padding: var(--space-sm);
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+  margin: var(--space-sm) 0 0;
+}
+
+.messageComplete {
+  background: var(--color-success-bg);
+  border-left-color: var(--color-success);
+}
+
+.redirectMessage {
+  font-size: 0.9rem;
+  color: var(--text-tertiary);
+  margin-top: var(--space-xs);
+  font-style: italic;
+}
+
+.messageError {
+  background: var(--color-error-bg);
+  border-left-color: var(--color-error);
+}
+
+.error {
+  text-align: center;
+  padding: var(--space-2xl);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  animation: fadeIn 0.4s ease-out;
+}
+
+.error h2 {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  color: var(--color-error);
+  margin: 0 0 var(--space-md);
+}
+
+.error p {
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-xl);
+}
+
+.errorFooter {
+  text-align: center;
+  margin-top: var(--space-xl);
+}
+
+.backButton {
+  padding: var(--space-sm) var(--space-xl);
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.backButton:hover {
+  background: var(--accent-primary-hover);
+}
+
+.backButton:active {
+  transform: scale(0.98);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scrollbar styling */
+.messagesContainer::-webkit-scrollbar {
+  width: 8px;
+}
+
+.messagesContainer::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+}
+
+.messagesContainer::-webkit-scrollbar-thumb {
+  background: var(--text-tertiary);
+  border-radius: var(--radius-sm);
+}
+
+.messagesContainer::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
