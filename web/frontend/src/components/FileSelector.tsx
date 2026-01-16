@@ -1,10 +1,29 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listCardFiles } from '../api/client';
+import type { FileStat } from '../types';
 import styles from './FileSelector.module.css';
 
+function getReviewedPercentage(file: FileStat): number {
+  if (file.total_cards === 0) return 0;
+  const reviewed = file.added_cards + file.skipped_cards;
+  return (reviewed / file.total_cards) * 100;
+}
+
+function getStatusBadge(file: FileStat) {
+  const reviewed = file.added_cards + file.skipped_cards;
+
+  if (reviewed === 0) {
+    return <span className={styles.statusBadge} data-status="new">New</span>;
+  } else if (reviewed === file.total_cards) {
+    return <span className={styles.statusBadge} data-status="complete">Complete</span>;
+  } else {
+    return <span className={styles.statusBadge} data-status="progress">In Progress</span>;
+  }
+}
+
 export function FileSelector() {
-  const [files, setFiles] = useState<string[]>([]);
+  const [files, setFiles] = useState<FileStat[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -71,19 +90,39 @@ export function FileSelector() {
           </div>
         ) : (
           <ul className={styles.fileList}>
-            {files.map((file, index) => (
-              <li
-                key={file}
-                className={styles.fileItem}
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <button onClick={() => handleSelect(file)} className={styles.fileButton}>
-                  <span className={styles.fileIcon}></span>
-                  <span className={styles.fileName}>{file}</span>
-                  <span className={styles.fileArrow}></span>
-                </button>
-              </li>
-            ))}
+            {files.map((file, index) => {
+              return (
+                <li
+                  key={file.filename}
+                  className={styles.fileItem}
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <button onClick={() => handleSelect(file.filename)} className={styles.fileButton}>
+                    <div className={styles.fileInfo}>
+                      <div className={styles.fileHeader}>
+                        <span className={styles.filename}>{file.filename}</span>
+                        {getStatusBadge(file)}
+                      </div>
+
+                      <div className={styles.stats}>
+                        <span className={styles.statLabel}>
+                          {file.added_cards} added · {file.skipped_cards} skipped · {file.pending_cards} pending
+                        </span>
+                      </div>
+
+                      <div className={styles.progressBarContainer}>
+                        <div
+                          className={styles.progressBar}
+                          style={{ width: `${getReviewedPercentage(file)}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    <span className={styles.fileArrow}></span>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

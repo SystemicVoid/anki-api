@@ -16,6 +16,14 @@
   margin-bottom: var(--space-2xl);
 }
 
+.logo {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--space-lg);
+  color: var(--primary-color);
+  animation: scaleIn var(--transition-slow) ease-out;
+}
+
 .title {
   font-family: var(--font-display);
   font-size: 2.5rem;
@@ -58,6 +66,8 @@
   cursor: pointer;
   transition: box-shadow var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
   text-align: left;
+  position: relative;
+  overflow: hidden;
 }
 
 .fileButton:hover {
@@ -73,14 +83,85 @@
 .fileIcon {
   font-size: 1.25rem;
   opacity: 0.6;
+  width: 40px;
+  height: 40px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+}
+
+.fileInfo {
+  flex: 1;
+  min-width: 0;
 }
 
 .fileName {
-  flex: 1;
+  display: block;
   font-family: var(--font-mono);
   font-size: 0.875rem;
   color: var(--text-primary);
-  word-break: break-all;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fileMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.stats {
+  font-family: var(--font-mono);
+}
+
+.badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badgeUnreviewed {
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+}
+
+.badgePartial {
+  background: rgba(var(--accent-primary-rgb), 0.1);
+  color: var(--accent-primary);
+}
+
+.badgeComplete {
+  background: rgba(var(--color-success-rgb), 0.1);
+  color: var(--color-success);
+}
+
+.progressBar {
+  width: 60px;
+  height: 4px;
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--accent-primary);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.progressFill.complete {
+  background: var(--color-success);
 }
 
 .fileArrow {
@@ -238,4 +319,70 @@
     opacity: 1;
     transform: scale(1);
   }
+}
+
+/* New status-based UI styling */
+.fileHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.filename {
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.statusBadge[data-status="new"] {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.statusBadge[data-status="progress"] {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.statusBadge[data-status="complete"] {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.statLabel {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.progressBarContainer {
+  height: 4px;
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: var(--space-xs);
+}
+
+.progressBarContainer .progressBar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-color), var(--accent-primary));
+  transition: width 0.3s ease;
+  width: 0;
 }
