@@ -1,6 +1,7 @@
 """Pydantic models for API requests and responses."""
 
 from typing import List, Optional
+from datetime import datetime
 from pydantic import BaseModel
 
 
@@ -13,6 +14,9 @@ class CardResponse(BaseModel):
     source: str
     deck: str
     model: str
+    anki_id: Optional[int] = None
+    status: str = "pending"
+    added_at: Optional[datetime] = None
 
 
 class CardUpdate(BaseModel):
@@ -68,6 +72,15 @@ class AnkiStatusResponse(BaseModel):
     error: Optional[str] = None
 
 
+class FileStat(BaseModel):
+    """Statistics for a card file."""
+    filename: str
+    total_cards: int
+    added_cards: int
+    skipped_cards: int
+    pending_cards: int
+
+
 class FileListResponse(BaseModel):
-    """List of available card files."""
-    files: List[str]
+    """List of available card files with stats."""
+    files: List[FileStat]
