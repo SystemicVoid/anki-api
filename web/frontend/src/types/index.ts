@@ -53,3 +53,16 @@ export interface FileListResponse {
 }
 
 export type ReviewAction = 'approve' | 'edit' | 'skip' | 'quit';
+
+export interface GenerationMessage {
+  type: 'status' | 'text' | 'tool' | 'complete' | 'error';
+  data: {
+    message?: string;
+    content?: string;
+    name?: string;
+    input?: any;
+    filename?: string;
+    step?: string;
+  };
+  timestamp: string;
+}
