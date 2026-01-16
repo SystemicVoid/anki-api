@@ -1,0 +1,241 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--space-xl);
+}
+
+.content {
+  max-width: 500px;
+  width: 100%;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: var(--space-2xl);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-sm);
+  animation: slideDown var(--transition-slow) ease-out;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: var(--text-tertiary);
+  margin: 0;
+  animation: slideDown var(--transition-slow) ease-out;
+  animation-delay: 100ms;
+  animation-fill-mode: both;
+}
+
+.fileList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.fileItem {
+  animation: slideUp var(--transition-base) ease-out both;
+}
+
+.fileButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  background: var(--bg-secondary);
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: box-shadow var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+  text-align: left;
+}
+
+.fileButton:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--accent-secondary);
+  transform: translateX(4px);
+}
+
+.fileButton:active {
+  transform: translateX(2px);
+}
+
+.fileIcon {
+  font-size: 1.25rem;
+  opacity: 0.6;
+}
+
+.fileName {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+.fileArrow {
+  font-size: 1rem;
+  color: var(--text-muted);
+  transition: color var(--transition-fast), transform var(--transition-fast);
+}
+
+.fileButton:hover .fileArrow {
+  color: var(--accent-primary);
+  transform: translateX(4px);
+}
+
+/* Empty state */
+.empty {
+  text-align: center;
+  padding: var(--space-3xl);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  animation: scaleIn var(--transition-slow) ease-out;
+}
+
+.emptyIcon {
+  font-size: 3rem;
+  opacity: 0.4;
+  display: block;
+  margin-bottom: var(--space-lg);
+}
+
+.empty h3 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-sm);
+}
+
+.empty p {
+  font-size: 0.9375rem;
+  color: var(--text-tertiary);
+  margin: 0;
+}
+
+.empty code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  padding: 0.125em 0.375em;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+}
+
+/* Loading state */
+.loading {
+  text-align: center;
+  padding: var(--space-3xl);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--bg-tertiary);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  margin: 0 auto var(--space-lg);
+  animation: spin 0.8s linear infinite;
+}
+
+.loading p {
+  color: var(--text-tertiary);
+  margin: 0;
+}
+
+/* Error state */
+.error {
+  text-align: center;
+  padding: var(--space-3xl);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+}
+
+.errorIcon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: var(--space-lg);
+}
+
+.error h2 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--color-error);
+  margin: 0 0 var(--space-sm);
+}
+
+.error p {
+  font-size: 0.9375rem;
+  color: var(--text-tertiary);
+  margin: 0 0 var(--space-xl);
+}
+
+.retryButton {
+  padding: var(--space-sm) var(--space-lg);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--accent-primary);
+  background: transparent;
+  border: 1px solid var(--accent-primary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.retryButton:hover {
+  background: var(--accent-primary);
+  color: white;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
