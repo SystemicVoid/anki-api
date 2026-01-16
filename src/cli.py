@@ -159,6 +159,38 @@ def wait_for_anki_connect(client: AnkiClient, timeout: int = 30) -> bool:
     return False
 
 
+def ensure_anki_running(client: AnkiClient | None = None, timeout: int = 30) -> AnkiClient:
+    """Ensure Anki Desktop is running and AnkiConnect is responsive.
+
+    Starts Anki Desktop if not already running and waits for AnkiConnect.
+    Returns an AnkiClient instance on success, exits on failure.
+    """
+    if client is None:
+        client = get_client()
+
+    # Check if already connected
+    try:
+        if client.ping():
+            return client
+    except AnkiConnectError:
+        pass
+
+    # Check if Anki process is running
+    if not is_anki_running():
+        print_info("Anki not running. Starting Anki Desktop...")
+        start_anki_desktop()
+        time.sleep(2)  # Give Anki time to initialize
+
+    # Wait for AnkiConnect to respond
+    print_info("Waiting for AnkiConnect...")
+    if not wait_for_anki_connect(client, timeout=timeout):
+        print_error("AnkiConnect not responding. Is Anki running with AnkiConnect installed?")
+        sys.exit(1)
+
+    print_success("Connected to AnkiConnect")
+    return client
+
+
 def run_claude_generation(source: str, tags: str | None) -> bool:
     """Run Claude Code to generate cards. Returns True on success."""
     cmd = ["claude", "-p", "--dangerously-skip-permissions"]
@@ -350,16 +382,8 @@ def review(file: Path, deck: str, show_warnings: bool):
     - (s)kip: Skip this card
     - (q)uit: Stop reviewing
     """
-    client = get_client()
-
-    # Check Anki connection
-    try:
-        if not client.ping():
-            print_error("Cannot connect to Anki. Make sure Anki is running.")
-            sys.exit(1)
-    except AnkiConnectError as e:
-        print_error(str(e))
-        sys.exit(1)
+    # Ensure Anki is running (starts it if needed)
+    client = ensure_anki_running()
 
     # Load cards
     try:
@@ -463,16 +487,8 @@ def add(file: Path, deck: str):
 
     Use this for batch adding cards you've already reviewed.
     """
-    client = get_client()
-
-    # Check Anki connection
-    try:
-        if not client.ping():
-            print_error("Cannot connect to Anki. Make sure Anki is running.")
-            sys.exit(1)
-    except AnkiConnectError as e:
-        print_error(str(e))
-        sys.exit(1)
+    # Ensure Anki is running (starts it if needed)
+    client = ensure_anki_running()
 
     # Load cards
     try:
@@ -529,16 +545,8 @@ def quick(front: str, back: str, deck: str, tags: str, context: str, show_warnin
     Example:
         anki quick "What is the capital of France?" "Paris" --tags geography
     """
-    client = get_client()
-
-    # Check Anki connection
-    try:
-        if not client.ping():
-            print_error("Cannot connect to Anki. Make sure Anki is running.")
-            sys.exit(1)
-    except AnkiConnectError as e:
-        print_error(str(e))
-        sys.exit(1)
+    # Ensure Anki is running (starts it if needed)
+    client = ensure_anki_running()
 
     # Create card
     tag_list = [t.strip() for t in tags.split(",") if t.strip()]
@@ -753,20 +761,8 @@ def flow(
             print_info("Use 'anki flow --attach' to view existing session")
             return
 
-    # Step 1: Check/start Anki Desktop
-    print_info("Checking Anki Desktop...")
-    if not is_anki_running():
-        print_warning("Anki not running. Starting Anki Desktop...")
-        start_anki_desktop()
-        time.sleep(2)
-
-    # Step 2: Wait for AnkiConnect
-    print_info("Waiting for AnkiConnect...")
-    client = get_client()
-    if not wait_for_anki_connect(client, timeout=30):
-        print_error("AnkiConnect not responding. Is Anki running with AnkiConnect installed?")
-        sys.exit(1)
-    print_success("Connected to AnkiConnect")
+    # Step 1: Ensure Anki is running (starts it if needed)
+    ensure_anki_running()
 
     # Step 3: Generate cards (unless --review)
     if not review_only:
