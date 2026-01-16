@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { CardWithValidation, Card, AnkiStatus } from '../types';
-import { loadCards, updateCard, pingAnki, approveCard } from '../api/client';
+import { loadCards, updateCard, pingAnki, approveCard, skipCard } from '../api/client';
 
 export interface ReviewSessionState {
   filename: string;
@@ -47,14 +47,16 @@ export function useReviewSession(filename: string | null) {
           pingAnki(),
         ]);
 
-        // Calculate initial added count based on anki_id presence
-        const initialAdded = cardsResponse.cards.filter(c => c.card.anki_id).length;
+        // Calculate initial counts based on status
+        const initialAdded = cardsResponse.cards.filter(c => c.card.status === 'added').length;
+        const initialSkipped = cardsResponse.cards.filter(c => c.card.status === 'skipped').length;
 
         setState((prev) => ({
           ...prev,
           filename: currentFilename,
           cards: cardsResponse.cards,
           addedCount: initialAdded,
+          skippedCount: initialSkipped,
           isLoading: false,
           error: null,
           ankiStatus: ankiResponse,
@@ -94,12 +96,15 @@ export function useReviewSession(filename: string | null) {
 
       setState((prev) => {
         const newCards = [...prev.cards];
-        newCards[prev.currentIndex] = updatedCard; // Update card with anki_id
+        newCards[prev.currentIndex] = updatedCard; // Update card with anki_id and status
+
+        // Only increment if the card wasn't already added
+        const increment = prev.cards[prev.currentIndex].card.status !== 'added' ? 1 : 0;
 
         return {
           ...prev,
           cards: newCards,
-          addedCount: prev.addedCount + 1,
+          addedCount: prev.addedCount + increment,
           isSubmitting: false,
         };
       });
@@ -113,13 +118,38 @@ export function useReviewSession(filename: string | null) {
     }
   }, [currentCard, filename, state.currentIndex, goToNext]);
 
-  const skip = useCallback(() => {
-    setState((prev) => ({
-      ...prev,
-      skippedCount: prev.skippedCount + 1,
-    }));
-    goToNext();
-  }, [goToNext]);
+  const skip = useCallback(async () => {
+    if (!currentCard || !filename) return;
+
+    setState((prev) => ({ ...prev, isSubmitting: true }));
+
+    try {
+      // Persist skip to backend
+      const updatedCard = await skipCard(filename, state.currentIndex);
+
+      setState((prev) => {
+        const newCards = [...prev.cards];
+        newCards[prev.currentIndex] = updatedCard; // Update card with status='skipped'
+
+        // Only increment if the card wasn't already skipped
+        const increment = prev.cards[prev.currentIndex].card.status === 'pending' ? 1 : 0;
+
+        return {
+          ...prev,
+          cards: newCards,
+          skippedCount: prev.skippedCount + increment,
+          isSubmitting: false,
+        };
+      });
+      goToNext();
+    } catch (err) {
+      setState((prev) => ({
+        ...prev,
+        isSubmitting: false,
+        error: err instanceof Error ? err.message : 'Failed to skip card',
+      }));
+    }
+  }, [currentCard, filename, state.currentIndex, goToNext]);
 
   const quit = useCallback(() => {
     setState((prev) => ({ ...prev, isComplete: true }));
