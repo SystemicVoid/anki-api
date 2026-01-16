@@ -7,6 +7,8 @@ export interface Card {
   deck: string;
   model: string;
   anki_id?: number | null;
+  status: string;
+  added_at?: string | null;
 }
 
 export interface ValidationWarning {
@@ -38,8 +40,16 @@ export interface AddCardResponse {
   error?: string;
 }
 
+export interface FileStat {
+  filename: string;
+  total_cards: number;
+  added_cards: number;
+  skipped_cards: number;
+  pending_cards: number;
+}
+
 export interface FileListResponse {
-  files: string[];
+  files: FileStat[];
 }
 
 export type ReviewAction = 'approve' | 'edit' | 'skip' | 'quit';
