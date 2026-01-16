@@ -142,14 +142,14 @@ Generated 5 flashcards from the Python decorators article.
 Saved to: cards/python-decorators_20250114_143022.json
 
 To review and add to Anki:
-  uv run anki review cards/python-decorators_20250114_143022.json
+  uv run anki-api review cards/python-decorators_20250114_143022.json
 ```
 
 ### Step 5: User Reviews Cards
 
 **User runs:**
 ```bash
-uv run anki review cards/python-decorators_20250114_143022.json
+uv run anki-api review cards/python-decorators_20250114_143022.json
 ```
 
 **Interactive review process:**

@@ -20,7 +20,7 @@ Parse the provided arguments:
 
 ### 0. Prep the environment
 - Install deps once with `uv sync`.
-- Ensure Anki is running, then verify with `uv run anki ping` so downstream commands do not fail mid-run.
+- Ensure Anki is running, then verify with `uv run anki-api ping` so downstream commands do not fail mid-run.
 
 ### 1. Acquire Content
 
@@ -179,9 +179,9 @@ save_cards_to_json(cards, output_file)
 - Number of cards generated
 - Output file path
 - Validation summary (any warnings or confirmations that all cards passed)
-- Next step command: `uv run anki review <file>`
+- Next step command: `uv run anki-api review <file>`
 
-Encourage the user to run `uv run anki review <file>` (or `uv run anki add <file>` if they've already approved cards) so the CLI handles Anki-side validation and submission.
+Encourage the user to run `uv run anki-api review <file>` (or `uv run anki-api add <file>` if they've already approved cards) so the CLI handles Anki-side validation and submission.
 
 ## Guidelines
 
@@ -204,7 +204,7 @@ Encourage the user to run `uv run anki review <file>` (or `uv run anki add <file
 - Full workflow guide: `examples/agent_workflow.md`
 - EAT principles: https://leananki.com/creating-better-flashcards/
 - Card schema: `src/schema.py`
-- CLI tools: `uv run anki --help`
+- CLI tools: `uv run anki-api --help`
 
 ## Example Output
 
@@ -218,7 +218,7 @@ Cards created:
   • 2 common pitfalls
 
 Next step:
-  uv run anki review cards/topic_20250114_143022.json
+  uv run anki-api review cards/topic_20250114_143022.json
 ```
 
 **Note:** All cards will be reviewed by user before being added to Anki. Focus on quality and adherence to EAT principles.

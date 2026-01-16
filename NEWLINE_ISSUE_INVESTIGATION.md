@@ -218,7 +218,7 @@ Agent creates Flashcard objects (with \n newlines)
     ↓
 save_cards_to_json() → cards/*.json (preserves \n)
     ↓
-User runs: uv run anki review cards/file.json
+User runs: uv run anki-api review cards/file.json
     ↓
 load_cards_from_json() → Flashcard objects (with \n)
     ↓
@@ -323,7 +323,7 @@ print(json.dumps(payload, indent=2))
 
 **Run**:
 ```bash
-uv run anki review cards/test.json  # Or use reformat_cards.py
+uv run anki-api review cards/test.json  # Or use reformat_cards.py
 ```
 
 **Check**: Verify the `fields` contain `<br>` tags, not `\n`.

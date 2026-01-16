@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.scripts]
-anki = "src.cli:main"
+anki-api = "src.cli:main"
 
 [build-system]
 requires = ["hatchling"]

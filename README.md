@@ -42,7 +42,7 @@ cd /home/hugo/Documents/Engineering/anki-api
 uv sync
 
 # Verify Anki connection (make sure Anki is running)
-uv run anki ping
+uv run anki-api ping
 ```
 
 ## Quick Start
@@ -76,10 +76,10 @@ The agent will:
 
 ```bash
 # Interactive review (recommended)
-uv run anki review cards/eat-framework.json
+uv run anki-api review cards/eat-framework.json
 
 # Batch add without review
-uv run anki add cards/eat-framework.json --deck "Learning"
+uv run anki-api add cards/eat-framework.json --deck "Learning"
 ```
 
 ## CLI Commands
@@ -88,36 +88,36 @@ uv run anki add cards/eat-framework.json --deck "Learning"
 
 ```bash
 # Check Anki connection
-uv run anki ping
+uv run anki-api ping
 
 # List available decks
-uv run anki list-decks
+uv run anki-api list-decks
 
 # List note types (Basic, Cloze, etc.)
-uv run anki list-models
+uv run anki-api list-models
 ```
 
 ### Card Management
 
 ```bash
 # Review cards interactively (approve/edit/skip)
-uv run anki review cards/my-cards.json
+uv run anki-api review cards/my-cards.json
 
 # Add cards to specific deck
-uv run anki review cards/my-cards.json --deck "Programming"
+uv run anki-api review cards/my-cards.json --deck "Programming"
 
 # Skip validation warnings
-uv run anki review cards/my-cards.json --skip-validation
+uv run anki-api review cards/my-cards.json --skip-validation
 
 # Batch add without review
-uv run anki add cards/my-cards.json
+uv run anki-api add cards/my-cards.json
 ```
 
 ### Quick Card Creation
 
 ```bash
 # Create a single card quickly
-uv run anki quick \
+uv run anki-api quick \
   "What is the capital of France?" \
   "Paris" \
   --tags geography,capitals \
@@ -128,13 +128,13 @@ uv run anki quick \
 
 ```bash
 # Find notes by query
-uv run anki find "deck:Default tag:python"
-uv run anki find "tag:ai-generated"
-uv run anki find "front:*capital*"
+uv run anki-api find "deck:Default tag:python"
+uv run anki-api find "tag:ai-generated"
+uv run anki-api find "front:*capital*"
 
 # Delete notes by ID
-uv run anki delete 1496198395707
-uv run anki delete 1234567890 1234567891 --yes
+uv run anki-api delete 1496198395707
+uv run anki-api delete 1234567890 1234567891 --yes
 ```
 
 ## Card JSON Format
@@ -220,7 +220,7 @@ The system automatically validates cards against EAT principles:
 
 4. **Review cards:**
    ```bash
-   uv run anki review cards/python-decorators.json
+   uv run anki-api review cards/python-decorators.json
    ```
 
 5. **Done!** Cards are now in Anki for spaced repetition.
