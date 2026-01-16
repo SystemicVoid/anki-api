@@ -1,11 +1,14 @@
 """Command-line interface for anki-api."""
 
 import re
+import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import List
 
 import click
+import requests
 
 from src.anki_client import AnkiClient, AnkiConnectError
 from src.documents import export_docx_to_markdown
@@ -119,6 +122,110 @@ def print_validation_warnings(warnings: List[ValidationWarning]) -> None:
             click.secho(f"  {warning}", fg="yellow")
         else:  # info
             click.secho(f"  {warning}", fg="blue")
+
+
+PROJECT_DIR = Path(__file__).parent.parent
+FRONTEND_DIR = PROJECT_DIR / "web" / "frontend"
+BACKEND_URL = "http://127.0.0.1:8080"
+FRONTEND_URL = "http://localhost:5173"
+
+
+def is_anki_running() -> bool:
+    """Check if Anki Desktop is running via pgrep."""
+    result = subprocess.run(["pgrep", "-x", "anki"], capture_output=True)
+    return result.returncode == 0
+
+
+def start_anki_desktop() -> subprocess.Popen:
+    """Launch Anki Desktop in background."""
+    return subprocess.Popen(
+        ["anki"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+
+def wait_for_anki_connect(client: AnkiClient, timeout: int = 30) -> bool:
+    """Poll AnkiConnect until ready or timeout."""
+    start = time.time()
+    while time.time() - start < timeout:
+        try:
+            if client.ping():
+                return True
+        except AnkiConnectError:
+            pass
+        time.sleep(1)
+    return False
+
+
+def run_claude_generation(source: str, tags: str | None) -> bool:
+    """Run Claude Code to generate cards. Returns True on success."""
+    cmd = ["claude", "-p", "--dangerously-skip-permissions"]
+    prompt = f"/create-anki-cards {source}"
+    if tags:
+        prompt += f" --tags {tags}"
+    result = subprocess.run(cmd + [prompt])
+    return result.returncode == 0
+
+
+def start_backend() -> subprocess.Popen:
+    """Start FastAPI backend server."""
+    return subprocess.Popen(
+        ["uv", "run", "anki", "serve"],
+        cwd=PROJECT_DIR,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+
+def start_frontend() -> subprocess.Popen:
+    """Start Vite dev server."""
+    return subprocess.Popen(
+        ["pnpm", "dev"],
+        cwd=FRONTEND_DIR,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+
+def wait_for_server(url: str, timeout: int = 30) -> bool:
+    """Poll URL until it responds or timeout."""
+    start = time.time()
+    while time.time() - start < timeout:
+        try:
+            resp = requests.get(url, timeout=2)
+            if resp.status_code == 200:
+                return True
+        except requests.RequestException:
+            pass
+        time.sleep(1)
+    return False
+
+
+def get_last_activity() -> float:
+    """Get timestamp of last API activity from backend."""
+    resp = requests.get(f"{BACKEND_URL}/api/activity", timeout=2)
+    return resp.json()["last_activity"]
+
+
+def open_browser(url: str) -> None:
+    """Open URL in default browser."""
+    subprocess.Popen(
+        ["xdg-open", url],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+
+def cleanup_processes(processes: list[subprocess.Popen]) -> None:
+    """Terminate all background processes gracefully."""
+    for proc in processes:
+        if proc.poll() is None:  # Still running
+            proc.terminate()
+            try:
+                proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                proc.kill()
 
 
 @click.group()
@@ -549,6 +656,113 @@ def serve(port: int, host: str, reload: bool):
         port=port,
         reload=reload,
     )
+
+
+@main.command()
+@click.argument("source", required=False)
+@click.option("--tags", "-t", default=None, help="Comma-separated tags for cards")
+@click.option("--review", "review_only", is_flag=True, help="Skip generation, just open review UI")
+@click.option("--no-browser", is_flag=True, help="Don't open browser automatically")
+@click.option("--idle-timeout", default=30, type=int, help="Shutdown after N seconds of idle (0 to disable)")
+def flow(source: str | None, tags: str | None, review_only: bool, no_browser: bool, idle_timeout: int):
+    """Generate cards and launch review interface.
+
+    Full workflow with source:
+        uv run anki flow https://example.com/article
+        uv run anki flow docs/notes.md --tags python,decorators
+
+    Review-only mode (skip card generation):
+        uv run anki flow --review
+    """
+    # Validate arguments
+    if not review_only and not source:
+        print_error("Source required unless using --review flag")
+        click.echo("Usage: anki flow <url-or-file> or anki flow --review")
+        sys.exit(1)
+
+    processes: list[subprocess.Popen] = []
+
+    try:
+        # Step 1: Check/start Anki Desktop
+        print_info("Checking Anki Desktop...")
+        if not is_anki_running():
+            print_warning("Anki not running. Starting Anki Desktop...")
+            anki_proc = start_anki_desktop()
+            processes.append(anki_proc)
+            time.sleep(2)  # Give Anki time to initialize
+
+        # Step 2: Wait for AnkiConnect
+        print_info("Waiting for AnkiConnect...")
+        client = get_client()
+        if not wait_for_anki_connect(client, timeout=30):
+            print_error("AnkiConnect not responding. Is Anki running with AnkiConnect installed?")
+            sys.exit(1)
+        print_success("Connected to AnkiConnect")
+
+        # Step 3: Generate cards (unless --review)
+        if not review_only:
+            print_info(f"Generating cards from: {source}")
+            if not run_claude_generation(source, tags):
+                print_error("Card generation failed")
+                sys.exit(1)
+            print_success("Card generation complete")
+
+        # Step 4: Start backend server
+        print_info("Starting backend server...")
+        backend_proc = start_backend()
+        processes.append(backend_proc)
+
+        if not wait_for_server(f"{BACKEND_URL}/api/health", timeout=30):
+            print_error("Backend server failed to start")
+            sys.exit(1)
+        print_success(f"Backend running at {BACKEND_URL}")
+
+        # Step 5: Start frontend dev server
+        print_info("Starting frontend server...")
+        frontend_proc = start_frontend()
+        processes.append(frontend_proc)
+
+        if not wait_for_server(FRONTEND_URL, timeout=60):
+            print_error("Frontend server failed to start")
+            sys.exit(1)
+        print_success(f"Frontend running at {FRONTEND_URL}")
+
+        # Step 6: Open browser
+        if not no_browser:
+            print_info("Opening browser...")
+            open_browser(FRONTEND_URL)
+
+        # Step 7: Monitor for idle or wait for Ctrl+C
+        if idle_timeout > 0:
+            print_info(f"Review UI ready. Auto-shutdown after {idle_timeout}s idle. Press Ctrl+C to stop.")
+            while True:
+                time.sleep(5)
+                try:
+                    last = get_last_activity()
+                    idle_seconds = time.time() - last
+                    if idle_seconds > idle_timeout:
+                        click.echo(f"\nNo activity for {idle_timeout}s. Shutting down...")
+                        break
+                except requests.RequestException:
+                    # Server died
+                    click.echo("\nServer stopped unexpectedly.")
+                    break
+        else:
+            print_info("Review UI ready. Press Ctrl+C to stop.")
+            while True:
+                time.sleep(1)
+                # Check if processes are still running
+                if backend_proc.poll() is not None or frontend_proc.poll() is not None:
+                    click.echo("\nServer stopped unexpectedly.")
+                    break
+
+    except KeyboardInterrupt:
+        click.echo("\nShutting down...")
+
+    finally:
+        # Step 8: Cleanup
+        cleanup_processes(processes)
+        print_success("Servers stopped.")
 
 
 if __name__ == "__main__":

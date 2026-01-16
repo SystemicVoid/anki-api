@@ -1,9 +1,14 @@
 """FastAPI application for Anki card review web interface."""
 
-from fastapi import FastAPI
+import time
+
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from .routes import cards, anki
+
+# Global activity tracker for idle detection
+_last_activity: float = time.time()
 
 app = FastAPI(
     title="Anki Card Review API",
@@ -29,7 +34,21 @@ app.include_router(cards.router, prefix="/api/cards", tags=["cards"])
 app.include_router(anki.router, prefix="/api/anki", tags=["anki"])
 
 
+@app.middleware("http")
+async def track_activity(request: Request, call_next):
+    """Track last API activity for idle detection."""
+    global _last_activity
+    _last_activity = time.time()
+    return await call_next(request)
+
+
 @app.get("/api/health")
 async def health_check():
     """Health check endpoint."""
     return {"status": "ok"}
+
+
+@app.get("/api/activity")
+async def get_activity():
+    """Return timestamp of last API activity for idle detection."""
+    return {"last_activity": _last_activity}
