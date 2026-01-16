@@ -663,7 +663,7 @@ def serve(port: int, host: str, reload: bool):
 @click.option("--tags", "-t", default=None, help="Comma-separated tags for cards")
 @click.option("--review", "review_only", is_flag=True, help="Skip generation, just open review UI")
 @click.option("--no-browser", is_flag=True, help="Don't open browser automatically")
-@click.option("--idle-timeout", default=30, type=int, help="Shutdown after N seconds of idle (0 to disable)")
+@click.option("--idle-timeout", default=600, type=int, help="Shutdown after N seconds of idle (0 to disable)")
 def flow(source: str | None, tags: str | None, review_only: bool, no_browser: bool, idle_timeout: int):
     """Generate cards and launch review interface.
 
