@@ -1,20 +1,11 @@
 import type { CardWithValidation } from '../types';
-import { ValidationWarnings } from './ValidationWarnings';
 import styles from './CardDisplay.module.css';
 
 interface Props {
   card: CardWithValidation;
-  showWarnings?: boolean;
 }
 
-function isUrl(str: string): boolean {
-  try {
-    new URL(str);
-    return true;
-  } catch {
-    return false;
-  }
-}
+
 
 function formatText(text: string): React.ReactNode {
   // Split by newlines and render with line breaks
@@ -26,8 +17,8 @@ function formatText(text: string): React.ReactNode {
   ));
 }
 
-export function CardDisplay({ card, showWarnings = true }: Props) {
-  const { card: cardData, warnings } = card;
+export function CardDisplay({ card }: Props) {
+  const { card: cardData } = card;
   const hasContext = cardData.context.trim().length > 0;
 
   return (
@@ -76,34 +67,10 @@ export function CardDisplay({ card, showWarnings = true }: Props) {
           </div>
         )}
 
-        {/* Source & Deck info */}
-        <div className={styles.meta}>
-          {cardData.source && (
-            <span className={styles.metaItem}>
-              <span className={styles.metaIcon}></span>
-              {isUrl(cardData.source) ? (
-                <a
-                  href={cardData.source}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.sourceLink}
-                >
-                  {new URL(cardData.source).hostname}
-                </a>
-              ) : (
-                <span className={styles.sourceText}>{cardData.source}</span>
-              )}
-            </span>
-          )}
-          <span className={styles.metaItem}>
-            <span className={styles.metaIcon}></span>
-            {cardData.deck}
-          </span>
-        </div>
+
       </footer>
 
-      {/* Validation Warnings */}
-      {showWarnings && <ValidationWarnings warnings={warnings} />}
+
     </article>
   );
 }
