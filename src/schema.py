@@ -2,6 +2,7 @@
 
 from typing import List, Optional
 from dataclasses import dataclass, field, asdict
+from datetime import datetime
 import json
 import re
 
@@ -40,6 +41,8 @@ class Flashcard:
     deck: str = "Default"
     model: str = "Basic"
     anki_id: Optional[int] = None  # ID of the note in Anki, if added
+    status: str = "pending"  # Review status: "pending" | "skipped" | "added"
+    added_at: Optional[datetime] = None  # Timestamp when added to Anki
 
     def to_anki_note(self) -> dict:
         """Convert to AnkiConnect note format.
