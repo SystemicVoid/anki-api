@@ -521,5 +521,35 @@ def delete(note_ids: tuple, yes: bool):
         sys.exit(1)
 
 
+@main.command()
+@click.option("--port", default=8080, help="Port for the API server (default: 8080)")
+@click.option("--host", default="127.0.0.1", help="Host to bind to (default: 127.0.0.1)")
+@click.option("--reload", is_flag=True, help="Enable auto-reload for development")
+def serve(port: int, host: str, reload: bool):
+    """Start the web review interface.
+
+    Launches a FastAPI server for the card review web UI.
+    The frontend should be started separately with:
+        cd web/frontend && pnpm dev
+
+    Then open http://localhost:5173 in your browser.
+    """
+    try:
+        import uvicorn
+    except ImportError:
+        print_error("uvicorn not installed. Run: uv sync")
+        sys.exit(1)
+
+    print_info(f"Starting Anki Review API server on http://{host}:{port}")
+    print_info("Press Ctrl+C to stop\n")
+
+    uvicorn.run(
+        "web.backend.main:app",
+        host=host,
+        port=port,
+        reload=reload,
+    )
+
+
 if __name__ == "__main__":
     main()
