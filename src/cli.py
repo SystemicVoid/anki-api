@@ -249,7 +249,7 @@ def tmux_attach_session() -> None:
 
 def tmux_create_session() -> bool:
     """Create tmux session with backend and frontend panes."""
-    backend_cmd = f"cd {PROJECT_DIR} && uv run anki serve"
+    backend_cmd = f"cd {PROJECT_DIR} && uv run anki-api serve"
     frontend_cmd = f"cd {FRONTEND_DIR} && pnpm dev"
 
     # Create session with backend in first pane
