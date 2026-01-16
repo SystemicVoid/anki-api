@@ -5,7 +5,7 @@ import time
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routes import cards, anki
+from .routes import cards, anki, generate
 
 # Global activity tracker for idle detection
 _last_activity: float = time.time()
@@ -32,6 +32,7 @@ app.add_middleware(
 # Include routers
 app.include_router(cards.router, prefix="/api/cards", tags=["cards"])
 app.include_router(anki.router, prefix="/api/anki", tags=["anki"])
+app.include_router(generate.router, prefix="/api", tags=["generation"])
 
 
 @app.middleware("http")
