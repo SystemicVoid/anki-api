@@ -2,6 +2,14 @@
 
 This document correlates future work, technical debt, and ideas for the `anki-api` project.
 
+## Recently Completed
+- [x] **File Browser UX Enhancement** (2026-01-17): Implemented comprehensive file browser with project/system modes, replacing manual path copy-paste workflow. Features include:
+  - Backend: Secure file browsing API with path validation and directory blacklisting
+  - Frontend: Tabbed interface (URL vs File) with recent files panel
+  - Project mode: Browse scraped/ and cards/ directories
+  - System mode: Browse filesystem with security safeguards
+  - Recent files: Quick access to recently modified files
+
 ## High Priority
 - [ ] **CI/CD Pipeline**: Implement GitHub Actions for automated testing and linting on push.
 - [ ] **Youtube Integration**: Add support for scraping youtube videos and creating cards from their transcripts using https://github.com/jdepoix/youtube-transcript-api
