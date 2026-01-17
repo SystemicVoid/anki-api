@@ -6,6 +6,8 @@ import type {
   FileListResponse,
   Card,
   FileStat,
+  FileNode,
+  FileBrowserResponse,
 } from '../types';
 
 const API_BASE = '/api';
@@ -78,4 +80,22 @@ export async function skipCard(filename: string, index: number): Promise<CardWit
     }
   );
   return handleResponse<CardWithValidation>(response);
+}
+
+export async function browseFiles(
+  path: string = '',
+  mode: 'project' | 'system' = 'project',
+  dirType: 'scraped' | 'cards' = 'scraped'
+): Promise<FileBrowserResponse> {
+  const params = new URLSearchParams({ path, mode });
+  if (mode === 'project') {
+    params.append('dir_type', dirType);
+  }
+  const response = await fetch(`${API_BASE}/files/browse?${params}`);
+  return handleResponse<FileBrowserResponse>(response);
+}
+
+export async function getRecentFiles(limit: number = 10): Promise<FileNode[]> {
+  const response = await fetch(`${API_BASE}/files/recent?limit=${limit}`);
+  return handleResponse<FileNode[]>(response);
 }
