@@ -289,6 +289,11 @@ async def websocket_generate(websocket: WebSocket):
         source = request_data.get("source")
         tags = request_data.get("tags", "")
 
+        print(f"[DEBUG] WebSocket received request_data: {request_data}")
+        print(f"[DEBUG] Source: {repr(source)}")
+        print(f"[DEBUG] Source bytes: {source.encode('utf-8') if source else None}")
+        print(f"[DEBUG] Tags: {repr(tags)}")
+
         if not source:
             await session.send_event("error", {
                 "message": "Missing 'source' parameter",
