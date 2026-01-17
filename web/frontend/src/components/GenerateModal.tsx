@@ -18,9 +18,12 @@ export function GenerateModal({ isOpen, onClose }: GenerateModalProps) {
     e.preventDefault();
     if (!source.trim()) return;
 
+    // Strip quotes from source (common when copying paths with spaces)
+    const cleanSource = source.trim().replace(/^["']|["']$/g, '');
+
     // Navigate to generation page with source and tags
     const params = new URLSearchParams({
-      source: source.trim(),
+      source: cleanSource,
     });
     if (tags.trim()) {
       params.append('tags', tags.trim());

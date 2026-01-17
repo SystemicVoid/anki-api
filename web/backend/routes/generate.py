@@ -301,6 +301,9 @@ async def websocket_generate(websocket: WebSocket):
             })
             return
 
+        # Strip quotes from source (common when copying paths with spaces)
+        source = source.strip().strip('"').strip("'")
+
         session.source = source
         session.tags = tags
 
