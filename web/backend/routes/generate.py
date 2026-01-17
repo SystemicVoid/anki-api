@@ -115,28 +115,57 @@ class GenerationSession:
 
     async def validate_source(self, source: str) -> str:
         """Validate and prepare source (URL or file path)."""
-        # Check for path traversal attacks
-        if ".." in source or source.startswith("/"):
-            if not Path(source).is_absolute():
-                raise ValueError("Path traversal detected in source")
+        print(f"[DEBUG] Validating source: {source}")
 
         # Determine if source is URL or file path
         if source.startswith(("http://", "https://")):
             # URL - scrape it
+            print(f"[DEBUG] Source is URL, will scrape")
             return await self.scrape_url(source)
         else:
             # File path - validate it exists
             file_path = Path(source)
-            if not file_path.is_absolute():
-                # Try relative to project root
-                file_path = PROJECT_ROOT / source
 
+            # Handle relative paths by resolving against project root
+            if not file_path.is_absolute():
+                file_path = PROJECT_ROOT / source
+                print(f"[DEBUG] Relative path converted to: {file_path}")
+            else:
+                print(f"[DEBUG] Absolute path provided: {file_path}")
+
+            # Check if file exists
             if not file_path.exists():
-                raise FileNotFoundError(f"Source file not found: {source}")
+                # Provide helpful error with suggestions
+                parent_dir = file_path.parent
+                if parent_dir.exists():
+                    similar_files = list(parent_dir.glob("*" + file_path.stem[:20] + "*"))
+                    error_msg = f"Source file not found: {file_path}\n"
+                    if similar_files:
+                        error_msg += f"Similar files in {parent_dir.name}/:\n"
+                        for f in similar_files[:5]:
+                            error_msg += f"  - {f.name}\n"
+                    await self.send_event("error", {
+                        "message": error_msg,
+                        "step": "validation"
+                    })
+                    raise FileNotFoundError(error_msg)
+                else:
+                    error_msg = f"Source file not found and parent directory doesn't exist: {file_path}"
+                    await self.send_event("error", {
+                        "message": error_msg,
+                        "step": "validation"
+                    })
+                    raise FileNotFoundError(error_msg)
 
             if not file_path.is_file():
-                raise ValueError(f"Source is not a file: {source}")
+                error_msg = f"Source is not a file: {file_path}"
+                await self.send_event("error", {
+                    "message": error_msg,
+                    "step": "validation"
+                })
+                raise ValueError(error_msg)
 
+            print(f"[DEBUG] File validated successfully: {file_path}")
             await self.send_event("status", {
                 "message": f"Using existing file: {file_path.name}",
                 "step": "source_ready"
