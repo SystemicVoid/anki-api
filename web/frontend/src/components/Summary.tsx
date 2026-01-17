@@ -11,15 +11,24 @@ interface Props {
 export function Summary({ filename, total, added, skipped }: Props) {
   const navigate = useNavigate();
   const remaining = total - added - skipped;
+  const isFullyComplete = remaining === 0;
+
+  const title = isFullyComplete ? 'Review Complete' : 'Review Session Ended';
+  const icon = isFullyComplete ? '✓' : '⏸';
 
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-        <div className={styles.iconWrapper}>
-          <span className={styles.icon}></span>
+        <div className={styles.iconWrapper} data-complete={isFullyComplete}>
+          <span className={styles.icon}>{icon}</span>
         </div>
 
-        <h2 className={styles.title}>Review Complete</h2>
+        <h2 className={styles.title}>{title}</h2>
+        {!isFullyComplete && (
+          <p className={styles.subtitle}>
+            You can resume reviewing the remaining cards anytime
+          </p>
+        )}
         <p className={styles.filename}>{filename}</p>
 
         <div className={styles.stats}>
@@ -35,7 +44,7 @@ export function Summary({ filename, total, added, skipped }: Props) {
           {remaining > 0 && (
             <>
               <div className={styles.statDivider} />
-              <div className={styles.stat}>
+              <div className={styles.stat} data-emphasis="true">
                 <span className={styles.statValue}>{remaining}</span>
                 <span className={styles.statLabel}>Remaining</span>
               </div>
@@ -44,8 +53,19 @@ export function Summary({ filename, total, added, skipped }: Props) {
         </div>
 
         <div className={styles.actions}>
-          <button onClick={() => navigate('/review')} className={styles.primaryButton}>
-            Review Another File
+          {remaining > 0 && (
+            <button
+              onClick={() => window.location.reload()}
+              className={styles.resumeButton}
+            >
+              Resume Review
+            </button>
+          )}
+          <button
+            onClick={() => navigate('/review')}
+            className={remaining > 0 ? styles.secondaryButton : styles.primaryButton}
+          >
+            {remaining > 0 ? 'Select Different File' : 'Review Another File'}
           </button>
         </div>
       </div>
