@@ -66,3 +66,20 @@ export interface GenerationMessage {
   };
   timestamp: string;
 }
+
+export interface FileNode {
+  name: string;
+  path: string;
+  type: 'file' | 'directory';
+  extension?: string;
+  size: number;
+  modified: string;
+  readable: boolean;
+}
+
+export interface FileBrowserResponse {
+  current_path: string;
+  parent_path?: string;
+  nodes: FileNode[];
+  mode: 'project' | 'system';
+}
