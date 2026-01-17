@@ -115,12 +115,9 @@ class GenerationSession:
 
     async def validate_source(self, source: str) -> str:
         """Validate and prepare source (URL or file path)."""
-        print(f"[DEBUG] Validating source: {source}")
-
         # Determine if source is URL or file path
         if source.startswith(("http://", "https://")):
             # URL - scrape it
-            print(f"[DEBUG] Source is URL, will scrape")
             return await self.scrape_url(source)
         else:
             # File path - validate it exists
@@ -129,9 +126,6 @@ class GenerationSession:
             # Handle relative paths by resolving against project root
             if not file_path.is_absolute():
                 file_path = PROJECT_ROOT / source
-                print(f"[DEBUG] Relative path converted to: {file_path}")
-            else:
-                print(f"[DEBUG] Absolute path provided: {file_path}")
 
             # Check if file exists
             if not file_path.exists():
@@ -165,7 +159,6 @@ class GenerationSession:
                 })
                 raise ValueError(error_msg)
 
-            print(f"[DEBUG] File validated successfully: {file_path}")
             await self.send_event("status", {
                 "message": f"Using existing file: {file_path.name}",
                 "step": "source_ready"
@@ -185,9 +178,6 @@ class GenerationSession:
             prompt_parts.extend(["--tags", self.tags])
         prompt = " ".join(prompt_parts)
 
-        print(f"[DEBUG] Prompt: {prompt}")
-        print(f"[DEBUG] CWD: {PROJECT_ROOT}")
-
         # Configure Claude Agent SDK
         options = ClaudeAgentOptions(
             cwd=str(PROJECT_ROOT),
@@ -199,17 +189,11 @@ class GenerationSession:
 
         try:
             # Stream messages from agent
-            message_count = 0
             async for message in query(prompt=prompt, options=options):
-                message_count += 1
-                print(f"[DEBUG] Message {message_count}: {type(message).__name__}")
                 await self.process_sdk_message(message)
-
-            print(f"[DEBUG] Total messages received: {message_count}")
 
             # Find generated output file
             self.output_file = await self.find_output_file()
-            print(f"[DEBUG] Output file: {self.output_file}")
 
             if self.output_file:
                 await self.send_event("complete", {
@@ -223,8 +207,9 @@ class GenerationSession:
                 })
 
         except Exception as e:
-            print(f"[DEBUG] Exception in generate_cards: {type(e).__name__}: {e}")
+            # Log exception for debugging
             import traceback
+            print(f"Error in card generation: {e}")
             traceback.print_exc()
             await self.send_event("error", {
                 "message": f"Generation failed: {str(e)}",
@@ -234,13 +219,8 @@ class GenerationSession:
 
     async def process_sdk_message(self, message):
         """Process and forward SDK messages to WebSocket client."""
-        print(f"[DEBUG] Processing message type: {type(message).__name__}")
-        print(f"[DEBUG] Message dir: {[attr for attr in dir(message) if not attr.startswith('_')]}")
-
         if isinstance(message, AssistantMessage):
-            print(f"[DEBUG] AssistantMessage content blocks: {len(message.content)}")
             for block in message.content:
-                print(f"[DEBUG]   Block type: {type(block).__name__}")
                 if isinstance(block, TextBlock):
                     # Agent thinking/explanation
                     await self.send_event("text", {
@@ -252,13 +232,8 @@ class GenerationSession:
                         "name": block.name,
                         "input": block.input,
                     })
-        else:
-            # Log other message types for debugging
-            print(f"[DEBUG] Unhandled message type: {type(message).__name__}")
-            if hasattr(message, 'type'):
-                print(f"[DEBUG]   message.type: {message.type}")
-            if hasattr(message, 'subtype'):
-                print(f"[DEBUG]   message.subtype: {getattr(message, 'subtype', 'N/A')}")
+        # Other message types (SystemMessage, UserMessage, ResultMessage) are internal
+        # to the SDK conversation flow and don't need to be forwarded to the client
 
     async def find_output_file(self) -> Optional[str]:
         """Find the most recently created file in cards/ directory."""
@@ -289,10 +264,6 @@ async def websocket_generate(websocket: WebSocket):
         source = request_data.get("source")
         tags = request_data.get("tags", "")
 
-        print(f"[DEBUG] WebSocket received request_data: {request_data}")
-        print(f"[DEBUG] Source: {repr(source)}")
-        print(f"[DEBUG] Source bytes: {source.encode('utf-8') if source else None}")
-        print(f"[DEBUG] Tags: {repr(tags)}")
 
         if not source:
             await session.send_event("error", {
