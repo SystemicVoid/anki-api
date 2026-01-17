@@ -76,6 +76,11 @@ class Flashcard:
     @classmethod
     def from_dict(cls, data: dict) -> "Flashcard":
         """Create Flashcard from dictionary."""
+        # Parse datetime string if present
+        if "added_at" in data and isinstance(data["added_at"], str):
+            from datetime import datetime
+            data = data.copy()
+            data["added_at"] = datetime.fromisoformat(data["added_at"])
         return cls(**data)
 
 
@@ -311,7 +316,13 @@ def save_cards_to_json(cards: List[Flashcard], file_path: str) -> None:
         cards: List of Flashcard objects
         file_path: Path to output JSON file
     """
+    def datetime_serializer(obj):
+        """Custom JSON serializer for datetime objects."""
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
+
     data = [card.to_dict() for card in cards]
 
     with open(file_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+        json.dump(data, f, indent=2, ensure_ascii=False, default=datetime_serializer)
