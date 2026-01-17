@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FileBrowser } from './FileBrowser';
+import type { FileNode } from '../types';
 import styles from './GenerateModal.module.css';
 
 interface GenerateModalProps {
@@ -8,7 +10,9 @@ interface GenerateModalProps {
 }
 
 export function GenerateModal({ isOpen, onClose }: GenerateModalProps) {
-  const [source, setSource] = useState('');
+  const [inputMode, setInputMode] = useState<'url' | 'file'>('url');
+  const [urlSource, setUrlSource] = useState('');
+  const [selectedFile, setSelectedFile] = useState<FileNode | null>(null);
   const [tags, setTags] = useState('');
   const navigate = useNavigate();
 
@@ -16,21 +20,28 @@ export function GenerateModal({ isOpen, onClose }: GenerateModalProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!source.trim()) return;
 
-    // Strip quotes from source (common when copying paths with spaces)
-    const cleanSource = source.trim().replace(/^["']|["']$/g, '');
+    const source = inputMode === 'url'
+      ? urlSource.trim().replace(/^["']|["']$/g, '')
+      : selectedFile?.path;
+
+    if (!source) return;
 
     // Navigate to generation page with source and tags
     const params = new URLSearchParams({
-      source: cleanSource,
+      source: source,
     });
     if (tags.trim()) {
       params.append('tags', tags.trim());
     }
 
     navigate(`/generate?${params.toString()}`);
+    onClose();
   };
+
+  const isSubmitDisabled = inputMode === 'url'
+    ? !urlSource.trim()
+    : !selectedFile;
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -52,25 +63,56 @@ export function GenerateModal({ isOpen, onClose }: GenerateModalProps) {
           </button>
         </header>
 
+        {/* Input Mode Tabs */}
+        <div className={styles.tabs}>
+          <button
+            type="button"
+            className={inputMode === 'url' ? styles.tabActive : styles.tab}
+            onClick={() => setInputMode('url')}
+          >
+            From URL
+          </button>
+          <button
+            type="button"
+            className={inputMode === 'file' ? styles.tabActive : styles.tab}
+            onClick={() => setInputMode('file')}
+          >
+            From File
+          </button>
+        </div>
+
         <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.field}>
-            <label htmlFor="source" className={styles.label}>
-              Source URL or File Path <span className={styles.required}>*</span>
-            </label>
-            <input
-              id="source"
-              type="text"
-              value={source}
-              onChange={(e) => setSource(e.target.value)}
-              placeholder="https://example.com/article or scraped/file.md"
-              className={styles.input}
-              autoFocus
-              required
-            />
-            <p className={styles.hint}>
-              Enter a URL to scrape or a path to an existing markdown file
-            </p>
-          </div>
+          {/* URL Input Tab */}
+          {inputMode === 'url' && (
+            <div className={styles.field}>
+              <label htmlFor="source" className={styles.label}>
+                Source URL or File Path <span className={styles.required}>*</span>
+              </label>
+              <input
+                id="source"
+                type="text"
+                value={urlSource}
+                onChange={(e) => setUrlSource(e.target.value)}
+                placeholder="https://example.com/article or scraped/file.md"
+                className={styles.input}
+                autoFocus
+                required
+              />
+              <p className={styles.hint}>
+                Enter a URL to scrape or a path to an existing markdown file
+              </p>
+            </div>
+          )}
+
+          {/* File Browser Tab */}
+          {inputMode === 'file' && (
+            <div className={styles.field}>
+              <FileBrowser
+                selectedFile={selectedFile}
+                onSelectFile={setSelectedFile}
+              />
+            </div>
+          )}
 
           <div className={styles.field}>
             <label htmlFor="tags" className={styles.label}>
@@ -99,7 +141,7 @@ export function GenerateModal({ isOpen, onClose }: GenerateModalProps) {
             </button>
             <button
               type="submit"
-              disabled={!source.trim()}
+              disabled={isSubmitDisabled}
               className={styles.generateButton}
             >
               Generate Cards
