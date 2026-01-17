@@ -1,6 +1,6 @@
 """Pydantic models for API requests and responses."""
 
-from typing import List, Optional
+from typing import List, Optional, Literal
 from datetime import datetime
 from pydantic import BaseModel
 
@@ -84,3 +84,22 @@ class FileStat(BaseModel):
 class FileListResponse(BaseModel):
     """List of available card files with stats."""
     files: List[FileStat]
+
+
+class FileNode(BaseModel):
+    """File or directory node for file browser."""
+    name: str
+    path: str  # Relative for project mode, absolute for system mode
+    type: Literal["file", "directory"]
+    extension: Optional[str] = None
+    size: int
+    modified: datetime
+    readable: bool  # False if permission error
+
+
+class FileBrowserResponse(BaseModel):
+    """Response for file browser endpoint."""
+    current_path: str
+    parent_path: Optional[str] = None
+    nodes: List[FileNode]
+    mode: Literal["project", "system"]
