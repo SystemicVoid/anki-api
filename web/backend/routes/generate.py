@@ -156,21 +156,31 @@ class GenerationSession:
             prompt_parts.extend(["--tags", self.tags])
         prompt = " ".join(prompt_parts)
 
+        print(f"[DEBUG] Prompt: {prompt}")
+        print(f"[DEBUG] CWD: {PROJECT_ROOT}")
+
         # Configure Claude Agent SDK
         options = ClaudeAgentOptions(
             cwd=str(PROJECT_ROOT),
             allowed_tools=["Read", "Write", "Bash", "Glob", "Grep"],
             permission_mode="acceptEdits",  # Auto-approve file writes to cards/
-            max_turns=10,
+            max_turns=20,  # Increase turns for complex generation
+            setting_sources=["project", "user"],  # Load project settings (skills)
         )
 
         try:
             # Stream messages from agent
+            message_count = 0
             async for message in query(prompt=prompt, options=options):
+                message_count += 1
+                print(f"[DEBUG] Message {message_count}: {type(message).__name__}")
                 await self.process_sdk_message(message)
+
+            print(f"[DEBUG] Total messages received: {message_count}")
 
             # Find generated output file
             self.output_file = await self.find_output_file()
+            print(f"[DEBUG] Output file: {self.output_file}")
 
             if self.output_file:
                 await self.send_event("complete", {
@@ -184,6 +194,9 @@ class GenerationSession:
                 })
 
         except Exception as e:
+            print(f"[DEBUG] Exception in generate_cards: {type(e).__name__}: {e}")
+            import traceback
+            traceback.print_exc()
             await self.send_event("error", {
                 "message": f"Generation failed: {str(e)}",
                 "step": "generating"
@@ -192,8 +205,13 @@ class GenerationSession:
 
     async def process_sdk_message(self, message):
         """Process and forward SDK messages to WebSocket client."""
+        print(f"[DEBUG] Processing message type: {type(message).__name__}")
+        print(f"[DEBUG] Message dir: {[attr for attr in dir(message) if not attr.startswith('_')]}")
+
         if isinstance(message, AssistantMessage):
+            print(f"[DEBUG] AssistantMessage content blocks: {len(message.content)}")
             for block in message.content:
+                print(f"[DEBUG]   Block type: {type(block).__name__}")
                 if isinstance(block, TextBlock):
                     # Agent thinking/explanation
                     await self.send_event("text", {
@@ -205,6 +223,13 @@ class GenerationSession:
                         "name": block.name,
                         "input": block.input,
                     })
+        else:
+            # Log other message types for debugging
+            print(f"[DEBUG] Unhandled message type: {type(message).__name__}")
+            if hasattr(message, 'type'):
+                print(f"[DEBUG]   message.type: {message.type}")
+            if hasattr(message, 'subtype'):
+                print(f"[DEBUG]   message.subtype: {getattr(message, 'subtype', 'N/A')}")
 
     async def find_output_file(self) -> Optional[str]:
         """Find the most recently created file in cards/ directory."""
