@@ -15,11 +15,26 @@ function getStatusBadge(file: FileStat) {
   const reviewed = file.added_cards + file.skipped_cards;
 
   if (reviewed === 0) {
-    return <span className={styles.statusBadge} data-status="new">New</span>;
+    return (
+      <span className={styles.statusBadge} data-status="new">
+        <span className={styles.statusIcon}>●</span>
+        New
+      </span>
+    );
   } else if (reviewed === file.total_cards) {
-    return <span className={styles.statusBadge} data-status="complete">Complete</span>;
+    return (
+      <span className={styles.statusBadge} data-status="complete">
+        <span className={styles.statusIcon}>✓</span>
+        Complete
+      </span>
+    );
   } else {
-    return <span className={styles.statusBadge} data-status="progress">In Progress</span>;
+    return (
+      <span className={styles.statusBadge} data-status="progress">
+        <span className={styles.statusIcon}>⟳</span>
+        In Progress
+      </span>
+    );
   }
 }
 

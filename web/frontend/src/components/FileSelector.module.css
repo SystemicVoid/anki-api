@@ -44,15 +44,19 @@
 
 .generateButton {
   margin-top: var(--space-xl);
-  padding: var(--space-md) var(--space-xl);
+  padding: var(--space-md) var(--space-2xl);
   background: var(--accent-primary);
   color: white;
   border: none;
   border-radius: var(--radius-md);
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 4px 12px rgba(45, 90, 74, 0.25);
+  transition:
+    background var(--transition-base),
+    transform var(--transition-fast),
+    box-shadow var(--transition-base);
   animation: slideDown var(--transition-slow) ease-out;
   animation-delay: 200ms;
   animation-fill-mode: both;
@@ -61,18 +65,19 @@
 .generateButton:hover {
   background: var(--accent-primary-hover);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 6px 16px rgba(45, 90, 74, 0.35);
 }
 
 .generateButton:active {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.98);
+  box-shadow: var(--shadow-md);
 }
 
 .fileList {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
+  gap: var(--space-lg);
 }
 
 .fileItem {
@@ -84,11 +89,13 @@
   display: flex;
   align-items: center;
   gap: var(--space-md);
-  padding: var(--space-md) var(--space-lg);
+  padding: var(--space-lg) var(--space-xl);
   background: var(--bg-secondary);
   border: 1px solid transparent;
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  box-shadow:
+    0 4px 12px rgba(44, 40, 37, 0.06),
+    0 1px 3px rgba(44, 40, 37, 0.04);
   cursor: pointer;
   transition: box-shadow var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
   text-align: left;
@@ -97,13 +104,32 @@
 }
 
 .fileButton:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow:
+    0 12px 32px rgba(44, 40, 37, 0.08),
+    0 4px 8px rgba(44, 40, 37, 0.04);
   border-color: var(--accent-secondary);
-  transform: translateX(4px);
+  transform: translateY(-2px);
 }
 
 .fileButton:active {
-  transform: translateX(2px);
+  transform: translateY(0) scale(0.98);
+  box-shadow: var(--shadow-md);
+}
+
+.fileButton::before {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, transparent 50%, var(--bg-tertiary) 50%);
+  opacity: 0.3;
+  transition: opacity var(--transition-base);
+  pointer-events: none;
+}
+
+.fileButton:hover::before {
+  opacity: 0.5;
 }
 
 .fileIcon {
@@ -216,6 +242,7 @@
   opacity: 0.4;
   display: block;
   margin-bottom: var(--space-lg);
+  animation: float 3s ease-in-out infinite;
 }
 
 .empty h3 {
@@ -328,7 +355,7 @@
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -339,12 +366,17 @@
 @keyframes scaleIn {
   from {
     opacity: 0;
-    transform: scale(0.95);
+    transform: scale(0.96) translateY(8px);
   }
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: scale(1) translateY(0);
   }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
 }
 
 /* New status-based UI styling */
@@ -369,28 +401,45 @@
 .statusBadge {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
-  border-radius: var(--radius-sm);
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-md);
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
   flex-shrink: 0;
+  box-shadow:
+    0 1px 3px rgba(44, 40, 37, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.statusIcon {
+  font-size: 0.75rem;
+  line-height: 1;
 }
 
 .statusBadge[data-status="new"] {
-  background: var(--bg-tertiary);
+  background: linear-gradient(135deg, var(--bg-tertiary) 0%, #E8E4DC 100%);
   color: var(--text-secondary);
 }
 
 .statusBadge[data-status="progress"] {
-  background: #fef3c7;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
   color: #92400e;
 }
 
 .statusBadge[data-status="complete"] {
-  background: #d1fae5;
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
   color: #065f46;
+}
+
+.fileButton:hover .statusBadge {
+  transform: translateY(-1px);
+  box-shadow:
+    0 2px 6px rgba(44, 40, 37, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .statLabel {
@@ -399,16 +448,37 @@
 }
 
 .progressBarContainer {
-  height: 4px;
+  height: 6px;
   background: var(--bg-tertiary);
   border-radius: 2px;
   overflow: hidden;
-  margin-top: var(--space-xs);
+  margin-top: var(--space-sm);
+  box-shadow: inset 0 1px 2px rgba(44, 40, 37, 0.08);
 }
 
 .progressBarContainer .progressBar {
   height: 100%;
   background: linear-gradient(90deg, var(--primary-color), var(--accent-primary));
-  transition: width 0.3s ease;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   width: 0;
+  box-shadow: 0 0 8px rgba(45, 90, 74, 0.3);
+  position: relative;
+}
+
+.progressBarContainer .progressBar::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
