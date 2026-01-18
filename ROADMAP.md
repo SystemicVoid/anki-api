@@ -3,6 +3,11 @@
 This document correlates future work, technical debt, and ideas for the `anki-api` project.
 
 ## Recently Completed
+- [x] **YouTube Integration** (2026-01-18): Added support for generating flashcards from YouTube video transcripts. Features include:
+  - Auto-detection of YouTube URLs (youtube.com, youtu.be, shorts, embed)
+  - Transcript fetching via youtube-transcript-api
+  - Markdown output with timestamps saved to scraped/
+  - Seamless integration with existing card generation UI
 - [x] **File Browser UX Enhancement** (2026-01-17): Implemented comprehensive file browser with project/system modes, replacing manual path copy-paste workflow. Features include:
   - Backend: Secure file browsing API with path validation and directory blacklisting
   - Frontend: Tabbed interface (URL vs File) with recent files panel
@@ -12,7 +17,6 @@ This document correlates future work, technical debt, and ideas for the `anki-ap
 
 ## High Priority
 - [ ] **CI/CD Pipeline**: Implement GitHub Actions for automated testing and linting on push.
-- [ ] **Youtube Integration**: Add support for scraping youtube videos and creating cards from their transcripts using https://github.com/jdepoix/youtube-transcript-api
 - [ ] **Production Configuration**: Parameterize CORS origins in `web/backend/main.py` to support production environments (currently hardcoded to localhost).
 - [ ] **Test Coverage**: Expand pytest coverage beyond the current basic smoke tests, particularly for edge cases in card validation.
 

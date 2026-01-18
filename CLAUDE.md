@@ -106,13 +106,21 @@ save_cards_to_json(cards, f"cards/topic_{timestamp}.json")
 - Colored output using click.secho()
 - Entry point: `anki-api` command (defined in pyproject.toml)
 
+**src/youtube.py** - YouTube transcript extraction
+- `is_youtube_url()`: Detect YouTube URLs (youtube.com, youtu.be, shorts, embed)
+- `extract_video_id()`: Parse 11-character video ID from URL
+- `export_transcript_to_markdown()`: Fetch transcript and save to markdown with timestamps
+
 **web/** - Web Interface
 - **backend/**: FastAPI application (`main.py`, `models.py`, `routes/`)
 - **frontend/**: React + TypeScript application (Vite based)
 
 ### Data Flow
 
-1. **Content Acquisition**: URL → `scrape.sh` → `scraped/*.md`
+1. **Content Acquisition**:
+   - Web URLs → `scrape.sh` → `scraped/*.md`
+   - YouTube URLs → `youtube.py` → `scraped/youtube_*.md`
+   - DOCX files → `documents.py` → `scraped/*.md`
 2. **Card Generation**: Agent reads content → creates `Flashcard` objects → validates with EAT principles
 3. **Persistence**: `save_cards_to_json()` → `cards/*.json`
 4. **Review**: User runs `uv run anki-api review` → interactive approval
