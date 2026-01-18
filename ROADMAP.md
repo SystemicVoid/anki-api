@@ -27,10 +27,14 @@ This document correlates future work, technical debt, and ideas for the `anki-ap
   - System mode: Browse filesystem with security safeguards
   - Recent files: Quick access to recently modified files
 
+## Highest Priority
+- [ ] **Codebase Cleanup** (pre-blocking hooks): Clean up all issues flagged by ty and knip so we can enable blocking mode:
+  - **Python type errors (ty)**: Fix type annotations in `src/cli/output.py`, `src/cli/commands/orchestration.py`, `web/backend/main.py`
+  - **Dead code (knip)**: Remove `src/components/ValidationWarnings.tsx`, `addCardToAnki` export, `ReviewAction` type
+  - **After cleanup**: Remove `--exit-zero` from ty hook and `|| true` from knip hook in `.pre-commit-config.yaml`
+
 ## High Priority
 - [ ] **CI/CD Pipeline**: Implement GitHub Actions to run `prek run --all-files` and `uv run pytest` on push/PR
-- [ ] **Fix Type Errors**: Address pre-existing type errors flagged by ty (currently using `--exit-zero`)
-- [ ] **Clean Dead Code**: Remove unused exports flagged by knip (ValidationWarnings.tsx, addCardToAnki, ReviewAction)
 - [ ] **Production Configuration**: Parameterize CORS origins in `web/backend/main.py` to support production environments (currently hardcoded to localhost).
 - [ ] **Test Coverage**: Expand pytest coverage beyond the current basic smoke tests, particularly for edge cases in card validation.
 
