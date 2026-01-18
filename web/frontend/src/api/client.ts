@@ -1,5 +1,4 @@
 import type {
-  AddCardResponse,
   AnkiStatus,
   Card,
   CardsFileResponse,
@@ -47,15 +46,6 @@ export async function updateCard(
 export async function pingAnki(): Promise<AnkiStatus> {
   const response = await fetch(`${API_BASE}/anki/ping`);
   return handleResponse<AnkiStatus>(response);
-}
-
-export async function addCardToAnki(card: Card): Promise<AddCardResponse> {
-  const response = await fetch(`${API_BASE}/anki/add`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(card),
-  });
-  return handleResponse<AddCardResponse>(response);
 }
 
 export async function approveCard(filename: string, index: number): Promise<CardWithValidation> {
