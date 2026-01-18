@@ -18,7 +18,7 @@ app = FastAPI(
 
 # CORS middleware for Vite dev server
 app.add_middleware(
-    CORSMiddleware,
+    CORSMiddleware,  # type: ignore
     allow_origins=[
         "http://localhost:5173",  # Vite default
         "http://127.0.0.1:5173",
