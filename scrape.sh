@@ -36,13 +36,10 @@ echo ""
 # Run crawl4ai scraper with non-interactive flags
 # The scraper will output only the file path in quiet mode
 cd "${CRAWL4AI_DIR}"
-SCRAPED_FILE=$(uv run scrape_to_markdown.py "${URL}" \
+if ! SCRAPED_FILE=$(uv run scrape_to_markdown.py "${URL}" \
     --output-dir "${SCRAPED_DIR}" \
     --non-interactive \
-    --quiet)
-
-# Check if scraping succeeded
-if [ $? -ne 0 ] || [ -z "${SCRAPED_FILE}" ]; then
+    --quiet) || [ -z "${SCRAPED_FILE}" ]; then
     echo "Error: Scraping failed" >&2
     exit 1
 fi

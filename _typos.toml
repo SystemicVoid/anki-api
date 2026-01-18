@@ -1,0 +1,12 @@
+[files]
+extend-exclude = ["*.lock", "pnpm-lock.yaml", "*.min.js", "*.min.css"]
+
+[default]
+extend-ignore-re = [
+  # Base64 encoded strings
+  "[A-Za-z0-9+/]{40,}={0,2}",
+]
+
+[default.extend-words]
+# Domain-specific terms that are not typos
+anki = "anki"
