@@ -29,3 +29,36 @@ packages = ["src"]
 dev = [
     "pytest>=7.0.0",
 ]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "C4",   # flake8-comprehensions
+    "UP",   # pyupgrade
+    "ARG",  # flake8-unused-arguments
+    "SIM",  # flake8-simplify
+    "TCH",  # flake8-type-checking
+    "PTH",  # flake8-use-pathlib
+    "RUF",  # ruff-specific rules
+]
+ignore = [
+    "E501",   # line too long (formatter handles)
+    "B008",   # function call in default argument (FastAPI Depends)
+    "B904",   # raise from (noisy in FastAPI exception handlers)
+    "RUF001", # ambiguous unicode (intentional emojis)
+    "RUF013", # implicit Optional (verbose, handled by type checker)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]
+
+[tool.ty]
+python-version = "3.11"

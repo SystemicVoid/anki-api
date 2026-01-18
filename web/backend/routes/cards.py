@@ -1,24 +1,27 @@
 """Card file management routes."""
 
-import os
 import re
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import List
-from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException
 
 from src.anki_client import AnkiClient, AnkiConnectError
-from src.schema import Flashcard, load_cards_from_json, save_cards_to_json, validate_card
+from src.schema import (
+    Flashcard,
+    load_cards_from_json,
+    save_cards_to_json,
+    validate_card,
+)
 
 from ..models import (
     CardResponse,
+    CardsFileResponse,
     CardUpdate,
     CardWithValidation,
-    CardsFileResponse,
     FileListResponse,
-    ValidationWarningResponse,
     FileStat,
+    ValidationWarningResponse,
 )
 
 router = APIRouter()
@@ -35,9 +38,7 @@ def validate_filename(filename: str) -> bool:
     if not re.match(r"^[\w\-]+\.json$", filename):
         return False
     # No path separators
-    if "/" in filename or "\\" in filename:
-        return False
-    return True
+    return not ("/" in filename or "\\" in filename)
 
 
 def flashcard_to_response(card: Flashcard) -> CardResponse:
@@ -56,7 +57,9 @@ def flashcard_to_response(card: Flashcard) -> CardResponse:
     )
 
 
-def get_card_with_validation(card: Flashcard, index: int, total: int) -> CardWithValidation:
+def get_card_with_validation(
+    card: Flashcard, index: int, total: int
+) -> CardWithValidation:
     """Get card with its validation warnings."""
     warnings = validate_card(card)
     return CardWithValidation(
@@ -87,24 +90,30 @@ async def list_card_files():
                 skipped_count = sum(1 for c in cards if c.status == "skipped")
                 pending_count = sum(1 for c in cards if c.status == "pending")
 
-                files.append(FileStat(
-                    filename=f.name,
-                    total_cards=len(cards),
-                    added_cards=added_count,
-                    skipped_cards=skipped_count,
-                    pending_cards=pending_count,
-                ))
+                files.append(
+                    FileStat(
+                        filename=f.name,
+                        total_cards=len(cards),
+                        added_cards=added_count,
+                        skipped_cards=skipped_count,
+                        pending_cards=pending_count,
+                    )
+                )
             except Exception:
-                files.append(FileStat(
-                    filename=f.name,
-                    total_cards=0,
-                    added_cards=0,
-                    skipped_cards=0,
-                    pending_cards=0,
-                ))
+                files.append(
+                    FileStat(
+                        filename=f.name,
+                        total_cards=0,
+                        added_cards=0,
+                        skipped_cards=0,
+                        pending_cards=0,
+                    )
+                )
 
     # Sort by modification time (most recent first)
-    files.sort(key=lambda item: (CARDS_DIR / item.filename).stat().st_mtime, reverse=True)
+    files.sort(
+        key=lambda item: (CARDS_DIR / item.filename).stat().st_mtime, reverse=True
+    )
 
     return FileListResponse(files=files)
 
@@ -125,8 +134,7 @@ async def get_cards(filename: str):
         raise HTTPException(status_code=400, detail=str(e))
 
     cards_with_validation = [
-        get_card_with_validation(card, i, len(cards))
-        for i, card in enumerate(cards)
+        get_card_with_validation(card, i, len(cards)) for i, card in enumerate(cards)
     ]
 
     return CardsFileResponse(
@@ -207,7 +215,7 @@ async def approve_card(filename: str, index: int):
             )
             card.anki_id = note_id
             card.status = "added"
-            card.added_at = datetime.now(timezone.utc)
+            card.added_at = datetime.now(UTC)
             save_cards_to_json(cards, str(file_path))
 
     except AnkiConnectError as e:

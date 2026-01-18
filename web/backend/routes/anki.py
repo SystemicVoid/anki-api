@@ -1,7 +1,5 @@
 """Anki integration routes."""
 
-from typing import List
-
 from fastapi import APIRouter, HTTPException
 
 from src.anki_client import AnkiClient, AnkiConnectError
@@ -28,7 +26,7 @@ async def ping_anki():
         return AnkiStatusResponse(connected=False, error=str(e))
 
 
-@router.get("/decks", response_model=List[str])
+@router.get("/decks", response_model=list[str])
 async def list_decks():
     """List available Anki decks."""
     client = get_anki_client()
@@ -38,7 +36,7 @@ async def list_decks():
         raise HTTPException(status_code=503, detail=str(e))
 
 
-@router.get("/models", response_model=List[str])
+@router.get("/models", response_model=list[str])
 async def list_models():
     """List available Anki note models."""
     client = get_anki_client()

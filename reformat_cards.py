@@ -10,7 +10,6 @@ This script:
 """
 
 import re
-from typing import List, Dict, Tuple
 
 import click
 
@@ -30,7 +29,7 @@ def convert_newlines_to_html(text: str) -> str:
         Text with <br> tags for HTML rendering
     """
     normalized = text.replace("\r\n", "\n").replace("\r", "\n")
-    return normalized.replace('\n', '<br>')
+    return normalized.replace("\n", "<br>")
 
 
 def normalize_html_value(text: str) -> str:
@@ -41,25 +40,38 @@ def normalize_html_value(text: str) -> str:
 def strip_html_tags(text: str) -> str:
     """Remove HTML tags from text, preserving line breaks."""
     # Remove <br>, <br/>, <br />, etc. → newline
-    text = re.sub(r'<br\s*/?>', '\n', text, flags=re.IGNORECASE)
+    text = re.sub(r"<br\s*/?>", "\n", text, flags=re.IGNORECASE)
 
     # Convert block-level HTML tags to newlines
     # Both opening and closing tags become newlines (excess will be cleaned later)
-    block_tags = ['div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'tr', 'ul', 'ol']
+    block_tags = [
+        "div",
+        "p",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "li",
+        "tr",
+        "ul",
+        "ol",
+    ]
     for tag in block_tags:
         # Both opening and closing tags → newline
-        text = re.sub(f'</{tag}>', '\n', text, flags=re.IGNORECASE)
-        text = re.sub(f'<{tag}[^>]*>', '\n', text, flags=re.IGNORECASE)
+        text = re.sub(f"</{tag}>", "\n", text, flags=re.IGNORECASE)
+        text = re.sub(f"<{tag}[^>]*>", "\n", text, flags=re.IGNORECASE)
 
     # Remove any remaining HTML tags (inline tags like <b>, <i>, <span>, etc.)
-    text = re.sub(r'<[^>]+>', '', text)
+    text = re.sub(r"<[^>]+>", "", text)
 
     # Decode HTML entities
-    text = text.replace('&nbsp;', ' ')
-    text = text.replace('&amp;', '&')
-    text = text.replace('&lt;', '<')
-    text = text.replace('&gt;', '>')
-    text = text.replace('&quot;', '"')
+    text = text.replace("&nbsp;", " ")
+    text = text.replace("&amp;", "&")
+    text = text.replace("&lt;", "<")
+    text = text.replace("&gt;", ">")
+    text = text.replace("&quot;", '"')
 
     return text
 
@@ -67,17 +79,17 @@ def strip_html_tags(text: str) -> str:
 def strip_markdown(text: str) -> str:
     """Remove markdown formatting from text."""
     # Remove bold **text**
-    text = re.sub(r'\*\*([^*]+)\*\*', r'\1', text)
+    text = re.sub(r"\*\*([^*]+)\*\*", r"\1", text)
 
     # Remove italic *text* or _text_
-    text = re.sub(r'\*([^*]+)\*', r'\1', text)
-    text = re.sub(r'_([^_]+)_', r'\1', text)
+    text = re.sub(r"\*([^*]+)\*", r"\1", text)
+    text = re.sub(r"_([^_]+)_", r"\1", text)
 
     # Remove code blocks ```text```
-    text = re.sub(r'```[^`]*```', '', text)
+    text = re.sub(r"```[^`]*```", "", text)
 
     # Remove inline code `text`
-    text = re.sub(r'`([^`]+)`', r'\1', text)
+    text = re.sub(r"`([^`]+)`", r"\1", text)
 
     return text
 
@@ -86,16 +98,16 @@ def fix_separator(text: str) -> str:
     """Fix separator formatting to use clean --- with blank lines."""
     # Match various separator patterns with optional &nbsp; and <br> tags
     patterns = [
-        r'&nbsp;---<br><br>',  # Old pattern from example
-        r'<br><br>&nbsp;---<br><br>',
-        r'\n---\n',  # Single newline
-        r'\n\n---\n',  # Missing trailing newlines
-        r'\n---\n\n',  # Missing leading newlines
-        r'---',  # No newlines at all
+        r"&nbsp;---<br><br>",  # Old pattern from example
+        r"<br><br>&nbsp;---<br><br>",
+        r"\n---\n",  # Single newline
+        r"\n\n---\n",  # Missing trailing newlines
+        r"\n---\n\n",  # Missing leading newlines
+        r"---",  # No newlines at all
     ]
 
     for pattern in patterns:
-        text = re.sub(pattern, '\n\n---\n\n', text)
+        text = re.sub(pattern, "\n\n---\n\n", text)
 
     return text
 
@@ -103,8 +115,8 @@ def fix_separator(text: str) -> str:
 def remove_context_label(text: str) -> str:
     """Remove 'Context:' label after separator."""
     # Remove **Context:** or Context: after separator
-    text = re.sub(r'(---\s*\n\s*)\*\*Context:\*\*\s*', r'\1', text)
-    text = re.sub(r'(---\s*\n\s*)Context:\s*', r'\1', text)
+    text = re.sub(r"(---\s*\n\s*)\*\*Context:\*\*\s*", r"\1", text)
+    text = re.sub(r"(---\s*\n\s*)Context:\s*", r"\1", text)
 
     return text
 
@@ -120,21 +132,23 @@ def fix_list_formatting(text: str) -> str:
         """Only replace if it looks like a list item (small number)."""
         num = int(match.group(1))
         if num <= 20:  # Only convert small numbers that are likely list items
-            return f'{num}. '
+            return f"{num}. "
         return match.group(0)  # Keep original for large numbers like years
 
     # Match (N) followed by space, at start or after newline
-    text = re.sub(r'(?:^|(?<=\n))\((\d+)\)\s+', replace_list_item, text, flags=re.MULTILINE)
+    text = re.sub(
+        r"(?:^|(?<=\n))\((\d+)\)\s+", replace_list_item, text, flags=re.MULTILINE
+    )
 
     # Ensure each numbered list item (1., 2., 3., etc.) is on its own line
     # Match pattern: comma/period followed by space and then a number with period (next list item)
     # Example: "text,2. next" or "text.2. next" → "text,\n2. next"
-    text = re.sub(r'([,.])\s*(\d{1,2}\.\s+)', r'\1\n\2', text)
+    text = re.sub(r"([,.])\s*(\d{1,2}\.\s+)", r"\1\n\2", text)
 
     # Also handle unordered lists: ensure "- item" patterns have newlines
     # Match: text followed by "- " (single dash with space, not ---)
     # Negative lookbehind to avoid matching --- separator
-    text = re.sub(r'([^\n-])\s*(-\s+)(?=[^\-])', r'\1\n\2', text)
+    text = re.sub(r"([^\n-])\s*(-\s+)(?=[^\-])", r"\1\n\2", text)
 
     return text
 
@@ -142,12 +156,12 @@ def fix_list_formatting(text: str) -> str:
 def clean_whitespace(text: str) -> str:
     """Clean up excessive whitespace while preserving intentional spacing."""
     # Remove trailing whitespace from lines
-    lines = text.split('\n')
+    lines = text.split("\n")
     lines = [line.rstrip() for line in lines]
-    text = '\n'.join(lines)
+    text = "\n".join(lines)
 
     # Collapse multiple blank lines (more than 2) into 2
-    text = re.sub(r'\n{4,}', '\n\n\n', text)
+    text = re.sub(r"\n{4,}", "\n\n\n", text)
 
     # Remove leading/trailing whitespace from entire text
     text = text.strip()
@@ -171,7 +185,9 @@ def reformat_card_field(text: str) -> str:
     return text
 
 
-def preview_changes(original: str, reformatted: str, field_name: str, note_id: int) -> None:
+def preview_changes(
+    original: str, reformatted: str, field_name: str, note_id: int
+) -> None:
     """Display a diff-like preview of changes."""
     if original == reformatted:
         click.secho(f"\n{field_name} (Note {note_id}): No changes needed", fg="green")
@@ -198,9 +214,20 @@ def preview_html_only_change(field_name: str, note_id: int, preview_text: str) -
 
 
 @click.command()
-@click.option('--query', default='added:30', help='Anki search query (default: added:30 for last 30 days)')
-@click.option('--limit', default=5, type=int, help='Number of cards to process (default: 5 for preview)')
-@click.option('--apply', is_flag=True, help='Actually apply changes (default: preview only)')
+@click.option(
+    "--query",
+    default="added:30",
+    help="Anki search query (default: added:30 for last 30 days)",
+)
+@click.option(
+    "--limit",
+    default=5,
+    type=int,
+    help="Number of cards to process (default: 5 for preview)",
+)
+@click.option(
+    "--apply", is_flag=True, help="Actually apply changes (default: preview only)"
+)
 def main(query: str, limit: int, apply: bool):
     """Reformat Anki cards to match new formatting guidelines."""
 
@@ -231,15 +258,15 @@ def main(query: str, limit: int, apply: bool):
     notes = client.get_note_info(note_ids)
 
     # Process each note
-    changes: List[Tuple[int, Dict[str, str]]] = []
+    changes: list[tuple[int, dict[str, str]]] = []
 
     for note in notes:
-        note_id = note['noteId']
+        note_id = note["noteId"]
         reformatted_fields = {}
         has_changes = False
 
-        for field_name, field_data in note['fields'].items():
-            original = field_data.get('value', '')
+        for field_name, field_data in note["fields"].items():
+            original = field_data.get("value", "")
             reformatted_plain = reformat_card_field(original)
             reformatted_html = convert_newlines_to_html(reformatted_plain)
 
@@ -277,10 +304,16 @@ def main(query: str, limit: int, apply: bool):
     if not apply:
         click.secho("\n⚠️  PREVIEW MODE - No changes applied", fg="yellow", bold=True)
         click.echo("\nTo apply these changes, run with --apply flag:")
-        click.echo(f"  uv run python reformat_cards.py --query '{query}' --limit {limit} --apply")
+        click.echo(
+            f"  uv run python reformat_cards.py --query '{query}' --limit {limit} --apply"
+        )
         click.echo("\nTo process ALL matching cards:")
-        click.echo(f"  uv run python reformat_cards.py --query '{query}' --limit 99999 --apply")
-        click.echo("\n📖 Editing card content does NOT affect Anki's scheduling/SRS data")
+        click.echo(
+            f"  uv run python reformat_cards.py --query '{query}' --limit 99999 --apply"
+        )
+        click.echo(
+            "\n📖 Editing card content does NOT affect Anki's scheduling/SRS data"
+        )
         click.echo("   (Review history, intervals, and ease factors remain unchanged)")
     else:
         # Apply changes
@@ -289,7 +322,9 @@ def main(query: str, limit: int, apply: bool):
             click.secho("No changes to apply!", fg="green")
             return
 
-        click.secho(f"\n⚠️  About to update {len(changes)} notes", fg="yellow", bold=True)
+        click.secho(
+            f"\n⚠️  About to update {len(changes)} notes", fg="yellow", bold=True
+        )
         click.echo("This will NOT affect scheduling, intervals, or review history.")
 
         if not click.confirm("\nProceed with updates?"):
@@ -304,8 +339,10 @@ def main(query: str, limit: int, apply: bool):
             except Exception as e:
                 click.secho(f"✗ Failed to update note {note_id}: {e}", fg="red")
 
-        click.secho(f"\n✓ Completed! Updated {len(changes)} notes", fg="green", bold=True)
+        click.secho(
+            f"\n✓ Completed! Updated {len(changes)} notes", fg="green", bold=True
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

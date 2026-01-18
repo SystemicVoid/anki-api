@@ -1,7 +1,5 @@
 """Tests for YouTube transcript extraction utilities."""
 
-import pytest
-
 from src.youtube import extract_video_id, is_youtube_url
 
 

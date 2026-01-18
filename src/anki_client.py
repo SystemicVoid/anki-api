@@ -1,13 +1,13 @@
 """AnkiConnect API client for interacting with Anki."""
 
-import json
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import requests
 
 
 class AnkiConnectError(Exception):
     """Raised when AnkiConnect returns an error."""
+
     pass
 
 
@@ -23,7 +23,7 @@ class AnkiClient:
         self.url = url
         self.version = 6
 
-    def _invoke(self, action: str, params: Optional[Dict[str, Any]] = None) -> Any:
+    def _invoke(self, action: str, params: dict[str, Any] | None = None) -> Any:
         """Invoke an AnkiConnect action.
 
         Args:
@@ -75,7 +75,7 @@ class AnkiClient:
         except Exception:
             return False
 
-    def get_decks(self) -> List[str]:
+    def get_decks(self) -> list[str]:
         """Get list of all deck names.
 
         Returns:
@@ -83,7 +83,7 @@ class AnkiClient:
         """
         return self._invoke("deckNames")
 
-    def get_models(self) -> List[str]:
+    def get_models(self) -> list[str]:
         """Get list of all note type (model) names.
 
         Returns:
@@ -91,7 +91,7 @@ class AnkiClient:
         """
         return self._invoke("modelNames")
 
-    def get_model_fields(self, model_name: str) -> List[str]:
+    def get_model_fields(self, model_name: str) -> list[str]:
         """Get field names for a specific note type.
 
         Args:
@@ -106,8 +106,8 @@ class AnkiClient:
         self,
         deck_name: str,
         model_name: str,
-        fields: Dict[str, str],
-        tags: Optional[List[str]] = None,
+        fields: dict[str, str],
+        tags: list[str] | None = None,
     ) -> int:
         """Add a single note to Anki.
 
@@ -131,12 +131,12 @@ class AnkiClient:
             "options": {
                 "allowDuplicate": False,
                 "duplicateScope": "deck",
-            }
+            },
         }
 
         return self._invoke("addNote", {"note": note})
 
-    def add_notes_batch(self, notes: List[Dict[str, Any]]) -> List[Optional[int]]:
+    def add_notes_batch(self, notes: list[dict[str, Any]]) -> list[int | None]:
         """Add multiple notes to Anki in a single request.
 
         Args:
@@ -159,13 +159,13 @@ class AnkiClient:
                 "options": {
                     "allowDuplicate": False,
                     "duplicateScope": "deck",
-                }
+                },
             }
             formatted_notes.append(formatted_note)
 
         return self._invoke("addNotes", {"notes": formatted_notes})
 
-    def find_notes(self, query: str) -> List[int]:
+    def find_notes(self, query: str) -> list[int]:
         """Search for notes using Anki query syntax.
 
         Args:
@@ -176,7 +176,7 @@ class AnkiClient:
         """
         return self._invoke("findNotes", {"query": query})
 
-    def get_note_info(self, note_ids: List[int]) -> List[Dict[str, Any]]:
+    def get_note_info(self, note_ids: list[int]) -> list[dict[str, Any]]:
         """Get detailed information about notes.
 
         Args:
@@ -187,7 +187,7 @@ class AnkiClient:
         """
         return self._invoke("notesInfo", {"notes": note_ids})
 
-    def update_note_fields(self, note_id: int, fields: Dict[str, str]) -> None:
+    def update_note_fields(self, note_id: int, fields: dict[str, str]) -> None:
         """Update the fields of an existing note.
 
         Args:
@@ -200,7 +200,7 @@ class AnkiClient:
         }
         self._invoke("updateNoteFields", {"note": note})
 
-    def delete_notes(self, note_ids: List[int]) -> None:
+    def delete_notes(self, note_ids: list[int]) -> None:
         """Delete notes by their IDs.
 
         Args:
@@ -208,7 +208,7 @@ class AnkiClient:
         """
         self._invoke("deleteNotes", {"notes": note_ids})
 
-    def add_tags(self, note_ids: List[int], tags: List[str]) -> None:
+    def add_tags(self, note_ids: list[int], tags: list[str]) -> None:
         """Add tags to notes.
 
         Args:
@@ -217,7 +217,7 @@ class AnkiClient:
         """
         self._invoke("addTags", {"notes": note_ids, "tags": " ".join(tags)})
 
-    def remove_tags(self, note_ids: List[int], tags: List[str]) -> None:
+    def remove_tags(self, note_ids: list[int], tags: list[str]) -> None:
         """Remove tags from notes.
 
         Args:

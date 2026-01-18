@@ -1,15 +1,15 @@
 """Utilities for extracting readable text from document formats."""
 
-from pathlib import Path
-from typing import List, Sequence, Union
 import re
+from collections.abc import Sequence
+from pathlib import Path
 
 from docx import Document
 from docx.table import Table
 
-PathLike = Union[str, Path]
+PathLike = str | Path
 
-__all__ = ["extract_docx_text", "export_docx_to_markdown"]
+__all__ = ["export_docx_to_markdown", "extract_docx_text"]
 
 
 def extract_docx_text(docx_path: PathLike) -> str:
@@ -19,10 +19,12 @@ def extract_docx_text(docx_path: PathLike) -> str:
         raise ValueError(f"DOCX file not found: {path}")
 
     document = Document(str(path))
-    lines: List[str] = []
+    lines: list[str] = []
 
     for paragraph in document.paragraphs:
-        line = _paragraph_to_markdown(paragraph.text, paragraph.style.name if paragraph.style else "")
+        line = _paragraph_to_markdown(
+            paragraph.text, paragraph.style.name if paragraph.style else ""
+        )
         if line:
             lines.append(line)
 
@@ -68,7 +70,7 @@ def _heading_level(style_name: str) -> int:
 
 
 def _table_to_markdown(table: Table) -> Sequence[str]:
-    rows: List[str] = []
+    rows: list[str] = []
     for row in table.rows:
         cells = [" ".join(cell.text.split()) for cell in row.cells]
         cells = [cell for cell in cells if cell]

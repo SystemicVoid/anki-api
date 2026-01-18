@@ -37,25 +37,36 @@ def tmux_create_session() -> bool:
     frontend_cmd = f"cd {FRONTEND_DIR} && pnpm dev"
 
     # Create session with backend in first pane
-    result = subprocess.run([
-        "tmux", "new-session",
-        "-d",  # detached
-        "-s", TMUX_SESSION,
-        "-n", "servers",
-        "-c", str(PROJECT_DIR),
-        backend_cmd,
-    ])
+    result = subprocess.run(
+        [
+            "tmux",
+            "new-session",
+            "-d",  # detached
+            "-s",
+            TMUX_SESSION,
+            "-n",
+            "servers",
+            "-c",
+            str(PROJECT_DIR),
+            backend_cmd,
+        ]
+    )
     if result.returncode != 0:
         return False
 
     # Split horizontally and run frontend in bottom pane
-    subprocess.run([
-        "tmux", "split-window",
-        "-t", f"{TMUX_SESSION}:servers",
-        "-v",  # vertical split (top/bottom)
-        "-c", str(FRONTEND_DIR),
-        frontend_cmd,
-    ])
+    subprocess.run(
+        [
+            "tmux",
+            "split-window",
+            "-t",
+            f"{TMUX_SESSION}:servers",
+            "-v",  # vertical split (top/bottom)
+            "-c",
+            str(FRONTEND_DIR),
+            frontend_cmd,
+        ]
+    )
 
     # Select top pane (backend) as active
     subprocess.run(["tmux", "select-pane", "-t", f"{TMUX_SESSION}:servers.0"])

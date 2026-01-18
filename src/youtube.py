@@ -3,7 +3,6 @@
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api._errors import (
@@ -13,9 +12,9 @@ from youtube_transcript_api._errors import (
 )
 
 __all__ = [
-    "is_youtube_url",
-    "extract_video_id",
     "export_transcript_to_markdown",
+    "extract_video_id",
+    "is_youtube_url",
 ]
 
 # YouTube URL patterns (video ID is always 11 characters)
@@ -28,7 +27,7 @@ YOUTUBE_PATTERNS = [
 ]
 
 
-def extract_video_id(url: str) -> Optional[str]:
+def extract_video_id(url: str) -> str | None:
     """Extract video ID from YouTube URL. Returns None if not a valid YouTube URL."""
     for pattern in YOUTUBE_PATTERNS:
         match = re.search(pattern, url)

@@ -25,7 +25,9 @@ from src.cli.tmux import (
 
 @click.command()
 @click.option("--port", default=8080, help="Port for the API server (default: 8080)")
-@click.option("--host", default="127.0.0.1", help="Host to bind to (default: 127.0.0.1)")
+@click.option(
+    "--host", default="127.0.0.1", help="Host to bind to (default: 127.0.0.1)"
+)
 @click.option("--reload", is_flag=True, help="Enable auto-reload for development")
 def serve(port: int, host: str, reload: bool):
     """Start the web review interface.
@@ -56,7 +58,9 @@ def serve(port: int, host: str, reload: bool):
 @click.command()
 @click.argument("source", required=False)
 @click.option("--tags", "-t", default=None, help="Comma-separated tags for cards")
-@click.option("--review", "review_only", is_flag=True, help="Skip generation, just open review UI")
+@click.option(
+    "--review", "review_only", is_flag=True, help="Skip generation, just open review UI"
+)
 @click.option("--no-browser", is_flag=True, help="Don't open browser automatically")
 @click.option("--stop", "do_stop", is_flag=True, help="Stop the running review session")
 @click.option("--attach", "do_attach", is_flag=True, help="Attach to existing session")
@@ -111,7 +115,9 @@ def flow(
             print_info(f"Attaching to session '{TMUX_SESSION}' (Ctrl+b d to detach)...")
             tmux_attach_session()
         else:
-            print_warning("No session running. Start with 'anki flow --review' or 'anki flow <source>'")
+            print_warning(
+                "No session running. Start with 'anki flow --review' or 'anki flow <source>'"
+            )
         return
 
     # Starting a new session - validate arguments
@@ -210,7 +216,7 @@ def start(
     # Handle --status
     if do_status:
         if tmux_session_exists():
-            print_success(f"AnkiFlow stack is running.")
+            print_success("AnkiFlow stack is running.")
             print_info(f"  Frontend: {FRONTEND_URL}")
             print_info(f"  Backend:  {BACKEND_URL}")
             print_info("  Run 'anki-api start --attach' to view logs")
@@ -230,7 +236,7 @@ def start(
 
     # Check if session already running
     if tmux_session_exists():
-        print_warning(f"Stack already running.")
+        print_warning("Stack already running.")
         if click.confirm("Stop existing stack and start fresh?", default=False):
             tmux_kill_session()
         else:

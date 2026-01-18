@@ -1,7 +1,5 @@
 """Output formatting helpers for CLI."""
 
-from typing import List
-
 import click
 
 from src.schema import Flashcard, ValidationWarning
@@ -67,7 +65,7 @@ def print_card(card: Flashcard, index: int = None, total: int = None) -> None:
     click.secho(f"Deck: {card.deck} | Model: {card.model}", fg="cyan")
 
 
-def print_validation_warnings(warnings: List[ValidationWarning]) -> None:
+def print_validation_warnings(warnings: list[ValidationWarning]) -> None:
     """Print validation warnings with colors.
 
     Args:

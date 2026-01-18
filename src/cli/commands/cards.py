@@ -7,13 +7,6 @@ from pathlib import Path
 import click
 
 from src.anki_client import AnkiConnectError
-from src.documents import export_docx_to_markdown
-from src.schema import (
-    Flashcard,
-    load_cards_from_json,
-    save_cards_to_json,
-    validate_card,
-)
 from src.cli.anki_lifecycle import ensure_anki_running, get_client
 from src.cli.output import (
     print_card,
@@ -24,6 +17,13 @@ from src.cli.output import (
     print_warning,
 )
 from src.cli.utils import default_docx_output_path
+from src.documents import export_docx_to_markdown
+from src.schema import (
+    Flashcard,
+    load_cards_from_json,
+    save_cards_to_json,
+    validate_card,
+)
 
 
 @click.command("extract-docx")
@@ -222,7 +222,9 @@ def review(file: Path, deck: str, show_warnings: bool, reset: bool):
     total_added = sum(1 for c in cards if c.status == "added")
     total_skipped = sum(1 for c in cards if c.status == "skipped")
     total_pending = sum(1 for c in cards if c.status == "pending")
-    click.echo(f"  Total progress - Added: {total_added}, Skipped: {total_skipped}, Pending: {total_pending}")
+    click.echo(
+        f"  Total progress - Added: {total_added}, Skipped: {total_skipped}, Pending: {total_pending}"
+    )
 
 
 @click.command()
@@ -289,7 +291,9 @@ def add(file: Path, deck: str):
     is_flag=True,
     help="Display EAT principle validation warnings",
 )
-def quick(front: str, back: str, deck: str, tags: str, context: str, show_warnings: bool):
+def quick(
+    front: str, back: str, deck: str, tags: str, context: str, show_warnings: bool
+):
     """Quickly create a single flashcard.
 
     Example:

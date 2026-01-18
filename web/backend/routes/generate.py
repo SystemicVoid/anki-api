@@ -1,24 +1,22 @@
 """WebSocket endpoint for real-time card generation with Claude Agent SDK."""
 
 import asyncio
-import json
-import os
+import contextlib
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Dict, Optional
 from uuid import uuid4
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from claude_agent_sdk import (
-    ClaudeAgentOptions,
-    query,
     AssistantMessage,
+    ClaudeAgentOptions,
     TextBlock,
     ToolUseBlock,
+    query,
 )
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from src.youtube import is_youtube_url, export_transcript_to_markdown
+from src.youtube import export_transcript_to_markdown, is_youtube_url
 
 router = APIRouter()
 
@@ -29,7 +27,7 @@ SCRAPED_DIR = PROJECT_ROOT / "scraped"
 SCRAPE_SCRIPT = PROJECT_ROOT / "scrape.sh"
 
 # Active generation sessions
-active_sessions: Dict[str, "GenerationSession"] = {}
+active_sessions: dict[str, "GenerationSession"] = {}
 
 
 class GenerationSession:
@@ -38,17 +36,17 @@ class GenerationSession:
     def __init__(self, session_id: str, websocket: WebSocket):
         self.session_id = session_id
         self.websocket = websocket
-        self.source: Optional[str] = None
-        self.tags: Optional[str] = None
-        self.scraped_path: Optional[str] = None
-        self.output_file: Optional[str] = None
+        self.source: str | None = None
+        self.tags: str | None = None
+        self.scraped_path: str | None = None
+        self.output_file: str | None = None
 
     async def send_event(self, event_type: str, data: dict):
         """Send JSON event to WebSocket client."""
         message = {
             "type": event_type,
             "data": data,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
         try:
             await self.websocket.send_json(message)
@@ -60,14 +58,14 @@ class GenerationSession:
         if not SCRAPE_SCRIPT.exists():
             raise FileNotFoundError(f"Scrape script not found: {SCRAPE_SCRIPT}")
 
-        await self.send_event("status", {
-            "message": "Scraping content from URL...",
-            "step": "scraping"
-        })
+        await self.send_event(
+            "status", {"message": "Scraping content from URL...", "step": "scraping"}
+        )
 
         # Run scrape script in background thread to avoid blocking
         def run_scrape():
             import subprocess
+
             result = subprocess.run(
                 [str(SCRAPE_SCRIPT), url],
                 cwd=PROJECT_ROOT,
@@ -89,10 +87,13 @@ class GenerationSession:
                 scraped_path = SCRAPED_DIR / scraped_file
                 if scraped_path.exists():
                     self.scraped_path = str(scraped_path)
-                    await self.send_event("status", {
-                        "message": f"Content scraped successfully: {scraped_file}",
-                        "step": "scraping_complete"
-                    })
+                    await self.send_event(
+                        "status",
+                        {
+                            "message": f"Content scraped successfully: {scraped_file}",
+                            "step": "scraping_complete",
+                        },
+                    )
                     return self.scraped_path
 
             # Fallback: find most recent .md file in scraped/
@@ -100,27 +101,28 @@ class GenerationSession:
             if scraped_files:
                 most_recent = max(scraped_files, key=lambda p: p.stat().st_mtime)
                 self.scraped_path = str(most_recent)
-                await self.send_event("status", {
-                    "message": f"Content scraped: {most_recent.name}",
-                    "step": "scraping_complete"
-                })
+                await self.send_event(
+                    "status",
+                    {
+                        "message": f"Content scraped: {most_recent.name}",
+                        "step": "scraping_complete",
+                    },
+                )
                 return self.scraped_path
 
             raise RuntimeError("Scraping completed but no output file found")
 
         except Exception as e:
-            await self.send_event("error", {
-                "message": f"Scraping failed: {str(e)}",
-                "step": "scraping"
-            })
+            await self.send_event(
+                "error", {"message": f"Scraping failed: {e!s}", "step": "scraping"}
+            )
             raise
 
     async def fetch_youtube_transcript(self, url: str) -> str:
         """Fetch YouTube transcript and save to markdown."""
-        await self.send_event("status", {
-            "message": "Fetching YouTube transcript...",
-            "step": "scraping"
-        })
+        await self.send_event(
+            "status", {"message": "Fetching YouTube transcript...", "step": "scraping"}
+        )
 
         def fetch_transcript():
             return export_transcript_to_markdown(url, SCRAPED_DIR)
@@ -129,23 +131,23 @@ class GenerationSession:
             output_path = await asyncio.to_thread(fetch_transcript)
             self.scraped_path = str(output_path)
 
-            await self.send_event("status", {
-                "message": f"Transcript saved: {output_path.name}",
-                "step": "scraping_complete"
-            })
+            await self.send_event(
+                "status",
+                {
+                    "message": f"Transcript saved: {output_path.name}",
+                    "step": "scraping_complete",
+                },
+            )
             return self.scraped_path
 
         except ValueError as e:
-            await self.send_event("error", {
-                "message": str(e),
-                "step": "scraping"
-            })
+            await self.send_event("error", {"message": str(e), "step": "scraping"})
             raise
         except Exception as e:
-            await self.send_event("error", {
-                "message": f"Failed to fetch transcript: {str(e)}",
-                "step": "scraping"
-            })
+            await self.send_event(
+                "error",
+                {"message": f"Failed to fetch transcript: {e!s}", "step": "scraping"},
+            )
             raise
 
     async def validate_source(self, source: str) -> str:
@@ -170,45 +172,50 @@ class GenerationSession:
                 # Provide helpful error with suggestions
                 parent_dir = file_path.parent
                 if parent_dir.exists():
-                    similar_files = list(parent_dir.glob("*" + file_path.stem[:20] + "*"))
+                    similar_files = list(
+                        parent_dir.glob("*" + file_path.stem[:20] + "*")
+                    )
                     error_msg = f"Source file not found: {file_path}\n"
                     if similar_files:
                         error_msg += f"Similar files in {parent_dir.name}/:\n"
                         for f in similar_files[:5]:
                             error_msg += f"  - {f.name}\n"
-                    await self.send_event("error", {
-                        "message": error_msg,
-                        "step": "validation"
-                    })
+                    await self.send_event(
+                        "error", {"message": error_msg, "step": "validation"}
+                    )
                     raise FileNotFoundError(error_msg)
                 else:
                     error_msg = f"Source file not found and parent directory doesn't exist: {file_path}"
-                    await self.send_event("error", {
-                        "message": error_msg,
-                        "step": "validation"
-                    })
+                    await self.send_event(
+                        "error", {"message": error_msg, "step": "validation"}
+                    )
                     raise FileNotFoundError(error_msg)
 
             if not file_path.is_file():
                 error_msg = f"Source is not a file: {file_path}"
-                await self.send_event("error", {
-                    "message": error_msg,
-                    "step": "validation"
-                })
+                await self.send_event(
+                    "error", {"message": error_msg, "step": "validation"}
+                )
                 raise ValueError(error_msg)
 
-            await self.send_event("status", {
-                "message": f"Using existing file: {file_path.name}",
-                "step": "source_ready"
-            })
+            await self.send_event(
+                "status",
+                {
+                    "message": f"Using existing file: {file_path.name}",
+                    "step": "source_ready",
+                },
+            )
             return str(file_path)
 
     async def generate_cards(self, source_path: str):
         """Generate cards using Claude Agent SDK."""
-        await self.send_event("status", {
-            "message": "Starting card generation with Claude Agent...",
-            "step": "generating"
-        })
+        await self.send_event(
+            "status",
+            {
+                "message": "Starting card generation with Claude Agent...",
+                "step": "generating",
+            },
+        )
 
         # Build prompt for agent
         prompt_parts = ["/create-anki-cards", source_path]
@@ -234,25 +241,31 @@ class GenerationSession:
             self.output_file = await self.find_output_file()
 
             if self.output_file:
-                await self.send_event("complete", {
-                    "filename": Path(self.output_file).name,
-                    "message": f"Generated flashcards successfully",
-                })
+                await self.send_event(
+                    "complete",
+                    {
+                        "filename": Path(self.output_file).name,
+                        "message": "Generated flashcards successfully",
+                    },
+                )
             else:
-                await self.send_event("error", {
-                    "message": "Card generation completed but no output file found",
-                    "step": "generating"
-                })
+                await self.send_event(
+                    "error",
+                    {
+                        "message": "Card generation completed but no output file found",
+                        "step": "generating",
+                    },
+                )
 
         except Exception as e:
             # Log exception for debugging
             import traceback
+
             print(f"Error in card generation: {e}")
             traceback.print_exc()
-            await self.send_event("error", {
-                "message": f"Generation failed: {str(e)}",
-                "step": "generating"
-            })
+            await self.send_event(
+                "error", {"message": f"Generation failed: {e!s}", "step": "generating"}
+            )
             raise
 
     async def process_sdk_message(self, message):
@@ -261,19 +274,20 @@ class GenerationSession:
             for block in message.content:
                 if isinstance(block, TextBlock):
                     # Agent thinking/explanation
-                    await self.send_event("text", {
-                        "content": block.text
-                    })
+                    await self.send_event("text", {"content": block.text})
                 elif isinstance(block, ToolUseBlock):
                     # Tool call (Read, Write, etc.)
-                    await self.send_event("tool", {
-                        "name": block.name,
-                        "input": block.input,
-                    })
+                    await self.send_event(
+                        "tool",
+                        {
+                            "name": block.name,
+                            "input": block.input,
+                        },
+                    )
         # Other message types (SystemMessage, UserMessage, ResultMessage) are internal
         # to the SDK conversation flow and don't need to be forwarded to the client
 
-    async def find_output_file(self) -> Optional[str]:
+    async def find_output_file(self) -> str | None:
         """Find the most recently created file in cards/ directory."""
         if not CARDS_DIR.exists():
             return None
@@ -302,12 +316,10 @@ async def websocket_generate(websocket: WebSocket):
         source = request_data.get("source")
         tags = request_data.get("tags", "")
 
-
         if not source:
-            await session.send_event("error", {
-                "message": "Missing 'source' parameter",
-                "step": "validation"
-            })
+            await session.send_event(
+                "error", {"message": "Missing 'source' parameter", "step": "validation"}
+            )
             return
 
         # Strip quotes from source (common when copying paths with spaces)
@@ -326,17 +338,10 @@ async def websocket_generate(websocket: WebSocket):
         print(f"WebSocket disconnected for session {session_id}")
     except Exception as e:
         print(f"Error in generation session {session_id}: {e}")
-        try:
-            await session.send_event("error", {
-                "message": str(e),
-                "step": "unknown"
-            })
-        except:
-            pass
+        with contextlib.suppress(Exception):
+            await session.send_event("error", {"message": str(e), "step": "unknown"})
     finally:
         # Cleanup
         active_sessions.pop(session_id, None)
-        try:
+        with contextlib.suppress(Exception):
             await websocket.close()
-        except:
-            pass

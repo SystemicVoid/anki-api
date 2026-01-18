@@ -20,7 +20,7 @@ def run_claude_generation(source: str, tags: str | None) -> bool:
     if tags:
         prompt += f" --tags {tags}"
     # Run from PROJECT_DIR so Claude Code finds the skill in .claude/commands/
-    result = subprocess.run(cmd + [prompt], cwd=PROJECT_DIR)
+    result = subprocess.run([*cmd, prompt], cwd=PROJECT_DIR)
     return result.returncode == 0
 
 

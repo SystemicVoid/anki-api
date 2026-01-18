@@ -1,10 +1,10 @@
 """Flashcard schema and validation based on EAT principles."""
 
-from typing import List, Optional
-from dataclasses import dataclass, field, asdict
-from datetime import datetime
 import json
 import re
+from dataclasses import asdict, dataclass, field
+from datetime import datetime
+from pathlib import Path
 
 
 def convert_newlines_to_html(text: str) -> str:
@@ -20,7 +20,7 @@ def convert_newlines_to_html(text: str) -> str:
         Text with <br> tags for HTML rendering
     """
     normalized = text.replace("\r\n", "\n").replace("\r", "\n")
-    return normalized.replace('\n', '<br>')
+    return normalized.replace("\n", "<br>")
 
 
 @dataclass
@@ -36,13 +36,13 @@ class Flashcard:
     front: str  # Question (should end with ?)
     back: str  # Answer
     context: str = ""  # Supplementary context for future understanding
-    tags: List[str] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
     source: str = ""  # Original URL or file path
     deck: str = "Default"
     model: str = "Basic"
-    anki_id: Optional[int] = None  # ID of the note in Anki, if added
+    anki_id: int | None = None  # ID of the note in Anki, if added
     status: str = "pending"  # Review status: "pending" | "skipped" | "added"
-    added_at: Optional[datetime] = None  # Timestamp when added to Anki
+    added_at: datetime | None = None  # Timestamp when added to Anki
 
     def to_anki_note(self) -> dict:
         """Convert to AnkiConnect note format.
@@ -79,6 +79,7 @@ class Flashcard:
         # Parse datetime string if present
         if "added_at" in data and isinstance(data["added_at"], str):
             from datetime import datetime
+
             data = data.copy()
             data["added_at"] = datetime.fromisoformat(data["added_at"])
         return cls(**data)
@@ -92,13 +93,11 @@ class ValidationWarning:
         self.severity = severity  # 'info', 'warning', 'error'
 
     def __str__(self):
-        icon = {"info": "ℹ️", "warning": "⚠️", "error": "❌"}.get(
-            self.severity, "•"
-        )
+        icon = {"info": "ℹ️", "warning": "⚠️", "error": "❌"}.get(self.severity, "•")
         return f"{icon} {self.message}"
 
 
-def validate_encoded(card: Flashcard) -> List[ValidationWarning]:
+def validate_encoded(card: Flashcard) -> list[ValidationWarning]:
     """Validate 'Encoded' principle - cards should have sufficient context.
 
     Args:
@@ -131,7 +130,7 @@ def validate_encoded(card: Flashcard) -> List[ValidationWarning]:
     return warnings
 
 
-def validate_atomic(card: Flashcard) -> List[ValidationWarning]:
+def validate_atomic(card: Flashcard) -> list[ValidationWarning]:
     """Validate 'Atomic' principle - questions should be focused and specific.
 
     Args:
@@ -191,7 +190,7 @@ def validate_atomic(card: Flashcard) -> List[ValidationWarning]:
     return warnings
 
 
-def validate_timeless(card: Flashcard) -> List[ValidationWarning]:
+def validate_timeless(card: Flashcard) -> list[ValidationWarning]:
     """Validate 'Timeless' principle - cards should be self-contained.
 
     Args:
@@ -229,8 +228,7 @@ def validate_timeless(card: Flashcard) -> List[ValidationWarning]:
     if any(ref in card.front.lower() for ref in time_references):
         warnings.append(
             ValidationWarning(
-                "Contains time-dependent reference. "
-                "Will this be clear in the future?",
+                "Contains time-dependent reference. Will this be clear in the future?",
                 "warning",
             )
         )
@@ -250,7 +248,7 @@ def validate_timeless(card: Flashcard) -> List[ValidationWarning]:
     return warnings
 
 
-def validate_card(card: Flashcard) -> List[ValidationWarning]:
+def validate_card(card: Flashcard) -> list[ValidationWarning]:
     """Run all EAT principle validations on a card.
 
     Args:
@@ -263,14 +261,10 @@ def validate_card(card: Flashcard) -> List[ValidationWarning]:
 
     # Basic field validation
     if not card.front.strip():
-        warnings.append(
-            ValidationWarning("Front (question) cannot be empty.", "error")
-        )
+        warnings.append(ValidationWarning("Front (question) cannot be empty.", "error"))
 
     if not card.back.strip():
-        warnings.append(
-            ValidationWarning("Back (answer) cannot be empty.", "error")
-        )
+        warnings.append(ValidationWarning("Back (answer) cannot be empty.", "error"))
 
     # EAT principle validations
     warnings.extend(validate_encoded(card))
@@ -280,7 +274,7 @@ def validate_card(card: Flashcard) -> List[ValidationWarning]:
     return warnings
 
 
-def load_cards_from_json(file_path: str) -> List[Flashcard]:
+def load_cards_from_json(file_path: str) -> list[Flashcard]:
     """Load flashcards from a JSON file.
 
     Args:
@@ -293,7 +287,7 @@ def load_cards_from_json(file_path: str) -> List[Flashcard]:
         ValueError: If JSON is invalid or cards are malformed
     """
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with Path(file_path).open(encoding="utf-8") as f:
             data = json.load(f)
 
         # Handle both single card and array of cards
@@ -309,13 +303,14 @@ def load_cards_from_json(file_path: str) -> List[Flashcard]:
         raise ValueError(f"Error loading cards from {file_path}: {e}") from e
 
 
-def save_cards_to_json(cards: List[Flashcard], file_path: str) -> None:
+def save_cards_to_json(cards: list[Flashcard], file_path: str) -> None:
     """Save flashcards to a JSON file.
 
     Args:
         cards: List of Flashcard objects
         file_path: Path to output JSON file
     """
+
     def datetime_serializer(obj):
         """Custom JSON serializer for datetime objects."""
         if isinstance(obj, datetime):
@@ -324,5 +319,5 @@ def save_cards_to_json(cards: List[Flashcard], file_path: str) -> None:
 
     data = [card.to_dict() for card in cards]
 
-    with open(file_path, "w", encoding="utf-8") as f:
+    with Path(file_path).open("w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False, default=datetime_serializer)

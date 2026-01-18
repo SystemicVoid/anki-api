@@ -1,13 +1,13 @@
 """File browser routes for selecting content files."""
 
 import os
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import List, Literal
-from datetime import datetime, timezone
+from typing import Literal
 
 from fastapi import APIRouter, HTTPException
 
-from ..models import FileNode, FileBrowserResponse
+from ..models import FileBrowserResponse, FileNode
 
 router = APIRouter()
 
@@ -79,8 +79,7 @@ def validate_project_path(path: str, dir_type: Literal["scraped", "cards"]) -> P
         full_path.relative_to(base_dir)
     except ValueError:
         raise HTTPException(
-            status_code=403,
-            detail="Access denied: path outside allowed directory"
+            status_code=403, detail="Access denied: path outside allowed directory"
         )
 
     return full_path
@@ -110,8 +109,7 @@ def validate_system_path(path: str) -> Path:
     # Block sensitive directories
     if is_path_blocked(path_obj):
         raise HTTPException(
-            status_code=403,
-            detail="Access to this directory is not allowed"
+            status_code=403, detail="Access to this directory is not allowed"
         )
 
     # Check exists
@@ -137,7 +135,7 @@ def should_include_file(file_path: Path, mode: str, dir_type: str) -> bool:
         True if file should be included
     """
     # Skip hidden files
-    if file_path.name.startswith('.'):
+    if file_path.name.startswith("."):
         return False
 
     # In project mode, filter by extension
@@ -154,7 +152,7 @@ def should_include_file(file_path: Path, mode: str, dir_type: str) -> bool:
 async def browse_files(
     path: str = "",
     mode: Literal["project", "system"] = "project",
-    dir_type: Literal["scraped", "cards"] = "scraped"
+    dir_type: Literal["scraped", "cards"] = "scraped",
 ):
     """Browse files in project directories or filesystem.
 
@@ -194,26 +192,34 @@ async def browse_files(
 
             stat = item.stat()
 
-            nodes.append(FileNode(
-                name=item.name,
-                path=str(item) if mode == "system" else str(item.relative_to(PROJECT_ROOT)),
-                type="directory" if item.is_dir() else "file",
-                extension=item.suffix if item.is_file() else None,
-                size=stat.st_size,
-                modified=datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc),
-                readable=True
-            ))
+            nodes.append(
+                FileNode(
+                    name=item.name,
+                    path=str(item)
+                    if mode == "system"
+                    else str(item.relative_to(PROJECT_ROOT)),
+                    type="directory" if item.is_dir() else "file",
+                    extension=item.suffix if item.is_file() else None,
+                    size=stat.st_size,
+                    modified=datetime.fromtimestamp(stat.st_mtime, tz=UTC),
+                    readable=True,
+                )
+            )
         except (PermissionError, OSError):
             # Mark as unreadable but include in list
-            nodes.append(FileNode(
-                name=item.name,
-                path=str(item) if mode == "system" else str(item.relative_to(PROJECT_ROOT)),
-                type="directory" if item.is_dir() else "file",
-                extension=None,
-                size=0,
-                modified=datetime.now(tz=timezone.utc),
-                readable=False
-            ))
+            nodes.append(
+                FileNode(
+                    name=item.name,
+                    path=str(item)
+                    if mode == "system"
+                    else str(item.relative_to(PROJECT_ROOT)),
+                    type="directory" if item.is_dir() else "file",
+                    extension=None,
+                    size=0,
+                    modified=datetime.now(tz=UTC),
+                    readable=False,
+                )
+            )
 
     # Sort: directories first, then by name (case-insensitive)
     nodes.sort(key=lambda x: (x.type != "directory", x.name.lower()))
@@ -228,14 +234,16 @@ async def browse_files(
             parent_path = str(resolved_path.parent)
 
     return FileBrowserResponse(
-        current_path=str(resolved_path) if mode == "system" else str(resolved_path.relative_to(PROJECT_ROOT)),
+        current_path=str(resolved_path)
+        if mode == "system"
+        else str(resolved_path.relative_to(PROJECT_ROOT)),
         parent_path=parent_path,
         nodes=nodes,
-        mode=mode
+        mode=mode,
     )
 
 
-@router.get("/recent", response_model=List[FileNode])
+@router.get("/recent", response_model=list[FileNode])
 async def get_recent_files(limit: int = 10):
     """Get recently modified files from project directories.
 
@@ -250,7 +258,7 @@ async def get_recent_files(limit: int = 10):
     # Collect from scraped/ (*.md files)
     if SCRAPED_DIR.exists():
         for f in SCRAPED_DIR.rglob("*.md"):
-            if f.is_file() and not f.name.startswith('.'):
+            if f.is_file() and not f.name.startswith("."):
                 try:
                     stat = f.stat()
                     all_files.append((f, stat.st_mtime))
@@ -260,7 +268,7 @@ async def get_recent_files(limit: int = 10):
     # Collect from cards/ (*.json files)
     if CARDS_DIR.exists():
         for f in CARDS_DIR.rglob("*.json"):
-            if f.is_file() and not f.name.startswith('.'):
+            if f.is_file() and not f.name.startswith("."):
                 try:
                     stat = f.stat()
                     all_files.append((f, stat.st_mtime))
@@ -275,15 +283,17 @@ async def get_recent_files(limit: int = 10):
     for file_path, mtime in all_files[:limit]:
         try:
             stat = file_path.stat()
-            nodes.append(FileNode(
-                name=file_path.name,
-                path=str(file_path.relative_to(PROJECT_ROOT)),
-                type="file",
-                extension=file_path.suffix,
-                size=stat.st_size,
-                modified=datetime.fromtimestamp(mtime, tz=timezone.utc),
-                readable=True
-            ))
+            nodes.append(
+                FileNode(
+                    name=file_path.name,
+                    path=str(file_path.relative_to(PROJECT_ROOT)),
+                    type="file",
+                    extension=file_path.suffix,
+                    size=stat.st_size,
+                    modified=datetime.fromtimestamp(mtime, tz=UTC),
+                    readable=True,
+                )
+            )
         except OSError:
             # Skip if file no longer accessible
             continue

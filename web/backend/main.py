@@ -5,7 +5,7 @@ import time
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routes import cards, anki, generate, files
+from .routes import anki, cards, files, generate
 
 # Global activity tracker for idle detection
 _last_activity: float = time.time()

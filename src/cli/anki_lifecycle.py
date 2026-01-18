@@ -41,7 +41,9 @@ def wait_for_anki_connect(client: AnkiClient, timeout: int = 30) -> bool:
     return False
 
 
-def ensure_anki_running(client: AnkiClient | None = None, timeout: int = 30) -> AnkiClient:
+def ensure_anki_running(
+    client: AnkiClient | None = None, timeout: int = 30
+) -> AnkiClient:
     """Ensure Anki Desktop is running and AnkiConnect is responsive.
 
     Starts Anki Desktop if not already running and waits for AnkiConnect.
@@ -66,7 +68,9 @@ def ensure_anki_running(client: AnkiClient | None = None, timeout: int = 30) -> 
     # Wait for AnkiConnect to respond
     print_info("Waiting for AnkiConnect...")
     if not wait_for_anki_connect(client, timeout=timeout):
-        print_error("AnkiConnect not responding. Is Anki running with AnkiConnect installed?")
+        print_error(
+            "AnkiConnect not responding. Is Anki running with AnkiConnect installed?"
+        )
         sys.exit(1)
 
     print_success("Connected to AnkiConnect")
