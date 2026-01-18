@@ -25,7 +25,9 @@ def print_info(message: str) -> None:
     click.secho(message, fg="blue")
 
 
-def print_card(card: Flashcard, index: int = None, total: int = None) -> None:
+def print_card(
+    card: Flashcard, index: int | None = None, total: int | None = None
+) -> None:
     """Print a formatted flashcard.
 
     Args:
