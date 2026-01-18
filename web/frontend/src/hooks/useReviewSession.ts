@@ -51,14 +51,18 @@ export function useReviewSession(filename: string | null) {
         const initialAdded = cardsResponse.cards.filter(c => c.card.status === 'added').length;
         const initialSkipped = cardsResponse.cards.filter(c => c.card.status === 'skipped').length;
 
+        // Find the first pending card to resume from
+        const firstPendingIndex = cardsResponse.cards.findIndex(c => c.card.status === 'pending');
+        const allReviewed = firstPendingIndex === -1;
+
         setState((prev) => ({
           ...prev,
           filename: currentFilename,
           cards: cardsResponse.cards,
-          currentIndex: 0,
+          currentIndex: allReviewed ? cardsResponse.cards.length - 1 : firstPendingIndex,
           addedCount: initialAdded,
           skippedCount: initialSkipped,
-          isComplete: false,
+          isComplete: allReviewed,
           isLoading: false,
           error: null,
           ankiStatus: ankiResponse,
@@ -79,11 +83,16 @@ export function useReviewSession(filename: string | null) {
 
   const goToNext = useCallback(() => {
     setState((prev) => {
-      const nextIndex = prev.currentIndex + 1;
-      if (nextIndex >= prev.cards.length) {
+      // Find the next pending card after current position
+      const nextPendingIndex = prev.cards.findIndex(
+        (c, i) => i > prev.currentIndex && c.card.status === 'pending'
+      );
+
+      if (nextPendingIndex === -1) {
+        // No more pending cards - review complete
         return { ...prev, isComplete: true, isEditing: false };
       }
-      return { ...prev, currentIndex: nextIndex, isEditing: false };
+      return { ...prev, currentIndex: nextPendingIndex, isEditing: false };
     });
   }, []);
 
