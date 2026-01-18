@@ -140,6 +140,7 @@ def flow(
 
     # Step 3: Generate cards (unless --review)
     if not review_only:
+        assert source is not None
         print_info(f"Generating cards from: {source}")
         if not run_claude_generation(source, tags):
             print_error("Card generation failed")
