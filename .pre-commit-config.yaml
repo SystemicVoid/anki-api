@@ -24,12 +24,11 @@ repos:
       - id: ruff-format
 
   # Ty - Python type checking (Rust-based, very fast)
-  # Uses --exit-zero until pre-existing type errors are fixed
   - repo: local
     hooks:
       - id: ty
         name: ty
-        entry: ty check --exit-zero
+        entry: ty check
         language: system
         types: [python]
         pass_filenames: false
@@ -56,10 +55,9 @@ repos:
         files: ^web/frontend/.*\.(ts|tsx|js|jsx|json)$
         pass_filenames: false
 
-      # Uses || true until pre-existing dead code is cleaned up
       - id: knip
         name: knip
-        entry: bash -c 'cd web/frontend && pnpm knip || true'
+        entry: bash -c 'cd web/frontend && pnpm knip'
         language: system
         files: ^web/frontend/.*\.(ts|tsx)$
         pass_filenames: false
