@@ -1,6 +1,7 @@
 """Command-line interface for anki-api."""
 
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -223,6 +224,28 @@ def open_browser(url: str) -> None:
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
+
+
+def open_browser_chrome(url: str) -> None:
+    """Open URL in Chrome if available, otherwise default browser."""
+    chrome_commands = [
+        "google-chrome",
+        "google-chrome-stable",
+        "chromium",
+        "chromium-browser",
+    ]
+
+    for cmd in chrome_commands:
+        if shutil.which(cmd):
+            subprocess.Popen(
+                [cmd, url],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            return
+
+    # Fallback to xdg-open (default browser)
+    open_browser(url)
 
 
 def tmux_session_exists() -> bool:
@@ -807,6 +830,106 @@ def flow(
     click.echo("  anki flow --attach    View server logs")
     click.echo("  anki flow --stop      Stop servers")
     click.echo("  anki flow --status    Check status")
+
+
+@main.command()
+@click.option("--stop", "do_stop", is_flag=True, help="Stop the running stack")
+@click.option("--status", "do_status", is_flag=True, help="Show stack status")
+@click.option("--attach", "do_attach", is_flag=True, help="Attach to tmux session")
+@click.option("--no-browser", is_flag=True, help="Don't open browser automatically")
+def start(
+    do_stop: bool,
+    do_status: bool,
+    do_attach: bool,
+    no_browser: bool,
+):
+    """Start the AnkiFlow web interface.
+
+    Launches Anki Desktop (if needed), backend API, and frontend dev server.
+    Opens the web UI in Chrome (or default browser).
+
+    Examples:
+        anki-api start           Start everything and open browser
+        anki-api start --stop    Stop the running stack
+        anki-api start --attach  View server logs in tmux
+        anki-api start --status  Check if servers are running
+    """
+    # Handle --stop
+    if do_stop:
+        if tmux_session_exists():
+            tmux_kill_session()
+            print_success("Stack stopped.")
+        else:
+            print_warning("No stack running.")
+        return
+
+    # Handle --status
+    if do_status:
+        if tmux_session_exists():
+            print_success(f"AnkiFlow stack is running.")
+            print_info(f"  Frontend: {FRONTEND_URL}")
+            print_info(f"  Backend:  {BACKEND_URL}")
+            print_info("  Run 'anki-api start --attach' to view logs")
+            print_info("  Run 'anki-api start --stop' to stop")
+        else:
+            print_warning("Stack not running.")
+        return
+
+    # Handle --attach
+    if do_attach:
+        if tmux_session_exists():
+            print_info(f"Attaching to session '{TMUX_SESSION}' (Ctrl+b d to detach)...")
+            tmux_attach_session()
+        else:
+            print_warning("No stack running. Start with 'anki-api start'")
+        return
+
+    # Check if session already running
+    if tmux_session_exists():
+        print_warning(f"Stack already running.")
+        if click.confirm("Stop existing stack and start fresh?", default=False):
+            tmux_kill_session()
+        else:
+            print_info("Use 'anki-api start --attach' to view logs")
+            return
+
+    # Step 1: Ensure Anki Desktop is running
+    ensure_anki_running()
+
+    # Step 2: Create tmux session with servers
+    print_info("Starting servers...")
+    if not tmux_create_session():
+        print_error("Failed to create tmux session")
+        sys.exit(1)
+
+    # Step 3: Wait for servers to be ready
+    print_info("Waiting for backend...")
+    if not wait_for_server(f"{BACKEND_URL}/api/health", timeout=30):
+        print_error("Backend server failed to start")
+        print_info("Check logs with: anki-api start --attach")
+        sys.exit(1)
+    print_success(f"Backend running at {BACKEND_URL}")
+
+    print_info("Waiting for frontend...")
+    if not wait_for_server(FRONTEND_URL, timeout=60):
+        print_error("Frontend server failed to start")
+        print_info("Check logs with: anki-api start --attach")
+        sys.exit(1)
+    print_success(f"Frontend running at {FRONTEND_URL}")
+
+    # Step 4: Open browser (Chrome preferred)
+    if not no_browser:
+        print_info("Opening browser...")
+        open_browser_chrome(FRONTEND_URL)
+
+    # Done
+    click.echo()
+    print_success(f"AnkiFlow ready at {FRONTEND_URL}")
+    click.echo()
+    print_info("Commands:")
+    click.echo("  anki-api start --attach    View server logs")
+    click.echo("  anki-api start --stop      Stop servers")
+    click.echo("  anki-api start --status    Check status")
 
 
 if __name__ == "__main__":
