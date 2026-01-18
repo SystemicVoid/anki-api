@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { GenerationMessage } from '../types';
 import styles from './CardGeneration.module.css';
@@ -31,10 +31,12 @@ export function CardGeneration() {
     ws.onopen = () => {
       setIsConnected(true);
       // Send initial request
-      ws.send(JSON.stringify({
-        source,
-        tags: tags || '',
-      }));
+      ws.send(
+        JSON.stringify({
+          source,
+          tags: tags || '',
+        })
+      );
     };
 
     ws.onmessage = (event) => {
@@ -81,7 +83,7 @@ export function CardGeneration() {
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, []);
 
   const renderMessage = (message: GenerationMessage, index: number) => {
     const { type, data } = message;
@@ -114,9 +116,7 @@ export function CardGeneration() {
             <div className={styles.messageContent}>
               <p className={styles.toolName}>{data.name}</p>
               {data.input && (
-                <pre className={styles.toolInput}>
-                  {JSON.stringify(data.input, null, 2)}
-                </pre>
+                <pre className={styles.toolInput}>{JSON.stringify(data.input, null, 2)}</pre>
               )}
             </div>
           </div>
@@ -154,7 +154,7 @@ export function CardGeneration() {
         <div className={styles.error}>
           <h2>Missing Source</h2>
           <p>No source URL or file path provided.</p>
-          <button onClick={() => navigate('/review')} className={styles.backButton}>
+          <button type="button" onClick={() => navigate('/review')} className={styles.backButton}>
             Back to Home
           </button>
         </div>
@@ -185,7 +185,11 @@ export function CardGeneration() {
 
           {error && !isComplete && (
             <div className={styles.errorFooter}>
-              <button onClick={() => navigate('/review')} className={styles.backButton}>
+              <button
+                type="button"
+                onClick={() => navigate('/review')}
+                className={styles.backButton}
+              >
                 Back to Home
               </button>
             </div>

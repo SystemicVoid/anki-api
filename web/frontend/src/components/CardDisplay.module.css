@@ -10,7 +10,7 @@
 
 /* Subtle decorative corner accent */
 .card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   right: 0;
@@ -144,7 +144,9 @@
   font-weight: 500;
   font-family: var(--font-mono);
   border-radius: var(--radius-sm);
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .tag:nth-child(3n + 1) {
@@ -154,7 +156,7 @@
 
 .tag:nth-child(3n + 2) {
   background: rgba(212, 165, 116, 0.15);
-  color: #8B6914;
+  color: #8b6914;
 }
 
 .tag:nth-child(3n + 3) {
@@ -185,7 +187,9 @@
   text-decoration: underline;
   text-decoration-color: transparent;
   text-underline-offset: 2px;
-  transition: color var(--transition-fast), text-decoration-color var(--transition-fast);
+  transition:
+    color var(--transition-fast),
+    text-decoration-color var(--transition-fast);
 }
 
 .sourceLink:hover {

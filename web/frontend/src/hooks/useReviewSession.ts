@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import type { CardWithValidation, Card, AnkiStatus } from '../types';
-import { loadCards, updateCard, pingAnki, approveCard, skipCard } from '../api/client';
+import { useCallback, useEffect, useState } from 'react';
+import { approveCard, loadCards, pingAnki, skipCard, updateCard } from '../api/client';
+import type { AnkiStatus, Card, CardWithValidation } from '../types';
 
 export interface ReviewSessionState {
   filename: string;
@@ -48,11 +48,13 @@ export function useReviewSession(filename: string | null) {
         ]);
 
         // Calculate initial counts based on status
-        const initialAdded = cardsResponse.cards.filter(c => c.card.status === 'added').length;
-        const initialSkipped = cardsResponse.cards.filter(c => c.card.status === 'skipped').length;
+        const initialAdded = cardsResponse.cards.filter((c) => c.card.status === 'added').length;
+        const initialSkipped = cardsResponse.cards.filter(
+          (c) => c.card.status === 'skipped'
+        ).length;
 
         // Find the first pending card to resume from
-        const firstPendingIndex = cardsResponse.cards.findIndex(c => c.card.status === 'pending');
+        const firstPendingIndex = cardsResponse.cards.findIndex((c) => c.card.status === 'pending');
         const allReviewed = firstPendingIndex === -1;
 
         setState((prev) => ({

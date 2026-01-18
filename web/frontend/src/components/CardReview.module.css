@@ -66,11 +66,11 @@
 }
 
 .statIcon[data-type="added"]::before {
-  content: '';
+  content: "";
 }
 
 .statIcon[data-type="skipped"]::before {
-  content: '';
+  content: "";
 }
 
 .ankiStatus {
@@ -145,7 +145,10 @@
   border: none;
   border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast);
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast),
+    opacity var(--transition-fast);
 }
 
 .actionButton:hover:not(:disabled) {
@@ -313,7 +316,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {

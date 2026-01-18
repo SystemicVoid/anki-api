@@ -25,9 +25,7 @@ export function Summary({ filename, total, added, skipped }: Props) {
 
         <h2 className={styles.title}>{title}</h2>
         {!isFullyComplete && (
-          <p className={styles.subtitle}>
-            You can resume reviewing the remaining cards anytime
-          </p>
+          <p className={styles.subtitle}>You can resume reviewing the remaining cards anytime</p>
         )}
         <p className={styles.filename}>{filename}</p>
 
@@ -55,6 +53,7 @@ export function Summary({ filename, total, added, skipped }: Props) {
         <div className={styles.actions}>
           {remaining > 0 && (
             <button
+              type="button"
               onClick={() => window.location.reload()}
               className={styles.resumeButton}
             >
@@ -62,6 +61,7 @@ export function Summary({ filename, total, added, skipped }: Props) {
             </button>
           )}
           <button
+            type="button"
             onClick={() => navigate('/review')}
             className={remaining > 0 ? styles.secondaryButton : styles.primaryButton}
           >

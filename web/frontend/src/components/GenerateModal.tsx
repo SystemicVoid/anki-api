@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileBrowser } from './FileBrowser';
 import type { FileNode } from '../types';
+import { FileBrowser } from './FileBrowser';
 import styles from './GenerateModal.module.css';
 
 interface GenerateModalProps {
@@ -21,9 +21,8 @@ export function GenerateModal({ isOpen, onClose }: GenerateModalProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const source = inputMode === 'url'
-      ? urlSource.trim().replace(/^["']|["']$/g, '')
-      : selectedFile?.path;
+    const source =
+      inputMode === 'url' ? urlSource.trim().replace(/^["']|["']$/g, '') : selectedFile?.path;
 
     if (!source) return;
 
@@ -39,9 +38,7 @@ export function GenerateModal({ isOpen, onClose }: GenerateModalProps) {
     onClose();
   };
 
-  const isSubmitDisabled = inputMode === 'url'
-    ? !urlSource.trim()
-    : !selectedFile;
+  const isSubmitDisabled = inputMode === 'url' ? !urlSource.trim() : !selectedFile;
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -50,11 +47,13 @@ export function GenerateModal({ isOpen, onClose }: GenerateModalProps) {
   };
 
   return (
-    <div className={styles.backdrop} onClick={handleBackdropClick}>
+    // biome-ignore lint/a11y/noStaticElementInteractions: backdrop click-to-close is standard modal UX
+    <div className={styles.backdrop} role="presentation" onClick={handleBackdropClick}>
       <div className={styles.modal}>
         <header className={styles.header}>
           <h2 className={styles.title}>Generate New Cards</h2>
           <button
+            type="button"
             onClick={onClose}
             className={styles.closeButton}
             aria-label="Close modal"
@@ -95,7 +94,6 @@ export function GenerateModal({ isOpen, onClose }: GenerateModalProps) {
                 onChange={(e) => setUrlSource(e.target.value)}
                 placeholder="https://example.com/article or scraped/file.md"
                 className={styles.input}
-                autoFocus
                 required
               />
               <p className={styles.hint}>
@@ -107,10 +105,7 @@ export function GenerateModal({ isOpen, onClose }: GenerateModalProps) {
           {/* File Browser Tab */}
           {inputMode === 'file' && (
             <div className={styles.field}>
-              <FileBrowser
-                selectedFile={selectedFile}
-                onSelectFile={setSelectedFile}
-              />
+              <FileBrowser selectedFile={selectedFile} onSelectFile={setSelectedFile} />
             </div>
           )}
 
@@ -126,24 +121,14 @@ export function GenerateModal({ isOpen, onClose }: GenerateModalProps) {
               placeholder="python, decorators, advanced"
               className={styles.input}
             />
-            <p className={styles.hint}>
-              Comma-separated tags to apply to generated cards
-            </p>
+            <p className={styles.hint}>Comma-separated tags to apply to generated cards</p>
           </div>
 
           <div className={styles.actions}>
-            <button
-              type="button"
-              onClick={onClose}
-              className={styles.cancelButton}
-            >
+            <button type="button" onClick={onClose} className={styles.cancelButton}>
               Cancel
             </button>
-            <button
-              type="submit"
-              disabled={isSubmitDisabled}
-              className={styles.generateButton}
-            >
+            <button type="submit" disabled={isSubmitDisabled} className={styles.generateButton}>
               Generate Cards
             </button>
           </div>

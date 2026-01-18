@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listCardFiles } from '../api/client';
 import type { FileStat } from '../types';
-import { GenerateModal } from './GenerateModal';
 import styles from './FileSelector.module.css';
+import { GenerateModal } from './GenerateModal';
 
 function getReviewedPercentage(file: FileStat): number {
   if (file.total_cards === 0) return 0;
@@ -81,7 +81,11 @@ export function FileSelector() {
           <span className={styles.errorIcon}></span>
           <h2>Connection Error</h2>
           <p>{error}</p>
-          <button onClick={() => window.location.reload()} className={styles.retryButton}>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className={styles.retryButton}
+          >
             Try Again
           </button>
         </div>
@@ -97,6 +101,7 @@ export function FileSelector() {
           <p className={styles.subtitle}>Select a card file to review</p>
 
           <button
+            type="button"
             onClick={() => setShowGenerateModal(true)}
             className={styles.generateButton}
           >
@@ -121,7 +126,11 @@ export function FileSelector() {
                   className={styles.fileItem}
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  <button onClick={() => handleSelect(file.filename)} className={styles.fileButton}>
+                  <button
+                    type="button"
+                    onClick={() => handleSelect(file.filename)}
+                    className={styles.fileButton}
+                  >
                     <div className={styles.fileInfo}>
                       <div className={styles.fileHeader}>
                         <span className={styles.filename}>{file.filename}</span>
@@ -130,7 +139,8 @@ export function FileSelector() {
 
                       <div className={styles.stats}>
                         <span className={styles.statLabel}>
-                          {file.added_cards} added · {file.skipped_cards} skipped · {file.pending_cards} pending
+                          {file.added_cards} added · {file.skipped_cards} skipped ·{' '}
+                          {file.pending_cards} pending
                         </span>
                       </div>
 
@@ -151,10 +161,7 @@ export function FileSelector() {
         )}
       </div>
 
-      <GenerateModal
-        isOpen={showGenerateModal}
-        onClose={() => setShowGenerateModal(false)}
-      />
+      <GenerateModal isOpen={showGenerateModal} onClose={() => setShowGenerateModal(false)} />
     </div>
   );
 }

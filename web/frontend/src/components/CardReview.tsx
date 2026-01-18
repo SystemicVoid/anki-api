@@ -1,11 +1,11 @@
-import { useEffect, useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useReviewSession } from '../hooks/useReviewSession';
 import { CardDisplay } from './CardDisplay';
 import { CardEditor } from './CardEditor';
-import { Summary } from './Summary';
-import { FileSelector } from './FileSelector';
 import styles from './CardReview.module.css';
+import { FileSelector } from './FileSelector';
+import { Summary } from './Summary';
 
 export function CardReview() {
   const [searchParams] = useSearchParams();
@@ -109,12 +109,7 @@ export function CardReview() {
   // Complete state
   if (isComplete) {
     return (
-      <Summary
-        filename={filename}
-        total={cards.length}
-        added={addedCount}
-        skipped={skippedCount}
-      />
+      <Summary filename={filename} total={cards.length} added={addedCount} skipped={skippedCount} />
     );
   }
 
@@ -162,6 +157,7 @@ export function CardReview() {
         </div>
 
         <button
+          type="button"
           onClick={refreshAnkiStatus}
           className={`${styles.ankiStatus} ${ankiStatus.connected ? styles.connected : styles.disconnected}`}
           title={ankiStatus.connected ? 'Anki connected' : 'Anki disconnected - click to retry'}
@@ -175,7 +171,7 @@ export function CardReview() {
       {error && (
         <div className={styles.errorToast}>
           <span>{error}</span>
-          <button onClick={clearError} className={styles.dismissButton}>
+          <button type="button" onClick={clearError} className={styles.dismissButton}>
             Dismiss
           </button>
         </div>
@@ -200,17 +196,17 @@ export function CardReview() {
         <footer className={styles.footer}>
           <div className={styles.actions}>
             <button
+              type="button"
               onClick={approve}
               disabled={isSubmitting || !ankiStatus.connected}
               className={`${styles.actionButton} ${styles.approve}`}
             >
-              <span className={styles.actionLabel}>
-                {isSubmitting ? 'Adding...' : 'Approve'}
-              </span>
+              <span className={styles.actionLabel}>{isSubmitting ? 'Adding...' : 'Approve'}</span>
               <kbd className={styles.shortcut}>A</kbd>
             </button>
 
             <button
+              type="button"
               onClick={startEditing}
               disabled={isSubmitting}
               className={`${styles.actionButton} ${styles.edit}`}
@@ -220,6 +216,7 @@ export function CardReview() {
             </button>
 
             <button
+              type="button"
               onClick={skip}
               disabled={isSubmitting}
               className={`${styles.actionButton} ${styles.skip}`}
@@ -229,6 +226,7 @@ export function CardReview() {
             </button>
 
             <button
+              type="button"
               onClick={quit}
               disabled={isSubmitting}
               className={`${styles.actionButton} ${styles.quit}`}

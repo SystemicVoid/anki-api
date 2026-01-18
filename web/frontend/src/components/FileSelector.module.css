@@ -97,7 +97,10 @@
     0 4px 12px rgba(44, 40, 37, 0.06),
     0 1px 3px rgba(44, 40, 37, 0.04);
   cursor: pointer;
-  transition: box-shadow var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+  transition:
+    box-shadow var(--transition-fast),
+    border-color var(--transition-fast),
+    transform var(--transition-fast);
   text-align: left;
   position: relative;
   overflow: hidden;
@@ -117,9 +120,10 @@
 }
 
 .fileButton::before {
-  content: '';
+  content: "";
   position: absolute;
-  top: 0; right: 0;
+  top: 0;
+  right: 0;
   width: 80px;
   height: 80px;
   background: linear-gradient(135deg, transparent 50%, var(--bg-tertiary) 50%);
@@ -219,7 +223,9 @@
 .fileArrow {
   font-size: 1rem;
   color: var(--text-muted);
-  transition: color var(--transition-fast), transform var(--transition-fast);
+  transition:
+    color var(--transition-fast),
+    transform var(--transition-fast);
 }
 
 .fileButton:hover .fileArrow {
@@ -327,7 +333,9 @@
   border: 1px solid var(--accent-primary);
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .retryButton:hover {
@@ -375,8 +383,13 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 /* New status-based UI styling */
@@ -412,7 +425,9 @@
   box-shadow:
     0 1px 3px rgba(44, 40, 37, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .statusIcon {
@@ -421,7 +436,7 @@
 }
 
 .statusBadge[data-status="new"] {
-  background: linear-gradient(135deg, var(--bg-tertiary) 0%, #E8E4DC 100%);
+  background: linear-gradient(135deg, var(--bg-tertiary) 0%, #e8e4dc 100%);
   color: var(--text-secondary);
 }
 
@@ -466,9 +481,12 @@
 }
 
 .progressBarContainer .progressBar::after {
-  content: '';
+  content: "";
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: linear-gradient(
     90deg,
     transparent 0%,
@@ -479,6 +497,10 @@
 }
 
 @keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }

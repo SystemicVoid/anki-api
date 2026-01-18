@@ -1,29 +1,29 @@
 :root {
   /* Color Palette - Warm, Paper-like */
-  --bg-primary: #F8F6F1;
-  --bg-secondary: #FFFFFF;
-  --bg-tertiary: #F0EDE6;
+  --bg-primary: #f8f6f1;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f0ede6;
 
   /* Text Colors */
-  --text-primary: #2C2825;
-  --text-secondary: #5A5652;
-  --text-tertiary: #8A8580;
-  --text-muted: #A8A29E;
+  --text-primary: #2c2825;
+  --text-secondary: #5a5652;
+  --text-tertiary: #8a8580;
+  --text-muted: #a8a29e;
 
   /* Accent Colors */
-  --accent-primary: #2D5A4A;
-  --accent-primary-hover: #3A7360;
-  --accent-secondary: #D4A574;
+  --accent-primary: #2d5a4a;
+  --accent-primary-hover: #3a7360;
+  --accent-secondary: #d4a574;
 
   /* Semantic Colors */
-  --color-error: #9B2C2C;
-  --color-error-bg: #FEF2F2;
-  --color-warning: #92600F;
-  --color-warning-bg: #FFFBEB;
-  --color-info: #1E4E8C;
-  --color-info-bg: #EFF6FF;
+  --color-error: #9b2c2c;
+  --color-error-bg: #fef2f2;
+  --color-warning: #92600f;
+  --color-warning-bg: #fffbeb;
+  --color-info: #1e4e8c;
+  --color-info-bg: #eff6ff;
   --color-success: #166534;
-  --color-success-bg: #F0FDF4;
+  --color-success-bg: #f0fdf4;
 
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(44, 40, 37, 0.04);
@@ -31,9 +31,9 @@
   --shadow-lg: 0 12px 32px rgba(44, 40, 37, 0.08), 0 4px 8px rgba(44, 40, 37, 0.04);
 
   /* Typography */
-  --font-display: 'Cormorant Garamond', Georgia, serif;
-  --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-body: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 
   /* Spacing */
   --space-xs: 0.25rem;
@@ -56,7 +56,9 @@
   --transition-slow: 400ms ease;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -173,7 +175,8 @@ a:hover {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {

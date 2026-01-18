@@ -5,8 +5,6 @@ interface Props {
   card: CardWithValidation;
 }
 
-
-
 function formatText(text: string): React.ReactNode {
   // Split by newlines and render with line breaks
   return text.split('\n').map((line, i, arr) => (
@@ -73,11 +71,7 @@ export function CardDisplay({ card }: Props) {
             ))}
           </div>
         )}
-
-
       </footer>
-
-
     </article>
   );
 }

@@ -1,13 +1,13 @@
 import type {
+  AddCardResponse,
+  AnkiStatus,
+  Card,
   CardsFileResponse,
   CardWithValidation,
-  AnkiStatus,
-  AddCardResponse,
-  FileListResponse,
-  Card,
-  FileStat,
-  FileNode,
   FileBrowserResponse,
+  FileListResponse,
+  FileNode,
+  FileStat,
 } from '../types';
 
 const API_BASE = '/api';
@@ -36,14 +36,11 @@ export async function updateCard(
   index: number,
   updates: Partial<Pick<Card, 'front' | 'back' | 'context' | 'tags'>>
 ): Promise<CardWithValidation> {
-  const response = await fetch(
-    `${API_BASE}/cards/${encodeURIComponent(filename)}/${index}`,
-    {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updates),
-    }
-  );
+  const response = await fetch(`${API_BASE}/cards/${encodeURIComponent(filename)}/${index}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updates),
+  });
   return handleResponse<CardWithValidation>(response);
 }
 
@@ -73,12 +70,9 @@ export async function approveCard(filename: string, index: number): Promise<Card
 }
 
 export async function skipCard(filename: string, index: number): Promise<CardWithValidation> {
-  const response = await fetch(
-    `${API_BASE}/cards/${encodeURIComponent(filename)}/${index}/skip`,
-    {
-      method: 'POST',
-    }
-  );
+  const response = await fetch(`${API_BASE}/cards/${encodeURIComponent(filename)}/${index}/skip`, {
+    method: 'POST',
+  });
   return handleResponse<CardWithValidation>(response);
 }
 

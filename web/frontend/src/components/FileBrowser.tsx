@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { browseFiles, getRecentFiles } from '../api/client';
-import type { FileNode, FileBrowserResponse } from '../types';
+import type { FileBrowserResponse, FileNode } from '../types';
 import styles from './FileBrowser.module.css';
 
 interface FileBrowserProps {
@@ -114,12 +114,14 @@ export function FileBrowser({ selectedFile, onSelectFile }: FileBrowserProps) {
       {/* Browse Mode Selector */}
       <div className={styles.modeSelector}>
         <button
+          type="button"
           className={browseMode === 'project' ? styles.modeButtonActive : styles.modeButton}
           onClick={() => handleModeChange('project')}
         >
           Project Files
         </button>
         <button
+          type="button"
           className={browseMode === 'system' ? styles.modeButtonActive : styles.modeButton}
           onClick={() => handleModeChange('system')}
         >
@@ -131,12 +133,14 @@ export function FileBrowser({ selectedFile, onSelectFile }: FileBrowserProps) {
       {browseMode === 'project' && (
         <div className={styles.directoryTypeSelector}>
           <button
+            type="button"
             className={directoryType === 'scraped' ? styles.typeButtonActive : styles.typeButton}
             onClick={() => handleDirectoryTypeChange('scraped')}
           >
             Scraped (.md)
           </button>
           <button
+            type="button"
             className={directoryType === 'cards' ? styles.typeButtonActive : styles.typeButton}
             onClick={() => handleDirectoryTypeChange('cards')}
           >
@@ -152,14 +156,13 @@ export function FileBrowser({ selectedFile, onSelectFile }: FileBrowserProps) {
           <div className={styles.recentList}>
             {recentFiles.slice(0, 5).map((file, idx) => (
               <button
+                type="button"
                 key={idx}
                 className={styles.recentItem}
                 onClick={() => onSelectFile(file)}
               >
                 <span className={styles.recentName}>{file.name}</span>
-                <span className={styles.recentTime}>
-                  {formatRelativeTime(file.modified)}
-                </span>
+                <span className={styles.recentTime}>{formatRelativeTime(file.modified)}</span>
               </button>
             ))}
           </div>
@@ -170,7 +173,7 @@ export function FileBrowser({ selectedFile, onSelectFile }: FileBrowserProps) {
       <div className={styles.pathDisplay}>
         <span className={styles.pathLabel}>Current:</span>
         <span className={styles.pathValue}>
-          {currentPath || (browseMode === 'project' ? directoryType + '/' : 'Home')}
+          {currentPath || (browseMode === 'project' ? `${directoryType}/` : 'Home')}
         </span>
       </div>
 
@@ -184,10 +187,7 @@ export function FileBrowser({ selectedFile, onSelectFile }: FileBrowserProps) {
           <div className={styles.nodeList}>
             {/* Up Navigation */}
             {parentPath !== null && (
-              <button
-                className={styles.nodeItem}
-                onClick={handleNavigateUp}
-              >
+              <button type="button" className={styles.nodeItem} onClick={handleNavigateUp}>
                 <span className={styles.nodeIcon}>📁</span>
                 <span className={styles.nodeName}>..</span>
                 <span className={styles.nodeInfo}>Parent directory</span>
@@ -195,12 +195,11 @@ export function FileBrowser({ selectedFile, onSelectFile }: FileBrowserProps) {
             )}
 
             {/* Directory/File List */}
-            {nodes.length === 0 && (
-              <div className={styles.emptyState}>No files found</div>
-            )}
+            {nodes.length === 0 && <div className={styles.emptyState}>No files found</div>}
 
             {nodes.map((node, idx) => (
               <button
+                type="button"
                 key={idx}
                 className={`${styles.nodeItem} ${
                   selectedFile?.path === node.path ? styles.nodeItemSelected : ''
@@ -208,9 +207,7 @@ export function FileBrowser({ selectedFile, onSelectFile }: FileBrowserProps) {
                 onClick={() => handleNodeClick(node)}
                 disabled={!node.readable}
               >
-                <span className={styles.nodeIcon}>
-                  {node.type === 'directory' ? '📁' : '📄'}
-                </span>
+                <span className={styles.nodeIcon}>{node.type === 'directory' ? '📁' : '📄'}</span>
                 <span className={styles.nodeName}>{node.name}</span>
                 <span className={styles.nodeInfo}>
                   {node.type === 'file' ? formatFileSize(node.size) : ''}

@@ -1,6 +1,6 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { CardReview } from './components/CardReview';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { CardGeneration } from './components/CardGeneration';
+import { CardReview } from './components/CardReview';
 
 function App() {
   return (
