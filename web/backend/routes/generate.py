@@ -18,6 +18,8 @@ from claude_agent_sdk import (
     ToolUseBlock,
 )
 
+from src.youtube import is_youtube_url, export_transcript_to_markdown
+
 router = APIRouter()
 
 # Project root and output directories
@@ -113,11 +115,47 @@ class GenerationSession:
             })
             raise
 
+    async def fetch_youtube_transcript(self, url: str) -> str:
+        """Fetch YouTube transcript and save to markdown."""
+        await self.send_event("status", {
+            "message": "Fetching YouTube transcript...",
+            "step": "scraping"
+        })
+
+        def fetch_transcript():
+            return export_transcript_to_markdown(url, SCRAPED_DIR)
+
+        try:
+            output_path = await asyncio.to_thread(fetch_transcript)
+            self.scraped_path = str(output_path)
+
+            await self.send_event("status", {
+                "message": f"Transcript saved: {output_path.name}",
+                "step": "scraping_complete"
+            })
+            return self.scraped_path
+
+        except ValueError as e:
+            await self.send_event("error", {
+                "message": str(e),
+                "step": "scraping"
+            })
+            raise
+        except Exception as e:
+            await self.send_event("error", {
+                "message": f"Failed to fetch transcript: {str(e)}",
+                "step": "scraping"
+            })
+            raise
+
     async def validate_source(self, source: str) -> str:
         """Validate and prepare source (URL or file path)."""
         # Determine if source is URL or file path
         if source.startswith(("http://", "https://")):
-            # URL - scrape it
+            # Check if YouTube URL first
+            if is_youtube_url(source):
+                return await self.fetch_youtube_transcript(source)
+            # Regular URL - scrape it
             return await self.scrape_url(source)
         else:
             # File path - validate it exists
