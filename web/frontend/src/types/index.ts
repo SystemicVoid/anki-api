@@ -34,12 +34,6 @@ export interface AnkiStatus {
   error?: string;
 }
 
-export interface AddCardResponse {
-  success: boolean;
-  note_id?: number;
-  error?: string;
-}
-
 export interface FileStat {
   filename: string;
   total_cards: number;
@@ -51,8 +45,6 @@ export interface FileStat {
 export interface FileListResponse {
   files: FileStat[];
 }
-
-export type ReviewAction = 'approve' | 'edit' | 'skip' | 'quit';
 
 export interface GenerationMessage {
   type: 'status' | 'text' | 'tool' | 'complete' | 'error';
