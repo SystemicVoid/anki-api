@@ -1,6 +1,7 @@
 """Card management commands: extract-docx, review, add, quick, find, delete."""
 
 import sys
+from datetime import datetime
 from pathlib import Path
 
 import click
@@ -10,6 +11,7 @@ from src.documents import export_docx_to_markdown
 from src.schema import (
     Flashcard,
     load_cards_from_json,
+    save_cards_to_json,
     validate_card,
 )
 from src.cli.anki_lifecycle import ensure_anki_running, get_client
@@ -65,7 +67,12 @@ def extract_docx(file: Path, output: Path | None):
     is_flag=True,
     help="Display EAT principle validation warnings during review",
 )
-def review(file: Path, deck: str, show_warnings: bool):
+@click.option(
+    "--reset",
+    is_flag=True,
+    help="Reset all cards to pending status and start fresh review",
+)
+def review(file: Path, deck: str, show_warnings: bool, reset: bool):
     """Review and approve cards from a JSON file before adding to Anki.
 
     Interactively review each card with options to:
@@ -73,6 +80,10 @@ def review(file: Path, deck: str, show_warnings: bool):
     - (e)dit: Modify card fields
     - (s)kip: Skip this card
     - (q)uit: Stop reviewing
+
+    Review progress is persisted to the file. If interrupted, the review
+    will resume from the first unreviewed card on next run.
+    Use --reset to start a fresh review of all cards.
     """
     # Ensure Anki is running (starts it if needed)
     client = ensure_anki_running()
@@ -88,19 +99,52 @@ def review(file: Path, deck: str, show_warnings: bool):
         print_warning("No cards found in file.")
         sys.exit(0)
 
-    print_info(f"Loaded {len(cards)} cards from {file.name}")
+    # Reset all cards to pending if requested
+    if reset:
+        for card in cards:
+            card.status = "pending"
+            card.anki_id = None
+            card.added_at = None
+        save_cards_to_json(cards, str(file))
+        print_info("Reset all cards to pending status.")
+
+    # Find pending cards (not yet reviewed)
+    pending_indices = [i for i, card in enumerate(cards) if card.status == "pending"]
+
+    if not pending_indices:
+        print_success("All cards have been reviewed!")
+        # Show summary of existing statuses
+        added = sum(1 for c in cards if c.status == "added")
+        skipped = sum(1 for c in cards if c.status == "skipped")
+        click.echo(f"  Previously added: {added}")
+        click.echo(f"  Previously skipped: {skipped}")
+        click.echo("\nUse --reset to review all cards again.")
+        sys.exit(0)
+
+    # Show resume info if some cards were already reviewed
+    already_reviewed = len(cards) - len(pending_indices)
+    if already_reviewed > 0:
+        print_info(f"Resuming review: {already_reviewed} cards already processed")
+        added = sum(1 for c in cards if c.status == "added")
+        skipped = sum(1 for c in cards if c.status == "skipped")
+        click.echo(f"  Added: {added}, Skipped: {skipped}")
+        click.echo()
+
+    print_info(f"Reviewing {len(pending_indices)} pending cards from {file.name}")
     print_success("✓ Connected to Anki\n")
 
-    added_count = 0
-    skipped_count = 0
+    session_added = 0
+    session_skipped = 0
 
-    for idx, card in enumerate(cards, 1):
+    for review_num, card_idx in enumerate(pending_indices, 1):
+        card = cards[card_idx]
+
         # Override deck if specified
         if deck:
             card.deck = deck
 
-        # Print card
-        print_card(card, idx, len(cards))
+        # Print card (show position as "review X of Y pending")
+        print_card(card, review_num, len(pending_indices))
 
         # Validate card (always run validation, but only display if flag is set)
         warnings = validate_card(card)
@@ -117,12 +161,14 @@ def review(file: Path, deck: str, show_warnings: bool):
         )
 
         if action.lower() == "q":
-            print_info("\nStopped reviewing.")
+            print_info("\nStopped reviewing. Progress has been saved.")
             break
 
         elif action.lower() == "s":
             print_warning("Skipped card.")
-            skipped_count += 1
+            card.status = "skipped"
+            save_cards_to_json(cards, str(file))
+            session_skipped += 1
             continue
 
         elif action.lower() == "e":
@@ -143,7 +189,9 @@ def review(file: Path, deck: str, show_warnings: bool):
             # Ask to approve after editing
             if not click.confirm("\nApprove edited card?", default=True):
                 print_warning("Skipped card after edit.")
-                skipped_count += 1
+                card.status = "skipped"
+                save_cards_to_json(cards, str(file))
+                session_skipped += 1
                 continue
 
         # Add card to Anki (action == 'a' or after edit approval)
@@ -155,16 +203,26 @@ def review(file: Path, deck: str, show_warnings: bool):
                 tags=card.tags,
             )
             print_success(f"✓ Card added to Anki (ID: {note_id})")
-            added_count += 1
+            card.status = "added"
+            card.anki_id = note_id
+            card.added_at = datetime.now()
+            save_cards_to_json(cards, str(file))
+            session_added += 1
         except AnkiConnectError as e:
             print_error(f"Failed to add card: {e}")
-            skipped_count += 1
+            # Don't change status on error - let user retry
+            session_skipped += 1
 
     # Summary
     click.echo(f"\n{'=' * 60}")
-    print_success(f"Review complete!")
-    click.echo(f"  Added: {added_count}")
-    click.echo(f"  Skipped: {skipped_count}")
+    print_success("Review session complete!")
+    click.echo(f"  This session - Added: {session_added}, Skipped: {session_skipped}")
+
+    # Show total progress
+    total_added = sum(1 for c in cards if c.status == "added")
+    total_skipped = sum(1 for c in cards if c.status == "skipped")
+    total_pending = sum(1 for c in cards if c.status == "pending")
+    click.echo(f"  Total progress - Added: {total_added}, Skipped: {total_skipped}, Pending: {total_pending}")
 
 
 @click.command()

@@ -3,6 +3,11 @@
 This document correlates future work, technical debt, and ideas for the `anki-api` project.
 
 ## Recently Completed
+- [x] **Review Cards Persistence** (2026-01-18): When resuming an interrupted review, users now skip already-processed cards. Features include:
+  - Automatic resume from first pending card when re-running `review` command
+  - Status persistence to JSON file after each card (added/skipped)
+  - Session and total progress tracking displayed in summary
+  - `--reset` flag to start fresh review of all cards
 - [x] **YouTube Integration** (2026-01-18): Added support for generating flashcards from YouTube video transcripts. Features include:
   - Auto-detection of YouTube URLs (youtube.com, youtu.be, shorts, embed)
   - Transcript fetching via youtube-transcript-api
