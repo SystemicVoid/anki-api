@@ -23,6 +23,17 @@ repos:
         args: [--fix]
       - id: ruff-format
 
+  # Ty - Python type checking (Rust-based, very fast)
+  # Uses --exit-zero until pre-existing type errors are fixed
+  - repo: local
+    hooks:
+      - id: ty
+        name: ty
+        entry: ty check --exit-zero
+        language: system
+        types: [python]
+        pass_filenames: false
+
   # Taplo - TOML formatting
   - repo: https://github.com/ComPWA/taplo-pre-commit
     rev: v0.9.3
@@ -43,4 +54,12 @@ repos:
         entry: bash -c 'cd web/frontend && pnpm biome check --write .'
         language: system
         files: ^web/frontend/.*\.(ts|tsx|js|jsx|json)$
+        pass_filenames: false
+
+      # Uses || true until pre-existing dead code is cleaned up
+      - id: knip
+        name: knip
+        entry: bash -c 'cd web/frontend && pnpm knip || true'
+        language: system
+        files: ^web/frontend/.*\.(ts|tsx)$
         pass_filenames: false

@@ -3,6 +3,13 @@
 This document correlates future work, technical debt, and ideas for the `anki-api` project.
 
 ## Recently Completed
+- [x] **Code Quality Tooling** (2026-01-18): Comprehensive pre-commit hooks via prek for one-command code quality. Includes:
+  - **Python**: ruff (lint+format), ty (type checking)
+  - **TypeScript/JS**: biome (lint+format), knip (dead code detection)
+  - **All files**: typos (spell checker), taplo (TOML), shellcheck (shell scripts)
+  - Single command: `prek run --all-files` runs all checks
+  - Git hooks: `prek install` for pre-commit integration
+  - Config: `.pre-commit-config.yaml`, `_typos.toml`, `pyproject.toml [tool.ruff]`, `web/frontend/biome.json`
 - [x] **Review Cards Persistence** (2026-01-18): When resuming an interrupted review, users now skip already-processed cards. Features include:
   - Automatic resume from first pending card when re-running `review` command
   - Status persistence to JSON file after each card (added/skipped)
@@ -21,7 +28,9 @@ This document correlates future work, technical debt, and ideas for the `anki-ap
   - Recent files: Quick access to recently modified files
 
 ## High Priority
-- [ ] **CI/CD Pipeline**: Implement GitHub Actions for automated testing and linting on push.
+- [ ] **CI/CD Pipeline**: Implement GitHub Actions to run `prek run --all-files` and `uv run pytest` on push/PR
+- [ ] **Fix Type Errors**: Address pre-existing type errors flagged by ty (currently using `--exit-zero`)
+- [ ] **Clean Dead Code**: Remove unused exports flagged by knip (ValidationWarnings.tsx, addCardToAnki, ReviewAction)
 - [ ] **Production Configuration**: Parameterize CORS origins in `web/backend/main.py` to support production environments (currently hardcoded to localhost).
 - [ ] **Test Coverage**: Expand pytest coverage beyond the current basic smoke tests, particularly for edge cases in card validation.
 

@@ -54,6 +54,52 @@ pnpm build
 
 Need to read DOCX material without the CLI? Import `extract_docx_text` from `src.documents` to pull markdown-friendly text directly inside agent workflows.
 
+### Code Quality
+
+All code quality checks run through a single command via prek (pre-commit):
+
+```bash
+# Run all checks (one command philosophy)
+prek run --all-files
+
+# Install git hooks (runs checks on every commit)
+prek install
+```
+
+**Pre-commit hooks (fast, <5s total):**
+
+| Hook | Scope | Purpose |
+|------|-------|---------|
+| trailing-whitespace | All | Remove trailing whitespace |
+| end-of-file-fixer | All | Ensure files end with newline |
+| check-yaml | YAML | Validate YAML syntax |
+| check-json | JSON | Validate JSON syntax |
+| typos | All | Spell checker (catches agent typos) |
+| ruff | Python | Lint + format (replaces flake8/black/isort) |
+| ruff-format | Python | Code formatting |
+| ty | Python | Type checking (Rust-based, very fast) |
+| taplo-format | TOML | Format pyproject.toml |
+| shellcheck | Shell | Shell script linting |
+| biome | TS/JS | Lint + format (replaces ESLint/Prettier) |
+| knip | TS/JS | Dead code detection |
+
+**Frontend-specific commands:**
+
+```bash
+cd web/frontend
+pnpm check    # biome check
+pnpm lint     # biome lint only
+pnpm format   # biome format only
+pnpm knip     # dead code detection
+```
+
+**Configuration files:**
+- `.pre-commit-config.yaml` - prek hook orchestration
+- `_typos.toml` - spell checker dictionary
+- `pyproject.toml` - ruff and ty config under `[tool.ruff]` and `[tool.ty]`
+- `web/frontend/biome.json` - biome config
+- `web/frontend/knip.json` - knip config
+
 ### Web Scraping Workflow
 ```bash
 # Scrape URL to markdown (requires crawl4ai at /home/hugo/Documents/Engineering/crawl4ai)

@@ -58,5 +58,5 @@ ignore = [
 [tool.ruff.lint.isort]
 known-first-party = ["src"]
 
-[tool.ty]
+[tool.ty.environment]
 python-version = "3.11"
