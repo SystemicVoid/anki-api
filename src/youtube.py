@@ -10,6 +10,7 @@ from youtube_transcript_api._errors import (
     TranscriptsDisabled,
     VideoUnavailable,
 )
+from youtube_transcript_api.formatters import TextFormatter
 
 __all__ = [
     "export_transcript_to_markdown",
@@ -41,19 +42,12 @@ def is_youtube_url(url: str) -> bool:
     return extract_video_id(url) is not None
 
 
-def _format_timestamp(seconds: float) -> str:
-    """Convert seconds to MM:SS or HH:MM:SS format."""
-    hours = int(seconds // 3600)
-    minutes = int((seconds % 3600) // 60)
-    secs = int(seconds % 60)
-    if hours > 0:
-        return f"{hours:02d}:{minutes:02d}:{secs:02d}"
-    return f"{minutes:02d}:{secs:02d}"
-
-
 def export_transcript_to_markdown(url: str, output_dir: Path) -> Path:
     """
-    Fetch YouTube transcript and save as markdown.
+    Fetch YouTube transcript and save as clean text markdown.
+
+    Uses TextFormatter from youtube-transcript-api for clean, readable output
+    without timestamps - optimized for reading and flashcard generation.
 
     Args:
         url: YouTube video URL
@@ -78,26 +72,13 @@ def export_transcript_to_markdown(url: str, output_dir: Path) -> Path:
     except VideoUnavailable:
         raise ValueError(f"Video unavailable: {video_id}")
 
-    # Build markdown content
-    lines = [
-        "# YouTube Video Transcript",
-        "",
-        f"**Video ID:** {video_id}",
-        f"**URL:** https://youtube.com/watch?v={video_id}",
-        f"**Language:** {transcript.language} ({transcript.language_code})",
-        f"**Auto-generated:** {'Yes' if transcript.is_generated else 'No'}",
-        "",
-        "---",
-        "",
-        "## Transcript",
-        "",
-    ]
+    # Use TextFormatter for clean, readable output (no timestamps)
+    formatter = TextFormatter()
+    text_content = formatter.format_transcript(transcript)
 
-    for snippet in transcript.snippets:
-        timestamp = _format_timestamp(snippet.start)
-        lines.append(f"[{timestamp}] {snippet.text}")
-
-    lines.append("")
+    # Strip trailing whitespace from each line (TextFormatter adds trailing spaces)
+    lines = [line.rstrip() for line in text_content.splitlines()]
+    text_content = "\n".join(lines)
 
     # Generate filename and save
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -105,6 +86,6 @@ def export_transcript_to_markdown(url: str, output_dir: Path) -> Path:
     output_path = output_dir / filename
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    output_path.write_text("\n".join(lines), encoding="utf-8")
+    output_path.write_text(text_content, encoding="utf-8")
 
     return output_path
