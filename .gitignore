@@ -23,6 +23,7 @@ env/
 scraped/
 cards/
 notes/
+.archive/
 
 # Documents
 *.docx

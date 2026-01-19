@@ -5,6 +5,8 @@ extend-exclude = ["*.lock", "pnpm-lock.yaml", "*.min.js", "*.min.css"]
 extend-ignore-re = [
   # Base64 encoded strings
   "[A-Za-z0-9+/]{40,}={0,2}",
+  # URL query parameters (e.g., buffer3ba09)
+  "buffer[a-f0-9]+",
 ]
 
 [default.extend-words]
