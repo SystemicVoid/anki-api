@@ -2,13 +2,6 @@
 
 This document correlates future work, technical debt, and ideas for the `anki-api` project.
 
-
-## Highest Priority
-- [ ] **Codebase Cleanup** (pre-blocking hooks): Clean up all issues flagged by ty and knip so we can enable blocking mode:
-  - **Python type errors (ty)**: Fix type annotations in `src/cli/output.py`, `src/cli/commands/orchestration.py`, `web/backend/main.py`
-  - **Dead code (knip)**: Remove `src/components/ValidationWarnings.tsx`, `addCardToAnki` export, `ReviewAction` type
-  - **After cleanup**: Remove `--exit-zero` from ty hook and `|| true` from knip hook in `.pre-commit-config.yaml`
-
 ## High Priority
 - [ ] **CI/CD Pipeline**: Implement GitHub Actions to run `prek run --all-files` and `uv run pytest` on push/PR
 - [ ] **Production Configuration**: Parameterize CORS origins in `web/backend/main.py` to support production environments (currently hardcoded to localhost).
@@ -26,6 +19,10 @@ This document correlates future work, technical debt, and ideas for the `anki-ap
 ---
 
 ## Recently Completed
+- [x] **Codebase Cleanup** (pre-blocking hooks): Clean up all issues flagged by ty and knip so we can enable blocking mode:
+  - **Python type errors (ty)**: Fix type annotations in `src/cli/output.py`, `src/cli/commands/orchestration.py`, `web/backend/main.py`
+  - **Dead code (knip)**: Remove `src/components/ValidationWarnings.tsx`, `addCardToAnki` export, `ReviewAction` type
+  - **After cleanup**: Remove `--exit-zero` from ty hook and `|| true` from knip hook in `.pre-commit-config.yaml`
 - [x] **Code Quality Tooling** (2026-01-18): Comprehensive pre-commit hooks via prek for one-command code quality. Includes:
   - **Python**: ruff (lint+format), ty (type checking)
   - **TypeScript/JS**: biome (lint+format), knip (dead code detection)
