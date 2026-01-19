@@ -24,11 +24,18 @@ export function CardGeneration() {
       return;
     }
 
+    // Track if this effect instance has been cleaned up
+    // Prevents sending generation request after React Strict Mode cleanup
+    let isCleanedUp = false;
+
     // Connect to WebSocket
     const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
 
     ws.onopen = () => {
+      // Don't send if effect was cleaned up (React Strict Mode double-invoke)
+      if (isCleanedUp) return;
+
       setIsConnected(true);
       // Send initial request
       ws.send(
@@ -40,6 +47,8 @@ export function CardGeneration() {
     };
 
     ws.onmessage = (event) => {
+      if (isCleanedUp) return;
+
       try {
         const message: GenerationMessage = JSON.parse(event.data);
         setMessages((prev) => [...prev, message]);
@@ -63,18 +72,22 @@ export function CardGeneration() {
     };
 
     ws.onerror = (event) => {
+      if (isCleanedUp) return;
       console.error('WebSocket error:', event);
       setError('Connection error. Please ensure the backend is running.');
       setIsConnected(false);
     };
 
     ws.onclose = () => {
+      if (isCleanedUp) return;
       setIsConnected(false);
     };
 
     // Cleanup on unmount
     return () => {
-      if (ws.readyState === WebSocket.OPEN) {
+      isCleanedUp = true;
+      // Close regardless of state - catches CONNECTING state during Strict Mode remount
+      if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
         ws.close();
       }
     };
