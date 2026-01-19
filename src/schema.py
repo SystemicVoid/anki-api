@@ -1,7 +1,6 @@
 """Flashcard schema and validation based on EAT principles."""
 
 import json
-import re
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -97,179 +96,33 @@ class ValidationWarning:
         return f"{icon} {self.message}"
 
 
-def validate_encoded(card: Flashcard) -> list[ValidationWarning]:
-    """Validate 'Encoded' principle - cards should have sufficient context.
-
-    Args:
-        card: Flashcard to validate
-
-    Returns:
-        List of validation warnings
-    """
-    warnings = []
-
-    # Check for minimal context
-    if not card.context and len(card.back) < 30:
-        warnings.append(
-            ValidationWarning(
-                "Consider adding context for future understanding. "
-                "Will you remember what this means in 6 months?",
-                "warning",
-            )
-        )
-
-    # Warn about very short answers without context
-    if len(card.back) < 15 and not card.context:
-        warnings.append(
-            ValidationWarning(
-                "Very brief answer without context. Consider explaining more.",
-                "warning",
-            )
-        )
-
-    return warnings
-
-
-def validate_atomic(card: Flashcard) -> list[ValidationWarning]:
-    """Validate 'Atomic' principle - questions should be focused and specific.
-
-    Args:
-        card: Flashcard to validate
-
-    Returns:
-        List of validation warnings
-    """
-    warnings = []
-
-    # Check for compound questions (multiple parts)
-    compound_indicators = [" and ", " or ", ";", "also"]
-    front_lower = card.front.lower()
-
-    for indicator in compound_indicators:
-        if indicator in front_lower:
-            warnings.append(
-                ValidationWarning(
-                    f"Question might be compound (contains '{indicator}'). "
-                    "Consider splitting into separate cards.",
-                    "warning",
-                )
-            )
-            break
-
-    # Check for overly long questions
-    if len(card.front) > 200:
-        warnings.append(
-            ValidationWarning(
-                f"Question is very long ({len(card.front)} chars). "
-                "Atomic questions should be focused and brief.",
-                "warning",
-            )
-        )
-
-    # Check for vague question starters
-    vague_starters = ["what about", "tell me about", "anything", "everything"]
-    if any(card.front.lower().startswith(starter) for starter in vague_starters):
-        warnings.append(
-            ValidationWarning(
-                "Question starts with vague phrase. Be more specific to trigger "
-                "precise memory retrieval.",
-                "warning",
-            )
-        )
-
-    # Check if front is actually a question
-    if not card.front.strip().endswith("?"):
-        warnings.append(
-            ValidationWarning(
-                "Front should be a question (end with '?'). Questions are more "
-                "effective than statements.",
-                "error",
-            )
-        )
-
-    return warnings
-
-
-def validate_timeless(card: Flashcard) -> list[ValidationWarning]:
-    """Validate 'Timeless' principle - cards should be self-contained.
-
-    Args:
-        card: Flashcard to validate
-
-    Returns:
-        List of validation warnings
-    """
-    warnings = []
-
-    # Check for vague pronouns that need context
-    vague_pronouns = ["this", "that", "these", "those", "it", "they"]
-    front_words = re.findall(r"\b\w+\b", card.front.lower())
-
-    for pronoun in vague_pronouns:
-        if pronoun in front_words:
-            warnings.append(
-                ValidationWarning(
-                    f"Contains vague pronoun '{pronoun}'. "
-                    "Ensure the question is clear without prior context.",
-                    "warning",
-                )
-            )
-            break
-
-    # Check for time-dependent references
-    time_references = [
-        "today",
-        "yesterday",
-        "recently",
-        "last week",
-        "currently",
-        "now",
-    ]
-    if any(ref in card.front.lower() for ref in time_references):
-        warnings.append(
-            ValidationWarning(
-                "Contains time-dependent reference. Will this be clear in the future?",
-                "warning",
-            )
-        )
-
-    # Check for undefined abbreviations or jargon
-    # Look for short uppercase words that might be abbreviations
-    uppercase_words = re.findall(r"\b[A-Z]{2,}\b", card.front)
-    if uppercase_words and not card.context:
-        warnings.append(
-            ValidationWarning(
-                f"Contains abbreviations ({', '.join(uppercase_words)}). "
-                "Consider adding context to explain them.",
-                "info",
-            )
-        )
-
-    return warnings
-
-
 def validate_card(card: Flashcard) -> list[ValidationWarning]:
-    """Run all EAT principle validations on a card.
+    """Validate card structure.
+
+    EAT 2.0 Philosophy: Mechanical pattern-matching rules (character counts,
+    keyword detection) are removed. Quality principles like atomicity,
+    contextual self-sufficiency, and interference management are now
+    guidance for agent judgment, not programmatic checks.
+
+    See docs/EAT_FRAMEWORK.md for the cognitive science-grounded principles
+    that should guide card creation.
+
+    This function only validates unambiguous structural requirements:
+    - Front and back cannot be empty
 
     Args:
         card: Flashcard to validate
 
     Returns:
-        List of all validation warnings
+        List of validation warnings (errors only for structural issues)
     """
     warnings = []
 
-    # Basic field validation
     if not card.front.strip():
-        warnings.append(ValidationWarning("Front (question) cannot be empty.", "error"))
+        warnings.append(ValidationWarning("Front cannot be empty.", "error"))
 
     if not card.back.strip():
-        warnings.append(ValidationWarning("Back (answer) cannot be empty.", "error"))
-
-    # EAT principle validations
-    warnings.extend(validate_encoded(card))
-    warnings.extend(validate_atomic(card))
-    warnings.extend(validate_timeless(card))
+        warnings.append(ValidationWarning("Back cannot be empty.", "error"))
 
     return warnings
 

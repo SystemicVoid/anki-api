@@ -2,12 +2,16 @@
 description: Generate flashcards from content using EAT principles
 ---
 
-# Task: Generate Anki Flashcards
+# Task: Generate Anki Flashcards (EAT 2.0)
 
-Create high-quality Anki flashcards from the provided content following the **EAT Framework**:
-- **E**ncoded: Understanding-based (not rote memorization)
-- **A**tomic: One focused concept per card
-- **T**imeless: Self-contained with sufficient context
+Create high-quality Anki flashcards from the provided content following the **EAT 2.0 Framework**—a cognitive science-grounded approach to knowledge encoding.
+
+**The EAT principles** (reinterpreted from cognitive science):
+- **E**ncoded: Elaborative encoding—context creates schema connections for durable memory
+- **A**tomic: Database normalization—one fact per card, contextually self-sufficient
+- **T**imeless: Interference management—semantic distinctiveness, comparison cards for similar concepts
+
+**Reference**: See `docs/EAT_FRAMEWORK.md` for full cognitive science rationale.
 
 ## Arguments Handling
 
@@ -18,7 +22,7 @@ Parse the provided arguments:
 
 ## Workflow
 
-### 0. Prep the environment
+### 0. Prep the Environment
 - Install deps once with `uv sync`.
 - Ensure Anki is running, then verify with `uv run anki-api ping` so downstream commands do not fail mid-run.
 
@@ -33,24 +37,63 @@ Parse the provided arguments:
 **If file path provided:**
 Read the file directly.
 
-### 2. Analyze Content
+### 2. Semantic Decomposition (Chain of Thought)
 
-Read and identify:
-- Key concepts worth long-term retention
-- Practical applications and use cases
-- Common pitfalls or mistakes
-- Important relationships between ideas
+Before generating cards, analyze the content systematically:
+
+1. **Isolate Core Concepts**: List key entities, definitions, and causal relationships
+2. **Schema Alignment**: Identify the hierarchical domain (e.g., `#python::decorators`)
+3. **Atomization Check**: Break complex sentences into atomic propositions
+4. **Interference Scan**: Flag concepts easily confused with others (e.g., list vs tuple, TCP vs UDP) for Comparison Cards
 
 **Quality over quantity**: Aim for 5-10 excellent cards, not 50 mediocre ones.
 
-### 3. Generate Flashcards
+### 3. Apply the 5 Golden Rules
 
-Use `src.schema` to create cards and keep all data in the `Flashcard` dataclass:
+#### Rule 1: Atomicity (1NF)
+Each card tests exactly ONE discrete fact.
+- If answer has "and", "or", or a list > 2 items → split into multiple cards
+- **Exception**: "and" that unifies a single concept is acceptable
+  - ✗ "What are the inputs and outputs of X?" (two facts)
+  - ✓ "Why do both A and B use pattern X?" (one relationship)
+
+#### Rule 2: Contextual Self-Sufficiency (2NF)
+The question contains all necessary context to be answered in isolation.
+- Explicit domain for ambiguous terms: "In Python...", "In Cell Biology..."
+- No pronouns requiring external context (but technical pronouns like JS's `this` are fine when that IS the subject)
+
+#### Rule 3: Interference Inhibition
+For similar concepts, generate Comparison Cards.
+- Format: "Distinguish between X and Y regarding Z."
+- Triggers: Mitosis/Meiosis, TCP/UDP, list/tuple, proactive/retroactive interference
+
+#### Rule 4: Cloze vs Q&A Selection
+
+| Card Type | Use When | Example |
+|-----------|----------|---------|
+| **Cloze** | Atomic facts, syntax, exact wording | `print() is valid syntax in {{Python 3}}` |
+| **Q&A** | Reasoning, "why"/"how" questions | `Why does Python 3 require parentheses for print?` |
+
+**Note**: For important facts, consider multiple cloze variations to prevent pattern-matching:
+```
+Card A: {{Mitochondria}} produce ATP.
+Card B: Mitochondria produce {{ATP}}.
+```
+
+#### Rule 5: Hierarchical Tagging
+- **Hierarchy**: `#Domain::Subdomain::Topic` (schema activation)
+- **Facet**: `#Type::Fact`, `#Type::Concept`, `#Type::Procedure`, `#Type::Principle` (metacognition)
+
+Example: `tags=["python::decorators", "type::concept"]`
+
+### 4. Generate Flashcards
+
+Use `src.schema` to create cards:
 
 ```python
 from datetime import datetime
 
-from src.schema import Flashcard, save_cards_to_json, validate_card
+from src.schema import Flashcard, save_cards_to_json
 
 cards: list[Flashcard] = []
 
@@ -59,8 +102,8 @@ cards.append(
     Flashcard(
         front="Why does [concept] work/exist?",
         back="Clear explanation of the underlying reason",
-        context="Additional context or related concepts",
-        tags=["topic", "subtopic", "concept"],
+        context="Schema connections—how this relates to concepts learner already knows",
+        tags=["domain::topic", "type::concept"],
         source="<url or file>"
     )
 )
@@ -68,29 +111,40 @@ cards.append(
 # Pattern 2: Practical Application
 cards.append(
     Flashcard(
-        front="When should you use [technique]?",
-        back="Use cases and scenarios with reasoning",
-        context="Contrast with alternatives if relevant",
-        tags=["topic", "subtopic", "application"],
+        front="When should you use [technique] instead of [alternative]?",
+        back="Use cases with reasoning",
+        context="Trade-offs and edge cases",
+        tags=["domain::topic", "type::principle"],
         source="<url or file>"
     )
 )
 
-# Pattern 3: Common Pitfalls
+# Pattern 3: Comparison Card (for interference prevention)
 cards.append(
     Flashcard(
-        front="What is a common mistake when [doing X]?",
-        back="The mistake and why it happens",
-        context="How to avoid or fix it",
-        tags=["topic", "subtopic", "pitfalls"],
+        front="Distinguish between [X] and [Y] regarding [aspect]?",
+        back="X = [characteristic]; Y = [characteristic]",
+        context="When to use each, common confusion points",
+        tags=["domain::topic", "type::concept"],
+        source="<url or file>"
+    )
+)
+
+# Pattern 4: Syntax/Procedure (Cloze-style in Q&A format)
+cards.append(
+    Flashcard(
+        front="In Python, what decorator preserves a wrapped function's metadata?",
+        back="@functools.wraps(func)",
+        context="Without this, the wrapper function loses __name__, __doc__, etc.",
+        tags=["python::decorators", "type::procedure"],
         source="<url or file>"
     )
 )
 ```
 
-### 4. Card Formatting Rules
+### 5. Card Formatting Rules
 
-**IMPORTANT**: Anki does not render Markdown. Use only plain text formatting:
+**IMPORTANT**: Anki does not render Markdown. Use only plain text formatting.
 
 **Structure:**
 ```
@@ -102,69 +156,49 @@ cards.append(
 ```
 
 **Formatting rules:**
-- **NO markdown** (no bold `**text**`, no italic `*text*`, no code blocks)
+- **NO markdown** (no `**bold**`, `*italic*`, code blocks)
 - **NO HTML tags** (no `<br>`, `<b>`, etc.)
 - **Separator**: Use `---` with blank lines before and after (`\n\n---\n\n`)
 - **Context section**: Start directly with content (no "Context:" label)
 - **Line breaks**: Use plain newlines only
 
 **Lists** (for visual clarity):
-- **Ordered lists**: Use `1.\n2.\n3.` format with newlines between items
-- **Unordered lists**: Use `-\n-\n-` format with newlines between items
-
-**Example:**
 ```
 Three factors converged:
-1. Compute power increased, enabling training of massive models
-2. Large-scale quality datasets became available
-3. Algorithmic innovations like transformers (2017) enabled efficient parallel processing
+1. First factor explanation
+2. Second factor explanation
+3. Third factor explanation
 
 ---
 
-Historical AI limitations weren't theoretical but practical. Modern systems like ChatGPT require all three elements. Quality matters as much as quantity for data—medical textbooks provide better training than equivalent volumes of Twitter posts.
+Contextual information explaining why these factors matter together.
 ```
 
 **Answer vs. Context Balance:**
-- Keep answers concise and focused on core concepts
-- Move detailed explanations, examples, and caveats to context section
-- Bias slightly towards context for verbose details
+- **Answer**: Core concept, direct response (concise)
+- **Context**: Elaborative encoding—why it matters, related concepts, edge cases
 
-### 5. Apply EAT Validation
+### 6. Self-Check Before Saving
 
-Ensure each card meets these criteria:
+For each card, verify:
 
-**Encoded:**
-- Add context that explains the "why" not just the "what"
-- Include enough information for future understanding
+**Atomicity**
+- Does this test exactly one fact?
+- Would failing part of the answer while knowing others give ambiguous feedback?
 
-**Atomic:**
-- Front MUST be a question (end with "?")
-- One concept per card (no "and", "or", compound questions)
-- Avoid vague starters like "What about..." or "Tell me about..."
+**Self-Sufficiency**
+- Could this be answered without seeing surrounding cards?
+- Are ambiguous terms explicitly scoped?
 
-**Timeless:**
-- Replace vague pronouns ("this", "that") with specific nouns
-- Avoid time-dependent references ("recently", "currently")
-- Define abbreviations in context
+**Interference Prevention**
+- Are there similar concepts that could be confused?
+- If yes, did I create a comparison card?
 
-Validate programmatically with `validate_card` to avoid missing rules:
+**Retrieval Quality**
+- Does this require generative retrieval, not just recognition?
+- Am I testing understanding, not just keyword matching?
 
-```python
-for card in cards:
-    warnings = validate_card(card)
-    errors = [w for w in warnings if w.severity == "error"]
-    if errors:
-        raise ValueError(
-            f"Fix errors before saving {card.front!r}: "
-            + "; ".join(str(w) for w in errors)
-        )
-    if warnings:
-        print(f"EAT warnings for {card.front!r}:")
-        for warning in warnings:
-            print(f"  - {warning}")
-```
-
-### 6. Save and Report
+### 7. Save and Report
 
 ```python
 # Generate timestamp-based filename
@@ -177,48 +211,48 @@ save_cards_to_json(cards, output_file)
 
 **Report to user:**
 - Number of cards generated
+- Card type breakdown (conceptual, procedural, comparison, etc.)
 - Output file path
-- Validation summary (any warnings or confirmations that all cards passed)
-- Next step command: `uv run anki-api review <file>`
+- Next step: `uv run anki-api review <file>`
 
-Encourage the user to run `uv run anki-api review <file>` (or `uv run anki-api add <file>` if they've already approved cards) so the CLI handles Anki-side validation and submission.
-
-## Guidelines
+## Guidelines Summary
 
 **DO:**
-- Focus on "why" and "when" questions (understanding)
-- Use specific, concrete examples from the source
-- Add meaningful context (think: will I understand this in 6 months?)
-- Use hierarchical tags: `[domain, topic, type]`
-- Keep questions focused and answers concise
+- Focus on "why" and "when" questions (understanding over facts)
+- Use specific examples from the source material
+- Add context that creates schema connections (will I understand this in 6 months?)
+- Create comparison cards for easily-confused concepts
+- Use hierarchical tags: `["domain::topic", "type::concept"]`
 
 **DON'T:**
-- Create definition cards ("What is X?")
-- Make list cards ("Name the 5 principles...")
-- Copy-paste large blocks of text
-- Create cards for every detail (be selective)
-- Use vague or ambiguous language
-
-## Reference Materials
-
-- Full workflow guide: `examples/agent_workflow.md`
-- EAT principles: https://leananki.com/creating-better-flashcards/
-- Card schema: `src/schema.py`
-- CLI tools: `uv run anki-api --help`
+- Create definition cards ("What is X?" → focus on "Why use X?")
+- Make list cards ("Name the 5 principles..." → separate cards)
+- Copy-paste large blocks (summarize and synthesize)
+- Generate cards for every detail (be selective—quality over quantity)
+- Apply mechanical rules blindly (reason about each card's learning value)
 
 ## Example Output
 
 ```
 Generated 7 flashcards from: <source>
-Saved to: cards/topic_20250114_143022.json
+Saved to: cards/python-decorators_20250114_143022.json
 
 Cards created:
-  • 3 conceptual understanding
-  • 2 practical application
-  • 2 common pitfalls
+  • 3 conceptual understanding (why/when questions)
+  • 2 procedural (syntax/how-to)
+  • 2 comparison (interference prevention)
+
+Hierarchical tags applied:
+  • python::decorators (domain)
+  • type::concept, type::procedure (facets)
 
 Next step:
-  uv run anki-api review cards/topic_20250114_143022.json
+  uv run anki-api review cards/python-decorators_20250114_143022.json
 ```
 
-**Note:** All cards will be reviewed by user before being added to Anki. Focus on quality and adherence to EAT principles.
+## Reference Materials
+
+- Full framework guide: `docs/EAT_FRAMEWORK.md`
+- Cognitive science research: `AI Flashcard Design Framework Research.md`
+- Card schema: `src/schema.py`
+- CLI tools: `uv run anki-api --help`

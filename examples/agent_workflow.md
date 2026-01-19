@@ -6,11 +6,13 @@ This guide explains how coding agents (Claude Code, Codex, etc.) should use the 
 
 The agent's role is to:
 1. Process content (from URLs, files, or text)
-2. Apply EAT principles to generate quality flashcards
+2. Apply EAT 2.0 principles (cognitive science-grounded reasoning, not mechanical rules)
 3. Output structured JSON that the user can review
 4. Use CLI tools to interact with Anki
 
 **The agent does NOT automatically add cards to Anki** - the user reviews and approves all cards.
+
+**EAT 2.0 Philosophy**: Quality principles guide agent judgment. Mechanical pattern-matching (character counts, keyword detection) is removed. See `docs/EAT_FRAMEWORK.md` for the full cognitive science foundation.
 
 ## Complete Workflow Example
 
@@ -52,22 +54,24 @@ with open('scraped/primer-on-python-decorators.md', 'r') as f:
 
 ### Step 3: Generate Flashcards
 
-**Agent applies EAT principles:**
+**Agent applies EAT 2.0 principles:**
 
-#### Encoded (Understanding-based)
-- Only create cards for concepts that are well-explained in the source
-- Add context from the article for future reference
-- Don't create cards that require external knowledge
+#### Encoded → Elaborative Encoding
+- Context creates schema connections, not just reminders
+- Link new concepts to learner's existing knowledge
+- Explain *why* the information matters
 
-#### Atomic (Focused)
-- One concept per card
-- Specific, precise questions
-- Avoid compound questions
+#### Atomic → Database Normalization
+- **1NF**: One fact per card (split lists)
+- **2NF**: Contextually self-sufficient (explicit domain for ambiguous terms)
+- **3NF**: No hint shortcuts (don't allow deducing answer from surface cues)
 
-#### Timeless (Self-contained)
-- Include enough context to understand the question later
-- Avoid vague pronouns
-- Define abbreviations
+#### Timeless → Interference Management
+- Create comparison cards for easily-confused concepts
+- Ensure unique "semantic fingerprint" for each cue
+- Consider: could this card be confused with another?
+
+**Key shift**: Reason about *why* patterns help/hurt learning, not mechanical rule-matching.
 
 **Agent generates cards:**
 
@@ -225,18 +229,29 @@ Flashcard(
 )
 ```
 
-### Tagging Strategy
+### Tagging Strategy (EAT 2.0)
 
-Use hierarchical tags:
-- **Domain**: `python`, `javascript`, `algorithms`, `databases`
-- **Topic**: `decorators`, `async`, `sorting`, `indexing`
-- **Type**: `syntax`, `concept`, `best-practices`, `common-mistakes`
-- **Difficulty**: `beginner`, `intermediate`, `advanced`
+Tags serve as **cognitive scaffolding**—they prime the brain's schema before retrieval.
 
-Example:
+**Two-tier structure:**
+1. **Hierarchy** (the "where"): `#Domain::Subdomain::Topic`
+2. **Facet** (the "what"): `#Type::Fact`, `#Type::Concept`, `#Type::Procedure`, `#Type::Principle`
+
+**Example:**
 ```python
-tags=["python", "decorators", "advanced", "best-practices"]
+tags=["python::decorators", "type::concept"]
 ```
+
+**The 5 Facets:**
+| Facet | Use When | Retrieval Mode |
+|-------|----------|----------------|
+| `type::fact` | Discrete data (dates, constants) | Rote recall |
+| `type::concept` | Abstract definitions, theories | Semantic reconstruction |
+| `type::procedure` | Algorithms, "how-to" steps | Procedural memory |
+| `type::principle` | Heuristics, mental models | Application logic |
+| `type::comparison` | Similar concepts (interference risk) | Discrimination |
+
+**Why it matters**: Seeing `#python::decorators` pre-activates the schema for functions, wrapping, and @ syntax—reducing cognitive load for the specific question.
 
 ### Context Guidelines
 
@@ -333,19 +348,36 @@ for deck in decks:
     print(f"  - {deck}")
 ```
 
-## Quality Checklist
+## Quality Checklist (EAT 2.0)
 
-Before saving cards, verify:
+Before saving cards, reason through these questions:
 
-- [ ] Front is a question (ends with "?")
+### Atomicity (1NF)
+- [ ] Does this card test exactly ONE fact?
+- [ ] Would failing part of the answer while knowing others give ambiguous feedback?
+- [ ] If answer contains "and" or a list, should it be split?
+  - **Exception**: "and" that unifies a single concept is OK ("Why do A and B both use pattern X?")
+
+### Contextual Self-Sufficiency (2NF)
+- [ ] Could this card be answered without seeing surrounding cards?
+- [ ] Are ambiguous terms explicitly scoped? ("In Python...", "In Cell Biology...")
+- [ ] Would my future self understand the question without re-reading the source?
+
+### Interference Prevention
+- [ ] Are there similar concepts that could be confused with this?
+- [ ] If yes, did I create a comparison card?
+- [ ] Is my cue specific enough to map one-to-one with the target memory?
+
+### Retrieval Quality
+- [ ] Does this require generative retrieval, not just recognition?
+- [ ] Am I testing understanding, not just keyword matching?
+- [ ] Would someone who understood the concept answer correctly, while someone pattern-matching might fail?
+
+### Structural
 - [ ] Back directly answers the front
-- [ ] Context adds value (not redundant)
-- [ ] Tags are relevant and hierarchical
+- [ ] Context creates schema connections (not just copy-pasted text)
+- [ ] Tags use hierarchical format (`domain::topic`, `type::concept`)
 - [ ] Source is attributed
-- [ ] No compound questions
-- [ ] No vague pronouns without context
-- [ ] Cards are atomic (one concept each)
-- [ ] Questions are specific, not vague
 
 ## Example: Processing Multiple Articles
 
@@ -417,19 +449,50 @@ front="Why would you use a decorator instead of directly modifying a function?"
 back="Decorators allow reusable behavior without changing the original function's code..."
 ```
 
-### ❌ Don't Create List Cards
+### ❌ Don't Create List Cards (1NF Violation)
 ```python
-# Bad
-front="What are the 5 principles of X?"
-back="1. First 2. Second 3. Third 4. Fourth 5. Fifth"
+# Bad - Serial position effect, ambiguous feedback
+front="What are the inputs of the Krebs Cycle?"
+back="Acetyl-CoA, NAD+, FAD, ADP"
 ```
 
-Instead, create separate cards for each principle:
+Instead, create atomic cards:
 ```python
-# Good - Multiple cards
-front="What is the first principle of X and why is it important?"
-front="When should you apply the second principle of X?"
-# etc.
+# Good - Each fact can be scheduled independently
+front="What is the primary carbon-based input of the Krebs Cycle?"
+back="Acetyl-CoA"
+
+front="Which electron carrier is reduced to NADH in the Krebs Cycle?"
+back="NAD+"
+```
+
+### ❌ Don't Allow Ambiguous Cues (2NF Violation)
+```python
+# Bad - "nucleus" exists in physics, biology, neuroanatomy
+front="What is the function of the nucleus?"
+back="It contains the cell's genetic material"
+```
+
+Instead, provide explicit context:
+```python
+# Good - Unique semantic fingerprint
+front="In Cell Biology, what is the primary function of the nucleus?"
+back="It stores genetic material/DNA"
+```
+
+### ❌ Don't Ignore Interference Risk
+```python
+# Bad - Creates competing memory traces
+# Card 1: Define Mitosis → ...
+# Card 2: Define Meiosis → ...
+# User will confuse these!
+```
+
+Instead, add a comparison card:
+```python
+# Good - Encodes the difference as primary feature
+front="Distinguish between Mitosis and Meiosis regarding daughter cell genetics?"
+back="Mitosis = Genetically Identical (Diploid); Meiosis = Genetically Unique (Haploid)"
 ```
 
 ### ❌ Don't Copy-Paste Large Blocks
@@ -442,15 +505,30 @@ Instead, summarize and synthesize:
 ```python
 # Good
 back="Key points: [concise summary in your own words]"
-context="From section on [topic] - see source for full details"
+context="Schema connection—how this relates to concepts learner already knows"
+```
+
+### ✅ When "and" IS Acceptable
+```python
+# This is FINE - tests a unified relationship, not two separate facts
+front="Why do both Python decorators and context managers use wrapper patterns?"
+back="Both need to execute code before/after an operation while preserving..."
+
+# Agent reasoning: The 'and' compares two related concepts sharing a pattern.
+# The card tests understanding of *why* they're similar - a unified concept.
+# No split needed.
 ```
 
 ## Conclusion
 
-The agent's role is to be a **smart assistant** that:
+The agent's role is to be a **cognitive tutor** that:
 - Processes content intelligently
-- Applies learning science principles (EAT)
-- Generates high-quality card proposals
-- Provides them in a reviewable format
+- Applies EAT 2.0 principles (cognitive science, not mechanical rules)
+- Reasons about each card's learning value
+- Generates high-quality card proposals with proper interference management
 
 The **user maintains control** through the review process, ensuring every card added to Anki meets their standards.
+
+**EAT 2.0 shift**: From pattern-matching rules to cognitive science reasoning. The agent doesn't blindly warn about "and" or "this"—it reasons about whether patterns help or hurt learning in each specific context.
+
+**Reference**: See `docs/EAT_FRAMEWORK.md` for the full cognitive science foundation.

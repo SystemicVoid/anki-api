@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Key Design Principles:**
 - Agent-assisted (not automated): Agents generate card proposals; users review before adding to Anki
 - Quality over quantity: Focus on 5-10 excellent cards rather than 50 mediocre ones
-- EAT validation built-in: Automatic checks ensure cards follow learning science principles
+- EAT 2.0 principles: Cognitive science-grounded guidance for agent judgment (not mechanical rules)
 - Simple dependencies: requests, pydantic, click - no heavy LLM frameworks
 
 ## Development Commands
@@ -140,11 +140,11 @@ save_cards_to_json(cards, f"cards/topic_{timestamp}.json")
 - Error handling for connection failures
 - Core methods: `add_note()`, `add_notes_batch()`, `find_notes()`, `delete_notes()`
 
-**src/schema.py** - Data models and EAT validation
+**src/schema.py** - Data models and structural validation
 - `Flashcard` dataclass: represents a single card
-- Validation functions: `validate_encoded()`, `validate_atomic()`, `validate_timeless()`
+- `validate_card()`: Minimal structural checks (non-empty front/back)
 - JSON serialization: `load_cards_from_json()`, `save_cards_to_json()`
-- Returns `ValidationWarning` objects with severity levels (info/warning/error)
+- EAT quality principles guide agent judgment—see `docs/EAT_FRAMEWORK.md`
 
 **src/cli.py** - Click-based command-line interface
 - Commands: ping, list-decks, list-models, review, add, quick, find, delete
@@ -189,24 +189,36 @@ save_cards_to_json(cards, f"cards/topic_{timestamp}.json")
 - Version controllable (can track card evolution)
 - Decouples generation from addition
 
-## EAT Framework Validation
+## EAT 2.0 Framework
 
-The system enforces three principles through `src/schema.py`:
+EAT (Encoded, Atomic, Timeless) principles guide flashcard quality through agent judgment, not mechanical rules.
 
-### Encoded (Understanding-based)
-- Warns if context missing for short answers
-- Ensures cards support long-term recall, not just rote memorization
+**Full documentation**: `docs/EAT_FRAMEWORK.md`
 
-### Atomic (Focused)
-- **ERROR** if front doesn't end with "?"
-- **WARNING** for compound questions (contains "and", "or", ";")
-- **WARNING** for overly long questions (>200 chars)
-- **WARNING** for vague starters ("What about...", "Tell me about...")
+### Quick Reference
 
-### Timeless (Self-contained)
-- **WARNING** for vague pronouns ("this", "that", "it")
-- **WARNING** for time-dependent references ("recently", "currently")
-- **INFO** for undefined abbreviations (uppercase words without context)
+| Principle | Cognitive Science Basis | Key Question |
+|-----------|------------------------|--------------|
+| **Encoded** | Elaborative encoding—schema connections | Does context deepen understanding? |
+| **Atomic** | Database normalization (1NF, 2NF, 3NF) | Does this test exactly ONE fact? |
+| **Timeless** | Interference management | Could similar concepts be confused? |
+
+### The 5 Golden Rules
+
+1. **Atomicity (1NF)**: Each card tests one fact. Split lists.
+2. **Contextual Self-Sufficiency (2NF)**: Question contains all necessary context.
+3. **Interference Inhibition**: Create comparison cards for similar concepts.
+4. **Cloze vs Q&A**: Cloze for facts/syntax, Q&A for reasoning.
+5. **Hierarchical Tagging**: `#domain::topic` + `#type::concept`
+
+### What Changed (EAT 2.0)
+
+Mechanical rules removed—they caused false positives:
+- ~~"Contains 'and'" warning~~ → "and" can unify concepts: "Why do A and B both matter?"
+- ~~"Must end with ?" error~~ → Cloze deletions are valid
+- ~~"Contains 'this'" warning~~ → "What does `this` mean in JS?" is clear
+
+Agents now reason about card quality using cognitive science principles.
 
 ## Card Formatting
 
@@ -320,18 +332,19 @@ except AnkiConnectError as e:
 ## Card Quality Guidelines
 
 **DO:**
-- Focus on "why" and "when" questions (understanding)
+- Focus on "why" and "when" questions (understanding over facts)
 - Use specific examples from source material
-- Add context that will be helpful in 6 months
-- Keep questions focused (one concept per card)
-- Use hierarchical tags: `["domain", "topic", "type"]`
+- Add context that creates schema connections (will I understand this in 6 months?)
+- Create comparison cards for easily-confused concepts
+- Use hierarchical tags: `["domain::topic", "type::concept"]`
+- Reason about each card's learning value
 
 **DON'T:**
 - Create definition cards ("What is X?" → focus on "Why use X?")
 - Make list cards ("Name the 5 principles..." → separate cards for each)
 - Copy-paste large text blocks (summarize and synthesize)
-- Generate cards for every detail (be selective)
-- Use vague pronouns without context
+- Generate cards for every detail (be selective—quality over quantity)
+- Apply mechanical rules blindly (e.g., not all "and"s are bad)
 
 ## File Locations
 
@@ -342,6 +355,8 @@ except AnkiConnectError as e:
 
 ## Reference Materials
 
-- EAT Framework: https://leananki.com/creating-better-flashcards/
-- AnkiConnect API: https://foosoft.net/projects/anki-connect/
-- Agent workflow guide: `examples/agent_workflow.md` (detailed patterns and anti-patterns)
+- **EAT 2.0 Framework**: `docs/EAT_FRAMEWORK.md` (cognitive science-grounded principles)
+- **Research**: `AI Flashcard Design Framework Research.md` (full cognitive science synthesis)
+- **Agent workflow**: `examples/agent_workflow.md` (patterns and anti-patterns)
+- **AnkiConnect API**: https://foosoft.net/projects/anki-connect/
+- **Original EAT concept**: https://leananki.com/creating-better-flashcards/
