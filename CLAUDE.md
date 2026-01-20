@@ -267,15 +267,27 @@ Historical AI limitations weren't theoretical but practical. Modern systems like
 - **Context**: Detailed explanations, examples, caveats, related information
 - **Guideline**: Bias slightly towards moving verbose details to context section
 
-## Claude Code Slash Command
+## Claude Code Skill
 
-**`/create-anki-cards`** - Primary command for flashcard generation
-- Location: `.claude/commands/create-anki-cards.md`
-- Handles URL scraping or direct file reading
-- Applies EAT validation automatically
+**`/create-anki-cards`** - Primary skill for flashcard generation
+- Location: `.claude/skills/create-anki-cards/SKILL.md`
+- Invocation: Explicit (`/create-anki-cards`) or natural language ("study this video", "make flashcards from...")
+- Handles URL scraping, YouTube transcripts, or direct file reading
+- Applies EAT validation with progressive disclosure (detailed docs loaded on demand)
 - Applies proper formatting rules (no markdown, plain text only)
-- Generates timestamped JSON output in `cards/` directory
+- Generates timestamped JSON output in `cards/` directory via `scripts/save_cards.py`
 - Provides next-step instructions for review
+
+**Skill Structure:**
+```
+.claude/skills/create-anki-cards/
+├── SKILL.md              # Core workflow
+├── rules/
+│   ├── EAT_FRAMEWORK.md  # Cognitive science principles (read when needed)
+│   └── MATH_NOTATION.md  # Anki MathJax rules (read when math content)
+└── scripts/
+    └── save_cards.py     # Stdin-based card saver
+```
 
 ## Integration Points
 
