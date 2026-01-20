@@ -16,8 +16,8 @@ Create high-quality Anki flashcards from the provided content following the **EA
 ## Arguments Handling
 
 Parse the provided arguments:
-- **URL**: If starts with `http`, scrape using `./scrape.sh <url>`
-- **File path**: If file exists, read directly
+- **URL**: If starts with `http`, route based on URL type (see Content Acquisition)
+- **File path**: If file exists, read directly with the Read tool
 - **Tags**: Use `--tags <tag1,tag2>` or auto-generate from topic
 
 ## Workflow
@@ -28,14 +28,35 @@ Parse the provided arguments:
 
 ### 1. Acquire Content
 
-**If URL provided:**
-```bash
-./scrape.sh <url>
-# This saves to scraped/<filename>.md
+**Route by content type:**
+
+| Input Type | Detection | Method |
+|------------|-----------|--------|
+| YouTube URL | Contains `youtube.com`, `youtu.be` | Python: `src.youtube` module |
+| Web URL | Starts with `http` | Bash: `./scrape.sh <url>` |
+| Local file | File path exists | Read tool directly |
+
+**YouTube URLs** (youtube.com, youtu.be, shorts, embed):
+```python
+from pathlib import Path
+from src.youtube import export_transcript_to_markdown
+
+# IMPORTANT: output_dir must be a Path object, not a string
+output_path = export_transcript_to_markdown(
+    "https://www.youtube.com/watch?v=VIDEO_ID",
+    Path("scraped")
+)
+print(output_path)  # e.g., scraped/youtube_VIDEO_ID_20250120_143022.md
 ```
 
-**If file path provided:**
-Read the file directly.
+**Web URLs** (articles, documentation, blogs):
+```bash
+./scrape.sh <url>
+# Saves to scraped/<filename>.md
+```
+
+**Local files:**
+Use the Read tool directly—no preprocessing needed.
 
 ### 2. Semantic Decomposition (Chain of Thought)
 
@@ -87,6 +108,8 @@ Card B: Mitochondria produce {{ATP}}.
 Example: `tags=["python::decorators", "type::concept"]`
 
 ### 4. Generate Flashcards
+
+> **Execution Note**: For card generation with multiline strings, use the **Write tool** to create a temporary Python script, then execute it. Avoid bash heredocs (`<< 'EOF'`) with Python multiline strings—the shell's line-by-line parsing conflicts with Python's triple-quoted strings.
 
 Use `src.schema` to create cards:
 
@@ -200,13 +223,49 @@ For each card, verify:
 
 ### 7. Save and Report
 
-```python
-# Generate timestamp-based filename
-timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-topic = "<derive_from_content>"  # e.g., "python-decorators"
-output_file = f"cards/{topic}_{timestamp}.json"
+**Execution pattern** (avoids heredoc issues):
 
+1. **Write** the complete Python script to a temp file:
+```python
+# File: cards/_generate_temp.py
+from datetime import datetime
+from src.schema import Flashcard, save_cards_to_json
+
+cards = []
+
+cards.append(
+    Flashcard(
+        front="...",
+        back="""Multiline content works fine
+in a proper .py file.
+
+---
+
+Context section here.""",
+        context="",
+        tags=["domain::topic", "type::concept"],
+        source="<url>"
+    )
+)
+
+# ... more cards ...
+
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+topic = "topic-name"  # e.g., "python-decorators"
+output_file = f"cards/{topic}_{timestamp}.json"
 save_cards_to_json(cards, output_file)
+print(f"Saved to: {output_file}")
+print(f"Total cards: {len(cards)}")
+```
+
+2. **Execute** the script:
+```bash
+uv run python cards/_generate_temp.py
+```
+
+3. **Clean up** the temp file:
+```bash
+rm cards/_generate_temp.py
 ```
 
 **Report to user:**
