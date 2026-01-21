@@ -1,1 +1,0 @@
-../../.claude/commands/create-anki-cards.md
