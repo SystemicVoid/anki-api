@@ -114,20 +114,15 @@ Example: `tags=["python::decorators", "type::concept"]`
 
 **Anki does NOT render Markdown. Use plain text only.**
 
-**Structure:**
-```
-[Main answer text]
+**Field separation:**
+- **`back`**: Core answer, direct response to the question
+- **`context`**: Elaborative encoding—schema connections, related concepts, edge cases
 
----
-
-[Contextual information for future understanding]
-```
+The `---` separator is added automatically when exporting to Anki Desktop (via `to_anki_note()`). In the web UI, context displays in a separate styled frame.
 
 **Formatting rules:**
 - **NO markdown** (no `**bold**`, `*italic*`, code blocks)
 - **NO HTML tags** (no `<br>`, `<b>`, etc.)
-- **Separator**: Use `---` with blank lines before and after (`\n\n---\n\n`)
-- **Context section**: Start directly with content (no "Context:" label)
 - **Line breaks**: Use plain newlines only
 - **Math**: Use `\( inline \)` and `\[ display \]` (NOT `$` or `$$`)
 
@@ -137,15 +132,11 @@ Three factors converged:
 1. First factor explanation
 2. Second factor explanation
 3. Third factor explanation
-
----
-
-Contextual information explaining why these factors matter together.
 ```
 
 **Answer vs. Context Balance:**
-- **Answer**: Core concept, direct response (concise)
-- **Context**: Elaborative encoding—why it matters, related concepts, edge cases
+- **Answer (`back`)**: Core concept, direct response (concise)
+- **Context (`context`)**: Why it matters, related concepts, edge cases for future understanding
 
 ### 5. Generate and Save Cards
 
@@ -156,8 +147,8 @@ cat << 'EOF' | uv run python .claude/skills/create-anki-cards/scripts/save_cards
 [
   {
     "front": "Why does [concept] work?",
-    "back": "Clear explanation\n\n---\n\nSchema connections for future understanding",
-    "context": "",
+    "back": "Clear explanation of the underlying reason",
+    "context": "Schema connections for future understanding",
     "tags": ["domain::topic", "type::concept"],
     "source": ""
   }
@@ -166,9 +157,10 @@ EOF
 ```
 
 **Important notes:**
-- The `context` field in Flashcard schema is separate from the `---` section in `back`
-- Put all contextual information in the `back` field using the separator format
-- Leave `context` field empty (or omit it)
+- Use the `context` field for elaborative encoding (why it matters, related concepts, edge cases)
+- The `back` field contains the core answer; `context` provides schema connections
+- When exporting to Anki Desktop, `to_anki_note()` automatically combines back + context with `---` separator
+- The web UI displays the `context` field in a separate styled frame
 - Source will be auto-filled by the script if passed as argument
 
 ### 6. Report to User
@@ -185,7 +177,8 @@ After saving, report:
 ```json
 {
   "front": "Why does [concept] exist/work?",
-  "back": "Clear explanation of the underlying reason\n\n---\n\nHow this relates to concepts learner already knows",
+  "back": "Clear explanation of the underlying reason",
+  "context": "How this relates to concepts learner already knows",
   "tags": ["domain::topic", "type::concept"]
 }
 ```
@@ -194,7 +187,8 @@ After saving, report:
 ```json
 {
   "front": "When should you use [technique] instead of [alternative]?",
-  "back": "Use cases with reasoning\n\n---\n\nTrade-offs and edge cases",
+  "back": "Use cases with reasoning",
+  "context": "Trade-offs and edge cases",
   "tags": ["domain::topic", "type::principle"]
 }
 ```
@@ -203,7 +197,8 @@ After saving, report:
 ```json
 {
   "front": "Distinguish between [X] and [Y] regarding [aspect]?",
-  "back": "X = [characteristic]\nY = [characteristic]\n\n---\n\nWhen to use each, common confusion points",
+  "back": "X = [characteristic]\nY = [characteristic]",
+  "context": "When to use each, common confusion points",
   "tags": ["domain::topic", "type::concept"]
 }
 ```
@@ -212,7 +207,8 @@ After saving, report:
 ```json
 {
   "front": "In [context], how do you [accomplish task]?",
-  "back": "Step or syntax\n\n---\n\nWhy this approach works, gotchas to avoid",
+  "back": "Step or syntax",
+  "context": "Why this approach works, gotchas to avoid",
   "tags": ["domain::topic", "type::procedure"]
 }
 ```
