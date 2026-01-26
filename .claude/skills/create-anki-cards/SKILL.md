@@ -7,6 +7,7 @@ allowed-tools:
   - Bash(python:*)
   - Bash(./scrape.sh:*)
   - Write
+  - oracle
 ---
 
 # Anki Flashcard Generator (EAT 2.0)
@@ -18,10 +19,12 @@ Generate high-quality flashcards following cognitive science principles.
 - **A**tomic: Database normalization—one fact per card, contextually self-sufficient
 - **T**imeless: Interference management—semantic distinctiveness, comparison cards for similar concepts
 
-## Reference Materials (Read When Needed)
+## Reference Materials (MUST READ)
 
-- **EAT Framework**: [rules/EAT_FRAMEWORK.md](rules/EAT_FRAMEWORK.md) - Full cognitive science rationale
-- **Math Notation**: [rules/MATH_NOTATION.md](rules/MATH_NOTATION.md) - Anki MathJax rules (use `\( \)` not `$`)
+Before generating any cards, read the relevant rules:
+
+- **EAT Framework**: [rules/EAT_FRAMEWORK.md](rules/EAT_FRAMEWORK.md) - Full cognitive science rationale (always read)
+- **Math Notation**: [rules/MATH_NOTATION.md](rules/MATH_NOTATION.md) - Anki MathJax rules (read if content contains math/formulas)
 
 ## Input
 
@@ -37,7 +40,19 @@ uv run anki-api ping
 
 If Anki is not running, inform the user and ask if they want to continue anyway.
 
-### 1. Acquire Content
+### 1. Read Rules
+
+**MANDATORY**: Read the EAT framework before generating cards:
+```
+Read: rules/EAT_FRAMEWORK.md
+```
+
+**If content contains math** (formulas, equations, vectors, matrices):
+```
+Read: rules/MATH_NOTATION.md
+```
+
+### 2. Acquire Content
 
 **Route by content type:**
 
@@ -68,17 +83,41 @@ print(output_path)  # e.g., scraped/youtube_VIDEO_ID_20250120_143022.md
 **Local files:**
 Use the Read tool directly—no preprocessing needed.
 
-### 2. Analyze Content (Chain of Thought)
+### 3. Generate Cards via Oracle (REQUIRED)
 
-Before generating cards, analyze the content:
+**ALWAYS use the oracle tool for card generation.** The oracle provides deeper reasoning about card quality, interference prevention, and schema connections.
 
-1. **Isolate Core Concepts**: List key entities, definitions, causal relationships
-2. **Check for Math**: If complex math present, read [rules/MATH_NOTATION.md](rules/MATH_NOTATION.md)
-3. **Schema Alignment**: Identify hierarchical domain (e.g., `#python::decorators`)
-4. **Interference Scan**: Flag easily-confused concepts for comparison cards
-5. **Quality Target**: Aim for 5-10 excellent cards, not 50 mediocre ones
+Call the oracle with:
+- **task**: Generate 6-10 exceptional Anki flashcards applying EAT 2.0 framework rigorously
+- **context**: Include the source content summary and any domain-specific notes
+- **files**: Include the scraped/source file path
 
-### 3. The 5 Golden Rules
+**Oracle prompt template:**
+```
+Generate 6-10 exceptional Anki flashcards from this content. Apply EAT 2.0 framework rigorously.
+
+REQUIREMENTS:
+1. Focus on deep conceptual understanding (why/when), not definitions
+2. Each card must be atomic (1NF) and contextually self-sufficient (2NF)
+3. Create comparison cards where interference risk exists
+4. Context field should create schema connections for 6-month future recall
+5. [If math content] Use proper MathJax: \\( \\) for inline, \\[ \\] for display
+   - Vectors: \\mathbf{v}, basis: \\hat{\\imath}, \\hat{\\jmath}, \\hat{k}
+   - JSON-escape all backslashes
+
+Output JSON array with: front, back, context, tags (hierarchical + type facet)
+
+KEY CONCEPTS TO COVER:
+[List 4-6 core concepts from the source material]
+```
+
+**Why oracle is mandatory:**
+- Deeper reasoning about what makes each card valuable for long-term retention
+- Better interference detection between similar concepts
+- Higher quality schema connections in context fields
+- Consistent application of EAT cognitive science principles
+
+### 4. The 5 Golden Rules (Reference for Oracle)
 
 #### Rule 1: Atomicity (1NF)
 Each card tests exactly ONE discrete fact.
@@ -110,7 +149,7 @@ For similar concepts, generate Comparison Cards.
 
 Example: `tags=["python::decorators", "type::concept"]`
 
-### 4. Formatting Rules (CRITICAL)
+### 5. Formatting Rules (CRITICAL)
 
 **Anki does NOT render Markdown. Use plain text only.**
 
@@ -138,9 +177,9 @@ Three factors converged:
 - **Answer (`back`)**: Core concept, direct response (concise)
 - **Context (`context`)**: Why it matters, related concepts, edge cases for future understanding
 
-### 5. Generate and Save Cards
+### 6. Save Cards
 
-Generate JSON array and pipe to helper script:
+Take the JSON array from the oracle's response and pipe to helper script:
 
 ```bash
 cat << 'EOF' | uv run python .claude/skills/create-anki-cards/scripts/save_cards.py "TOPIC" "SOURCE_URL"
@@ -163,7 +202,7 @@ EOF
 - The web UI displays the `context` field in a separate styled frame
 - Source will be auto-filled by the script if passed as argument
 
-### 6. Report to User
+### 7. Report to User
 
 After saving, report:
 - Number of cards generated
