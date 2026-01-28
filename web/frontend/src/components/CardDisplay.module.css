@@ -23,54 +23,55 @@
 /* Copy button */
 .copyButton {
   position: absolute;
-  top: var(--space-md);
-  right: var(--space-md);
-  z-index: 2;
+  bottom: var(--space-lg);
+  right: var(--space-lg);
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   padding: 0;
-  background: var(--bg-tertiary);
-  border: 1px solid transparent;
+  background: transparent;
+  border: 1px solid var(--bg-tertiary);
   border-radius: var(--radius-md);
   cursor: pointer;
   color: var(--text-muted);
+  opacity: 0.6;
   transition:
     background var(--transition-fast),
     color var(--transition-fast),
     border-color var(--transition-fast),
     transform var(--transition-fast),
-    box-shadow var(--transition-fast);
+    opacity var(--transition-fast);
 }
 
 .copyButton:hover {
-  background: var(--bg-secondary);
+  background: var(--bg-tertiary);
   border-color: var(--accent-secondary);
   color: var(--accent-primary);
+  opacity: 1;
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(45, 90, 74, 0.12);
 }
 
 .copyButton:active {
-  transform: translateY(0) scale(0.96);
+  transform: translateY(0) scale(0.95);
 }
 
 .copyButton.copied {
   background: var(--color-success-bg);
   border-color: var(--color-success);
   color: var(--color-success);
+  opacity: 1;
 }
 
 .copyIcon {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   transition: transform var(--transition-fast);
 }
 
 .copyButton:hover .copyIcon {
-  transform: scale(1.05);
+  transform: scale(1.08);
 }
 
 .copyButton.copied .copyIcon {
@@ -89,7 +90,7 @@
     opacity: 0;
   }
   50% {
-    transform: scale(1.1);
+    transform: scale(1.15);
   }
   100% {
     transform: scale(1);
