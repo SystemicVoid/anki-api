@@ -7,7 +7,6 @@ allowed-tools:
   - Bash(python:*)
   - Bash(./scrape.sh:*)
   - Write
-  - oracle
 ---
 
 # Anki Flashcard Generator (EAT 2.0)
@@ -83,73 +82,7 @@ print(output_path)  # e.g., scraped/youtube_VIDEO_ID_20250120_143022.md
 **Local files:**
 Use the Read tool directly—no preprocessing needed.
 
-### 3. Generate Cards via Oracle (REQUIRED)
-
-**ALWAYS use the oracle tool for card generation.** The oracle provides deeper reasoning about card quality, interference prevention, and schema connections.
-
-Call the oracle with:
-- **task**: Generate 6-10 exceptional Anki flashcards applying EAT 2.0 framework rigorously
-- **context**: Include the source content summary and any domain-specific notes
-- **files**: Include the scraped/source file path
-
-**Oracle prompt template:**
-```
-Generate 6-10 exceptional Anki flashcards from this content. Apply EAT 2.0 framework rigorously.
-
-REQUIREMENTS:
-1. Focus on deep conceptual understanding (why/when), not definitions
-2. Each card must be atomic (1NF) and contextually self-sufficient (2NF)
-3. Create comparison cards where interference risk exists
-4. Context field should create schema connections for 6-month future recall
-5. [If math content] Use proper MathJax: \\( \\) for inline, \\[ \\] for display
-   - Vectors: \\mathbf{v}, basis: \\hat{\\imath}, \\hat{\\jmath}, \\hat{k}
-   - JSON-escape all backslashes
-
-Output JSON array with: front, back, context, tags (hierarchical + type facet)
-
-KEY CONCEPTS TO COVER:
-[List 4-6 core concepts from the source material]
-```
-
-**Why oracle is mandatory:**
-- Deeper reasoning about what makes each card valuable for long-term retention
-- Better interference detection between similar concepts
-- Higher quality schema connections in context fields
-- Consistent application of EAT cognitive science principles
-
-### 4. The 5 Golden Rules (Reference for Oracle)
-
-#### Rule 1: Atomicity (1NF)
-Each card tests exactly ONE discrete fact.
-- If answer has "and", "or", or a list > 2 items → split into multiple cards
-- **Exception**: "and" that unifies a single concept is acceptable
-  - Bad: "What are the inputs and outputs of X?" (two facts)
-  - Good: "Why do both A and B use pattern X?" (one relationship)
-
-#### Rule 2: Contextual Self-Sufficiency (2NF)
-The question contains all necessary context to be answered in isolation.
-- Explicit domain for ambiguous terms: "In Python...", "In Cell Biology..."
-- No pronouns requiring external context (but technical pronouns like JS's `this` are fine when that IS the subject)
-
-#### Rule 3: Interference Inhibition
-For similar concepts, generate Comparison Cards.
-- Format: "Distinguish between X and Y regarding Z."
-- Triggers: Mitosis/Meiosis, TCP/UDP, list/tuple, proactive/retroactive interference
-
-#### Rule 4: Cloze vs Q&A Selection
-
-| Card Type | Use When | Example |
-|-----------|----------|---------|
-| **Cloze** | Atomic facts, syntax, exact wording | `print() is valid syntax in {{Python 3}}` |
-| **Q&A** | Reasoning, "why"/"how" questions | `Why does Python 3 require parentheses for print?` |
-
-#### Rule 5: Hierarchical Tagging
-- **Hierarchy**: `#Domain::Subdomain::Topic` (schema activation)
-- **Facet**: `#Type::Fact`, `#Type::Concept`, `#Type::Procedure`, `#Type::Principle` (metacognition)
-
-Example: `tags=["python::decorators", "type::concept"]`
-
-### 5. Formatting Rules (CRITICAL)
+### 3. Formatting Rules (CRITICAL)
 
 **Anki does NOT render Markdown. Use plain text only.**
 
@@ -177,9 +110,9 @@ Three factors converged:
 - **Answer (`back`)**: Core concept, direct response (concise)
 - **Context (`context`)**: Why it matters, related concepts, edge cases for future understanding
 
-### 6. Save Cards
+### 4. Generate and Save Cards
 
-Take the JSON array from the oracle's response and pipe to helper script:
+Generate JSON array and pipe to helper script:
 
 ```bash
 cat << 'EOF' | uv run python .claude/skills/create-anki-cards/scripts/save_cards.py "TOPIC" "SOURCE_URL"
@@ -202,7 +135,7 @@ EOF
 - The web UI displays the `context` field in a separate styled frame
 - Source will be auto-filled by the script if passed as argument
 
-### 7. Report to User
+### 5. Report to User
 
 After saving, report:
 - Number of cards generated
