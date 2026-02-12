@@ -32,10 +32,10 @@ uv run pytest
 uv run anki-api <command>
 
 # Examples:
-uv run anki-api list-decks
+uv run anki-api decks
 uv run anki-api review cards/example.json
 uv run anki-api find "tag:python"
-uv run anki-api extract-docx docs/source.docx --output scraped/source.md
+uv run anki-api extract docs/source.docx --output scraped/source.md
 ```
 
 ### Web Development
@@ -146,8 +146,8 @@ save_cards_to_json(cards, f"cards/topic_{timestamp}.json")
 - JSON serialization: `load_cards_from_json()`, `save_cards_to_json()`
 - EAT quality principles guide agent judgment—see `docs/EAT_FRAMEWORK.md`
 
-**src/cli.py** - Click-based command-line interface
-- Commands: ping, list-decks, list-models, review, add, quick, find, delete
+**src/cli/** - Click-based command-line interface
+- Commands: ping, decks, models, review, add, quick, find, delete, up, down, status, logs, flow, extract, serve
 - Interactive review workflow with approve/edit/skip/quit options
 - Colored output using click.secho()
 - Entry point: `anki-api` command (defined in pyproject.toml)

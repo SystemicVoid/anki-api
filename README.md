@@ -91,10 +91,10 @@ uv run anki-api add cards/eat-framework.json --deck "Learning"
 uv run anki-api ping
 
 # List available decks
-uv run anki-api list-decks
+uv run anki-api decks
 
 # List note types (Basic, Cloze, etc.)
-uv run anki-api list-models
+uv run anki-api models
 ```
 
 ### Card Management
@@ -236,7 +236,7 @@ anki-api/
 │   ├── __init__.py
 │   ├── anki_client.py       # AnkiConnect API wrapper
 │   ├── schema.py            # Flashcard schema & validation
-│   └── cli.py               # Command-line interface
+│   └── cli/                 # Command-line interface
 ├── scraped/                 # Scraped markdown files (gitignored)
 ├── cards/                   # Generated card JSON files (gitignored)
 ├── examples/                # Example workflows
@@ -368,18 +368,24 @@ uv run pytest
 
 - `anki_client.py`: Pure HTTP client for AnkiConnect API
 - `schema.py`: Data models and validation logic
-- `cli.py`: Click-based command-line interface
+- `cli/`: Click-based command-line interface
 
 ### Adding New Commands
 
-Edit `src/cli.py` and add a new command:
+Add a command to the appropriate module in `src/cli/commands/`:
 
 ```python
-@main.command()
+# Add to the appropriate module in src/cli/commands/
+# e.g., src/cli/commands/cards.py for card operations
+
+@click.command()
 @click.argument("arg")
 def mycommand(arg: str):
     """Your command description."""
     # Implementation
+
+# Then register in the module's command list
+card_commands = [..., mycommand]
 ```
 
 ## Resources
