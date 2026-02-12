@@ -1,4 +1,4 @@
-"""Orchestration commands: serve, flow, start."""
+"""Orchestration commands: serve, up, down, status, logs, flow."""
 
 import sys
 
@@ -30,7 +30,7 @@ from src.cli.tmux import (
 )
 @click.option("--reload", is_flag=True, help="Enable auto-reload for development")
 def serve(port: int, host: str, reload: bool):
-    """Start the web review interface.
+    """Start the backend API server only.
 
     Launches a FastAPI server for the card review web UI.
     The frontend should be started separately with:
@@ -55,193 +55,29 @@ def serve(port: int, host: str, reload: bool):
     )
 
 
-@click.command()
-@click.argument("source", required=False)
-@click.option("--tags", "-t", default=None, help="Comma-separated tags for cards")
-@click.option(
-    "--review", "review_only", is_flag=True, help="Skip generation, just open review UI"
-)
-@click.option("--no-browser", is_flag=True, help="Don't open browser automatically")
-@click.option("--stop", "do_stop", is_flag=True, help="Stop the running review session")
-@click.option("--attach", "do_attach", is_flag=True, help="Attach to existing session")
-@click.option("--status", "do_status", is_flag=True, help="Show session status")
-def flow(
-    source: str | None,
-    tags: str | None,
-    review_only: bool,
-    no_browser: bool,
-    do_stop: bool,
-    do_attach: bool,
-    do_status: bool,
-):
-    """Generate cards and launch review interface in tmux.
-
-    Start with source (generates cards first):
-        anki flow https://example.com/article
-        anki flow docs/notes.md --tags python,decorators
-
-    Review-only mode (skip card generation):
-        anki flow --review
-
-    Session management:
-        anki flow --attach    Attach to running session
-        anki flow --stop      Stop the session
-        anki flow --status    Show session status
-    """
-    # Handle --stop
-    if do_stop:
-        if tmux_session_exists():
-            tmux_kill_session()
-            print_success("Session stopped.")
-        else:
-            print_warning("No session running.")
-        return
-
-    # Handle --status
-    if do_status:
-        if tmux_session_exists():
-            print_success(f"Session '{TMUX_SESSION}' is running.")
-            print_info(f"  Frontend: {FRONTEND_URL}")
-            print_info(f"  Backend:  {BACKEND_URL}")
-            print_info("  Run 'anki flow --attach' to view logs")
-            print_info("  Run 'anki flow --stop' to stop")
-        else:
-            print_warning("No session running.")
-        return
-
-    # Handle --attach
-    if do_attach:
-        if tmux_session_exists():
-            print_info(f"Attaching to session '{TMUX_SESSION}' (Ctrl+b d to detach)...")
-            tmux_attach_session()
-        else:
-            print_warning(
-                "No session running. Start with 'anki flow --review' or 'anki flow <source>'"
-            )
-        return
-
-    # Starting a new session - validate arguments
-    if not review_only and not source:
-        print_error("Source required unless using --review flag")
-        click.echo("Usage: anki flow <url-or-file> or anki flow --review")
-        sys.exit(1)
-
-    # Check if session already running
-    if tmux_session_exists():
-        print_warning(f"Session '{TMUX_SESSION}' already running.")
-        if click.confirm("Stop existing session and start new one?", default=False):
-            tmux_kill_session()
-        else:
-            print_info("Use 'anki flow --attach' to view existing session")
-            return
-
-    # Step 1: Ensure Anki is running (starts it if needed)
-    ensure_anki_running()
-
-    # Step 3: Generate cards (unless --review)
-    if not review_only:
-        assert source is not None
-        print_info(f"Generating cards from: {source}")
-        if not run_claude_generation(source, tags):
-            print_error("Card generation failed")
-            sys.exit(1)
-        print_success("Card generation complete")
-
-    # Step 4: Create tmux session with servers
-    print_info("Starting servers in tmux session...")
-    if not tmux_create_session():
-        print_error("Failed to create tmux session")
-        sys.exit(1)
-
-    # Step 5: Wait for servers to be ready
-    print_info("Waiting for backend...")
-    if not wait_for_server(f"{BACKEND_URL}/api/health", timeout=30):
-        print_error("Backend server failed to start")
-        print_info("Check logs with: anki flow --attach")
-        sys.exit(1)
-    print_success(f"Backend running at {BACKEND_URL}")
-
-    print_info("Waiting for frontend...")
-    if not wait_for_server(FRONTEND_URL, timeout=60):
-        print_error("Frontend server failed to start")
-        print_info("Check logs with: anki flow --attach")
-        sys.exit(1)
-    print_success(f"Frontend running at {FRONTEND_URL}")
-
-    # Step 6: Open browser
-    if not no_browser:
-        print_info("Opening browser...")
-        open_browser(FRONTEND_URL)
-
-    # Done - session runs in background
-    click.echo()
-    print_success(f"Review UI ready at {FRONTEND_URL}")
-    click.echo()
-    print_info("Session commands:")
-    click.echo("  anki flow --attach    View server logs")
-    click.echo("  anki flow --stop      Stop servers")
-    click.echo("  anki flow --status    Check status")
+# ── Stack lifecycle: up / down / status / logs ──────────────────────────
 
 
 @click.command()
-@click.option("--stop", "do_stop", is_flag=True, help="Stop the running stack")
-@click.option("--status", "do_status", is_flag=True, help="Show stack status")
-@click.option("--attach", "do_attach", is_flag=True, help="Attach to tmux session")
 @click.option("--no-browser", is_flag=True, help="Don't open browser automatically")
-def start(
-    do_stop: bool,
-    do_status: bool,
-    do_attach: bool,
-    no_browser: bool,
-):
-    """Start the AnkiFlow web interface.
+def up(no_browser: bool):
+    """Start the full AnkiFlow stack.
 
-    Launches Anki Desktop (if needed), backend API, and frontend dev server.
-    Opens the web UI in Chrome (or default browser).
+    Launches Anki Desktop (if needed), backend API, and frontend dev server
+    in a tmux session, then opens the web UI in Chrome.
 
+    \b
     Examples:
-        anki-api start           Start everything and open browser
-        anki-api start --stop    Stop the running stack
-        anki-api start --attach  View server logs in tmux
-        anki-api start --status  Check if servers are running
+        anki-api up              Start everything and open browser
+        anki-api up --no-browser Start without opening browser
     """
-    # Handle --stop
-    if do_stop:
-        if tmux_session_exists():
-            tmux_kill_session()
-            print_success("Stack stopped.")
-        else:
-            print_warning("No stack running.")
-        return
-
-    # Handle --status
-    if do_status:
-        if tmux_session_exists():
-            print_success("AnkiFlow stack is running.")
-            print_info(f"  Frontend: {FRONTEND_URL}")
-            print_info(f"  Backend:  {BACKEND_URL}")
-            print_info("  Run 'anki-api start --attach' to view logs")
-            print_info("  Run 'anki-api start --stop' to stop")
-        else:
-            print_warning("Stack not running.")
-        return
-
-    # Handle --attach
-    if do_attach:
-        if tmux_session_exists():
-            print_info(f"Attaching to session '{TMUX_SESSION}' (Ctrl+b d to detach)...")
-            tmux_attach_session()
-        else:
-            print_warning("No stack running. Start with 'anki-api start'")
-        return
-
     # Check if session already running
     if tmux_session_exists():
         print_warning("Stack already running.")
         if click.confirm("Stop existing stack and start fresh?", default=False):
             tmux_kill_session()
         else:
-            print_info("Use 'anki-api start --attach' to view logs")
+            print_info("Use 'anki-api logs' to view logs")
             return
 
     # Step 1: Ensure Anki Desktop is running
@@ -257,14 +93,14 @@ def start(
     print_info("Waiting for backend...")
     if not wait_for_server(f"{BACKEND_URL}/api/health", timeout=30):
         print_error("Backend server failed to start")
-        print_info("Check logs with: anki-api start --attach")
+        print_info("Check logs with: anki-api logs")
         sys.exit(1)
     print_success(f"Backend running at {BACKEND_URL}")
 
     print_info("Waiting for frontend...")
     if not wait_for_server(FRONTEND_URL, timeout=60):
         print_error("Frontend server failed to start")
-        print_info("Check logs with: anki-api start --attach")
+        print_info("Check logs with: anki-api logs")
         sys.exit(1)
     print_success(f"Frontend running at {FRONTEND_URL}")
 
@@ -278,9 +114,185 @@ def start(
     print_success(f"AnkiFlow ready at {FRONTEND_URL}")
     click.echo()
     print_info("Commands:")
-    click.echo("  anki-api start --attach    View server logs")
-    click.echo("  anki-api start --stop      Stop servers")
-    click.echo("  anki-api start --status    Check status")
+    click.echo("  anki-api logs      View server logs")
+    click.echo("  anki-api down      Stop servers")
+    click.echo("  anki-api status    Check status")
 
 
-orchestration_commands = [serve, flow, start]
+@click.command()
+def down():
+    """Stop the running AnkiFlow stack."""
+    if tmux_session_exists():
+        tmux_kill_session()
+        print_success("Stack stopped.")
+    else:
+        print_warning("No stack running.")
+
+
+@click.command()
+def status():
+    """Show AnkiFlow stack status."""
+    if tmux_session_exists():
+        print_success("AnkiFlow stack is running.")
+        print_info(f"  Frontend: {FRONTEND_URL}")
+        print_info(f"  Backend:  {BACKEND_URL}")
+        print_info("  Run 'anki-api logs' to view logs")
+        print_info("  Run 'anki-api down' to stop")
+    else:
+        print_warning("Stack not running. Start with 'anki-api up'")
+
+
+@click.command()
+def logs():
+    """Attach to the tmux session to view server logs.
+
+    Press Ctrl+b d to detach.
+    """
+    if tmux_session_exists():
+        print_info(f"Attaching to session '{TMUX_SESSION}' (Ctrl+b d to detach)...")
+        tmux_attach_session()
+    else:
+        print_warning("No stack running. Start with 'anki-api up'")
+
+
+# ── Flow: generate + review ─────────────────────────────────────────────
+
+
+@click.group(invoke_without_command=True)
+@click.argument("source", required=False)
+@click.option("--tags", "-t", default=None, help="Comma-separated tags for cards")
+@click.option(
+    "--review", "review_only", is_flag=True, help="Skip generation, just open review UI"
+)
+@click.option("--no-browser", is_flag=True, help="Don't open browser automatically")
+@click.pass_context
+def flow(
+    ctx: click.Context,
+    source: str | None,
+    tags: str | None,
+    review_only: bool,
+    no_browser: bool,
+):
+    """Generate cards and launch the review interface.
+
+    \b
+    Start with source (generates cards first):
+        anki-api flow https://example.com/article
+        anki-api flow docs/notes.md --tags python,decorators
+
+    \b
+    Review-only mode (skip card generation):
+        anki-api flow --review
+
+    \b
+    Session management:
+        anki-api flow stop      Stop the session
+        anki-api flow status    Show session status
+        anki-api flow logs      View session logs
+    """
+    # If a subcommand was invoked, let it run
+    if ctx.invoked_subcommand is not None:
+        return
+
+    # Starting a new session - validate arguments
+    if not review_only and not source:
+        print_error("Source required unless using --review flag")
+        click.echo("Usage: anki-api flow <url-or-file> or anki-api flow --review")
+        sys.exit(1)
+
+    # Check if session already running
+    if tmux_session_exists():
+        print_warning(f"Session '{TMUX_SESSION}' already running.")
+        if click.confirm("Stop existing session and start new one?", default=False):
+            tmux_kill_session()
+        else:
+            print_info("Use 'anki-api flow logs' to view existing session")
+            return
+
+    # Step 1: Ensure Anki is running (starts it if needed)
+    ensure_anki_running()
+
+    # Step 2: Generate cards (unless --review)
+    if not review_only:
+        assert source is not None
+        print_info(f"Generating cards from: {source}")
+        if not run_claude_generation(source, tags):
+            print_error("Card generation failed")
+            sys.exit(1)
+        print_success("Card generation complete")
+
+    # Step 3: Create tmux session with servers
+    print_info("Starting servers in tmux session...")
+    if not tmux_create_session():
+        print_error("Failed to create tmux session")
+        sys.exit(1)
+
+    # Step 4: Wait for servers to be ready
+    print_info("Waiting for backend...")
+    if not wait_for_server(f"{BACKEND_URL}/api/health", timeout=30):
+        print_error("Backend server failed to start")
+        print_info("Check logs with: anki-api flow logs")
+        sys.exit(1)
+    print_success(f"Backend running at {BACKEND_URL}")
+
+    print_info("Waiting for frontend...")
+    if not wait_for_server(FRONTEND_URL, timeout=60):
+        print_error("Frontend server failed to start")
+        print_info("Check logs with: anki-api flow logs")
+        sys.exit(1)
+    print_success(f"Frontend running at {FRONTEND_URL}")
+
+    # Step 5: Open browser
+    if not no_browser:
+        print_info("Opening browser...")
+        open_browser(FRONTEND_URL)
+
+    # Done - session runs in background
+    click.echo()
+    print_success(f"Review UI ready at {FRONTEND_URL}")
+    click.echo()
+    print_info("Session commands:")
+    click.echo("  anki-api flow logs      View server logs")
+    click.echo("  anki-api flow stop      Stop servers")
+    click.echo("  anki-api flow status    Check status")
+
+
+@flow.command("stop")
+def flow_stop():
+    """Stop the running flow session."""
+    if tmux_session_exists():
+        tmux_kill_session()
+        print_success("Session stopped.")
+    else:
+        print_warning("No session running.")
+
+
+@flow.command("status")
+def flow_status():
+    """Show flow session status."""
+    if tmux_session_exists():
+        print_success(f"Session '{TMUX_SESSION}' is running.")
+        print_info(f"  Frontend: {FRONTEND_URL}")
+        print_info(f"  Backend:  {BACKEND_URL}")
+        print_info("  Run 'anki-api flow logs' to view logs")
+        print_info("  Run 'anki-api flow stop' to stop")
+    else:
+        print_warning("No session running.")
+
+
+@flow.command("logs")
+def flow_logs():
+    """Attach to flow session to view logs.
+
+    Press Ctrl+b d to detach.
+    """
+    if tmux_session_exists():
+        print_info(f"Attaching to session '{TMUX_SESSION}' (Ctrl+b d to detach)...")
+        tmux_attach_session()
+    else:
+        print_warning(
+            "No session running. Start with 'anki-api flow --review' or 'anki-api flow <source>'"
+        )
+
+
+orchestration_commands = [serve, up, down, status, logs, flow]
