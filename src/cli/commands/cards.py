@@ -1,4 +1,4 @@
-"""Card management commands: extract-docx, review, add, quick, find, delete."""
+"""Card management commands: extract, review, add, quick, find, delete."""
 
 import sys
 from datetime import datetime
@@ -26,7 +26,7 @@ from src.schema import (
 )
 
 
-@click.command("extract-docx")
+@click.command("extract")
 @click.argument("file", type=click.Path(exists=True, path_type=Path))
 @click.option(
     "--output",

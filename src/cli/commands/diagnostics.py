@@ -1,4 +1,4 @@
-"""Diagnostic commands: ping, list-decks, list-models."""
+"""Diagnostic commands: ping, decks, models."""
 
 import sys
 
@@ -26,7 +26,7 @@ def ping():
         sys.exit(1)
 
 
-@click.command("list-decks")
+@click.command("decks")
 def list_decks():
     """List all available Anki decks."""
     client = get_client()
@@ -41,7 +41,7 @@ def list_decks():
         sys.exit(1)
 
 
-@click.command("list-models")
+@click.command("models")
 def list_models():
     """List all available note types (models)."""
     client = get_client()
