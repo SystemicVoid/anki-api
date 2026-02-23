@@ -28,7 +28,15 @@ notes/
 # Documents
 *.docx
 
+# Environment variables
+.env
+.env.local
+.env.*.local
+
 # OS
 .DS_Store
 Thumbs.db
+
+# Release artifacts
+HANDOFF-*.md
 docs/gemini cli custom commands.md

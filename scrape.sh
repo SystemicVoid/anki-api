@@ -13,7 +13,13 @@
 set -e
 set -o pipefail
 
-CRAWL4AI_DIR="/home/hugo/Documents/Engineering/crawl4ai"
+CRAWL4AI_DIR="${CRAWL4AI_DIR:-$(cd "$(dirname "$0")/../crawl4ai" 2>/dev/null && pwd)}"
+
+if [ -z "${CRAWL4AI_DIR}" ] || [ ! -d "${CRAWL4AI_DIR}" ]; then
+    echo "Error: crawl4ai directory not found." >&2
+    echo "Set CRAWL4AI_DIR environment variable or place crawl4ai alongside this repo." >&2
+    exit 2
+fi
 ANKI_API_DIR="$(cd "$(dirname "$0")" && pwd)"
 SCRAPED_DIR="${ANKI_API_DIR}/scraped"
 

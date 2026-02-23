@@ -30,13 +30,15 @@ Based on principles from [LeanAnki](https://leananki.com/creating-better-flashca
 2. **Node.js 20+** & **pnpm** (for Web Frontend)
 3. **Python 3.11+** (via `uv`)
 
-4. **crawl4ai** (for web scraping)
-   - Already installed at `/home/hugo/Documents/Engineering/crawl4ai`
+4. **crawl4ai** (optional, for web scraping)
+   - Install from [github.com/unclecode/crawl4ai](https://github.com/unclecode/crawl4ai)
+   - Set `CRAWL4AI_DIR` env var or place alongside this repo
 
 ## Installation
 
 ```bash
-cd /home/hugo/Documents/Engineering/anki-api
+git clone https://github.com/SystemicVoid/anki-api.git
+cd anki-api
 
 # Install dependencies
 uv sync
@@ -164,24 +166,17 @@ Example `cards/example.json`:
 ]
 ```
 
-## EAT Principle Validation
+## EAT 2.0 Principles
 
-The system automatically validates cards against EAT principles:
+The system uses cognitive science-grounded principles to guide flashcard quality:
 
-### Encoded (Context)
-- ⚠️ Warns if context is missing for short answers
-- ⚠️ Suggests adding context for future understanding
+| Principle | Cognitive Basis | Key Question |
+|-----------|----------------|--------------|
+| **Encoded** | Elaborative encoding — schema connections | Does context deepen understanding? |
+| **Atomic** | Database normalization (1NF, 2NF, 3NF) | Does this test exactly one fact? |
+| **Timeless** | Interference management | Could similar concepts be confused? |
 
-### Atomic (Focused)
-- ⚠️ Detects compound questions (with "and", "or", ";")
-- ⚠️ Warns about overly long questions
-- ❌ Errors if front doesn't end with "?"
-- ⚠️ Flags vague question starters
-
-### Timeless (Self-contained)
-- ⚠️ Detects vague pronouns ("this", "that", "it")
-- ⚠️ Warns about time-dependent references
-- ℹ️ Notes undefined abbreviations
+Agents reason about card quality using these principles rather than rigid mechanical rules. See `docs/EAT_FRAMEWORK.md` for the full framework.
 
 ## Agent Workflow Example
 
@@ -236,10 +231,15 @@ anki-api/
 │   ├── __init__.py
 │   ├── anki_client.py       # AnkiConnect API wrapper
 │   ├── schema.py            # Flashcard schema & validation
-│   └── cli/                 # Command-line interface
+│   ├── cli/                 # Command-line interface
+│   ├── youtube.py           # YouTube transcript extraction
+│   └── documents.py         # DOCX text extraction
+├── web/
+│   ├── backend/             # FastAPI API server
+│   └── frontend/            # React + TypeScript UI
+├── docs/                    # EAT framework & research
 ├── scraped/                 # Scraped markdown files (gitignored)
 ├── cards/                   # Generated card JSON files (gitignored)
-├── examples/                # Example workflows
 └── tests/                   # Unit tests
 ```
 
@@ -301,9 +301,9 @@ uv sync
 
 ### Scrape script not working
 
-1. Verify crawl4ai is installed:
+1. Verify crawl4ai is installed and `CRAWL4AI_DIR` is set:
    ```bash
-   cd /home/hugo/Documents/Engineering/crawl4ai
+   cd "$CRAWL4AI_DIR"
    uv run scrape_to_markdown.py --help
    ```
 

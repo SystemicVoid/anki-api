@@ -102,7 +102,7 @@ pnpm knip     # dead code detection
 
 ### Web Scraping Workflow
 ```bash
-# Scrape URL to markdown (requires crawl4ai at /home/hugo/Documents/Engineering/crawl4ai)
+# Scrape URL to markdown (requires crawl4ai — set CRAWL4AI_DIR or place alongside repo)
 ./scrape.sh https://example.com/article
 
 # Output: scraped/<filename>.md
@@ -297,7 +297,7 @@ Historical AI limitations weren't theoretical but practical. Modern systems like
 - Anki must be running for all operations
 
 **crawl4ai Web Scraper**
-- External dependency at `/home/hugo/Documents/Engineering/crawl4ai`
+- External dependency (set `CRAWL4AI_DIR` env var or place alongside repo)
 - Invoked by `scrape.sh` wrapper script
 - Converts web pages to clean markdown
 - Uses flags: `--output-dir`, `--non-interactive`, `--quiet`
