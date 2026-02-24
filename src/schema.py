@@ -77,8 +77,6 @@ class Flashcard:
         """Create Flashcard from dictionary."""
         # Parse datetime string if present
         if "added_at" in data and isinstance(data["added_at"], str):
-            from datetime import datetime
-
             data = data.copy()
             data["added_at"] = datetime.fromisoformat(data["added_at"])
         return cls(**data)

@@ -1,7 +1,7 @@
 """YouTube transcript extraction utilities."""
 
 import re
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 from youtube_transcript_api import YouTubeTranscriptApi
@@ -81,7 +81,7 @@ def export_transcript_to_markdown(url: str, output_dir: Path) -> Path:
     text_content = "\n".join(lines)
 
     # Generate filename and save
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     filename = f"youtube_{video_id}_{timestamp}.md"
     output_path = output_dir / filename
 

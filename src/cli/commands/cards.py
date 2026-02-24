@@ -1,7 +1,7 @@
 """Card management commands: extract, review, add, quick, find, delete."""
 
 import sys
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 import click
@@ -205,7 +205,7 @@ def review(file: Path, deck: str, show_warnings: bool, reset: bool):
             print_success(f"✓ Card added to Anki (ID: {note_id})")
             card.status = "added"
             card.anki_id = note_id
-            card.added_at = datetime.now()
+            card.added_at = datetime.now(UTC)
             save_cards_to_json(cards, str(file))
             session_added += 1
         except AnkiConnectError as e:
