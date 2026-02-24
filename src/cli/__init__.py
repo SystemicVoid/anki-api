@@ -40,8 +40,9 @@ class GroupedGroup(click.Group):
         # Catch-all for any commands not in sections
         leftover = []
         for name, cmd in commands.items():
-            if name not in shown and not cmd.hidden:
-                leftover.append((name, cmd.get_short_help_str(limit=formatter.width)))
+            if cmd is None or name in shown or cmd.hidden:
+                continue
+            leftover.append((name, cmd.get_short_help_str(limit=formatter.width)))
         if leftover:
             with formatter.section("Other"):
                 formatter.write_dl(leftover)
