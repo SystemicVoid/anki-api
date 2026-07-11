@@ -21,7 +21,9 @@
 - Python 3.11+, 4-space indentation, and type hints everywhere (match existing dataclasses and function signatures).
 - Keep CLI commands short verbs (`review`, `add`, `quick`) and expose new options via snake_case Click arguments.
 - Validation warnings in `schema.py` follow EAT terminology; reuse those helper patterns instead of ad-hoc string checks.
-- JSON card files should keep only `front`, `back`, `context`, `tags`, `deck`, `model`—omit transient metadata.
+- JSON card files should keep `front`, `back`, `context`, `tags`, `deck`, and `model`, plus optional `images` filenames for files stored under `cards/media/`—omit transient review metadata.
+- Before generating or revising flashcards, load `.claude/skills/create-anki-cards/SKILL.md` and follow its required references. Always read its EAT rules; if any card contains a formula, equation, vector, matrix, or mathematical symbol, also read `.claude/skills/create-anki-cards/rules/MATH_NOTATION.md` instead of reconstructing Anki MathJax conventions from application code.
+- Mathematical cards must use Anki MathJax delimiters (`\( ... \)` inline and `\[ ... \]` display), double backslashes correctly in JSON, and define every non-obvious symbol on the same card.
 - Before generating cards, run `uv run anki-api decks` and `uv run anki-api models`; use an existing target rather than inventing a deck. The current Anki profile was verified on 2026-07-11 with all existing cards in its sole `Default` deck and uses the `Basic` model. Do not create or rename decks unless the user explicitly requests it.
 - Use inline comments only when intent is unclear, and raise `ValueError` rather than returning `None` for malformed input.
 

@@ -93,7 +93,9 @@ Cards are stored as JSON in `cards/`. Example:
 ]
 ```
 
-Review JSON keeps only `front`, `back`, `context`, `tags`, `deck`, and `model`. Cards use **plain text only**—no Markdown or HTML. Put the concise answer in `back`; the application adds a separator before `context` when exporting to Anki.
+Review JSON keeps `front`, `back`, `context`, `tags`, `deck`, and `model`, with an optional `images` list containing filenames stored under `cards/media/`. Cards use **plain text only**—no Markdown or HTML. Put the concise answer in `back`; the application adds a separator before `context` when exporting to Anki. The review UI serves attached images locally, and approval uploads them to Anki before adding the note.
+
+For mathematical cards, use Anki MathJax delimiters (`\( ... \)` inline and `\[ ... \]` display), not dollar-sign delimiters. JSON strings must escape backslashes, and every non-obvious symbol must be defined on the same card. The canonical generation workflow is [the project card-creation skill](.claude/skills/create-anki-cards/SKILL.md); its [MathJax notation rule](.claude/skills/create-anki-cards/rules/MATH_NOTATION.md) is mandatory whenever cards contain mathematical notation.
 
 ## Project Structure
 

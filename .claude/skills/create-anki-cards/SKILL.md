@@ -135,6 +135,7 @@ EOF
 **Important notes:**
 - Use the `context` field for elaborative encoding (why it matters, related concepts, edge cases)
 - The `back` field contains the core answer; `context` provides schema connections
+- For a useful dual-coded visual, store the image under `cards/media/` and list its safe filename in the optional `images` field. Do not add decorative or redundant images.
 - When exporting to Anki Desktop, `to_anki_note()` automatically combines back + context with `---` separator
 - The web UI displays the `context` field in a separate styled frame
 - Source will be auto-filled by the script if passed as argument
@@ -212,6 +213,7 @@ Before saving, verify each card:
 **Formatting**
 - [ ] No markdown formatting (plain text only)
 - [ ] Math uses `\( \)` not `$` (if applicable)
+- [ ] Every non-obvious mathematical symbol is defined on the same card
 
 ## Guidelines Summary
 

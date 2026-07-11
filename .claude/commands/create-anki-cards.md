@@ -6,6 +6,14 @@ description: Generate flashcards from content using EAT principles
 
 Create high-quality Anki flashcards from the provided content following the **EAT 2.0 Framework**—a cognitive science-grounded approach to knowledge encoding.
 
+## Required Project Skill
+
+Before doing any card work, read `.claude/skills/create-anki-cards/SKILL.md` completely
+and follow its required references. If the content includes a formula, equation,
+vector, matrix, or mathematical symbol, read
+`.claude/skills/create-anki-cards/rules/MATH_NOTATION.md` completely before drafting
+or revising cards. Do not infer Anki MathJax syntax from application code.
+
 **The EAT principles** (reinterpreted from cognitive science):
 - **E**ncoded: Elaborative encoding—context creates schema connections for durable memory
 - **A**tomic: Database normalization—one fact per card, contextually self-sufficient
@@ -181,6 +189,8 @@ cards.append(
 **Formatting rules:**
 - **NO markdown** (no `**bold**`, `*italic*`, code blocks)
 - **NO HTML tags** (no `<br>`, `<b>`, etc.)
+- **MathJax**: Use `\( ... \)` inline and `\[ ... \]` for display math; never use `$` or `$$`
+- **Symbols**: Define every non-obvious mathematical symbol on the same card
 - **Separator**: Use `---` with blank lines before and after (`\n\n---\n\n`)
 - **Context section**: Start directly with content (no "Context:" label)
 - **Line breaks**: Use plain newlines only
@@ -220,6 +230,10 @@ For each card, verify:
 **Retrieval Quality**
 - Does this require generative retrieval, not just recognition?
 - Am I testing understanding, not just keyword matching?
+
+**Mathematical Notation**
+- Did I use Anki MathJax delimiters and double the backslashes in JSON?
+- Is every non-obvious symbol defined on the same card?
 
 ### 7. Save and Report
 

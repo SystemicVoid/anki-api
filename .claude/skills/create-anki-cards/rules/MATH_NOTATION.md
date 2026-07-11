@@ -20,6 +20,35 @@ Display example:
 \]
 ```
 
+## Notation Must Be Self-Contained
+
+A rendered formula is not automatically an explanation. Define every non-obvious
+symbol on the same card, preferably immediately after the formula. Do not assume a
+future reviewer will remember what a conventional letter such as `z`, `\mu`,
+`\sigma`, `p_c`, or `N` represents.
+
+Prefer descriptive result names when they reduce ambiguity:
+
+```text
+\[
+x_{\text{standardized}}=
+\frac{x-\mu_{\text{train}}}{\sigma_{\text{train}}}
+\]
+
+\(x\) is the value being transformed.
+\(\mu_{\text{train}}\) is the training-data mean.
+\(\sigma_{\text{train}}\) is the training-data standard deviation.
+```
+
+Guidelines:
+- Define the output as well as each input when its meaning is not already explicit.
+- Define indices, subscripts, set sizes, summation bounds, and abbreviations.
+- State units for quantities such as slope, distance, probability, or error.
+- Put the concise result in `back`; put longer symbol definitions and interpretation
+  in `context` when that keeps retrieval atomic.
+- A letter whose role is explicitly established in the question can remain concise,
+  such as “matrix \(A\)” or “input vector \(x\).”
+
 ## Linear Algebra Notation
 
 ### Vectors
