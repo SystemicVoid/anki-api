@@ -21,7 +21,11 @@ uv sync
 
 # Verify Anki connection (Anki Desktop must be running)
 uv run anki-api ping
+uv run anki-api decks
+uv run anki-api models
 ```
+
+Use the deck and model reported by the live profile rather than inventing either. The profile was verified on 2026-07-11 with all existing cards in its sole `Default` deck and with the `Basic` model available. Do not create or rename decks unless the user explicitly asks.
 
 ### Common Development Tasks
 ```bash
@@ -121,7 +125,9 @@ cards = [
         back="Answer with explanation",
         context="Additional context for future understanding",
         tags=["domain", "topic", "type"],
-        source="https://example.com/article"
+        source="https://example.com/article",
+        deck="Default",
+        model="Basic",
     )
 ]
 

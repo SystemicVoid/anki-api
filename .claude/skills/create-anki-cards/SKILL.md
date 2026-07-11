@@ -35,9 +35,13 @@ $ARGUMENTS
 
 ```bash
 uv run anki-api ping
+uv run anki-api decks
+uv run anki-api models
 ```
 
 If Anki is not running, inform the user and ask if they want to continue anyway.
+
+Use an existing deck and model returned by these diagnostics; do not infer, create, or rename a deck unless the user explicitly requests it. The current profile was verified on 2026-07-11 with all existing cards in its sole `Default` deck and uses the `Basic` model. Generated review cards should therefore target `Default`/`Basic` while that remains the live configuration.
 
 ### 1. Read Rules
 

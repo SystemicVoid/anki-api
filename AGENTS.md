@@ -12,7 +12,7 @@
 - `uv run anki-api ping` ensures AnkiConnect is reachable before more expensive flows.
 - `uv run anki-api serve --reload` starts the backend API server locally.
 - `cd web/frontend && pnpm dev` starts the frontend development server.
-- `uv run anki-api review cards/sample.json --deck "Learning"` performs the interactive approval loop; omit `--deck` to keep file-assigned decks.
+- `uv run anki-api review cards/sample.json --deck "Default"` performs the interactive approval loop; omit `--deck` to keep file-assigned decks.
 - `uv run pytest` executes the Python test suite; scope with `-k validator` when iterating quickly.
 - `./scrape.sh https://example.com/article` writes markdown into `scraped/` for subsequent processing.
 - `uv run anki-api extract source.docx --output scraped/source.md` converts DOCX references into markdown inside `scraped/` (omit `--output` to auto-suffix).
@@ -22,6 +22,7 @@
 - Keep CLI commands short verbs (`review`, `add`, `quick`) and expose new options via snake_case Click arguments.
 - Validation warnings in `schema.py` follow EAT terminology; reuse those helper patterns instead of ad-hoc string checks.
 - JSON card files should keep only `front`, `back`, `context`, `tags`, `deck`, `model`—omit transient metadata.
+- Before generating cards, run `uv run anki-api decks` and `uv run anki-api models`; use an existing target rather than inventing a deck. The current Anki profile was verified on 2026-07-11 with all existing cards in its sole `Default` deck and uses the `Basic` model. Do not create or rename decks unless the user explicitly requests it.
 - Use inline comments only when intent is unclear, and raise `ValueError` rather than returning `None` for malformed input.
 
 ## Testing Guidelines

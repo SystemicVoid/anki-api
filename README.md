@@ -16,7 +16,11 @@ Built on the **EAT Framework** (Encoded, Atomic, Timeless): cognitive science-gr
 ```bash
 uv sync
 uv run anki-api ping   # verify Anki connection
+uv run anki-api decks  # verify the live target deck
+uv run anki-api models # verify the live note type
 ```
+
+The current Anki profile was verified on 2026-07-11 with all existing cards in its sole `Default` deck. Card-generation sessions should still run the diagnostics above and use the existing live deck rather than assume or create one. The standard note type is `Basic`.
 
 ## CLI
 
@@ -80,16 +84,16 @@ Cards are stored as JSON in `cards/`. Example:
 [
   {
     "front": "Why should you understand material before creating flashcards?",
-    "back": "Anki is a scheduling tool for memorization, not a learning mechanism.\n\n---\n\nEAT 'Encoded' principle: elaborative encoding requires existing schema connections.",
+    "back": "Anki schedules retrieval practice; it does not create initial understanding.",
+    "context": "EAT's Encoded principle connects new material to an existing schema before memorization.",
     "tags": ["anki", "eat-framework", "type::concept"],
-    "source": "https://leananki.com/creating-better-flashcards/",
-    "deck": "Learning",
+    "deck": "Default",
     "model": "Basic"
   }
 ]
 ```
 
-Cards use **plain text only** — no Markdown, no HTML. Use `\n\n---\n\n` to separate the core answer from supporting context.
+Review JSON keeps only `front`, `back`, `context`, `tags`, `deck`, and `model`. Cards use **plain text only**—no Markdown or HTML. Put the concise answer in `back`; the application adds a separator before `context` when exporting to Anki.
 
 ## Project Structure
 
