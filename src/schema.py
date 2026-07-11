@@ -1,9 +1,12 @@
 """Flashcard schema and validation based on EAT principles."""
 
+import html
 import json
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
+
+from src.media import resolve_media_path, validate_media_filename
 
 
 def convert_newlines_to_html(text: str) -> str:
@@ -36,6 +39,7 @@ class Flashcard:
     back: str  # Answer
     context: str = ""  # Supplementary context for future understanding
     tags: list[str] = field(default_factory=list)
+    images: list[str] = field(default_factory=list)  # Filenames under cards/media
     source: str = ""  # Original URL or file path
     deck: str = "Default"
     model: str = "Basic"
@@ -49,14 +53,19 @@ class Flashcard:
         Returns:
             Dictionary formatted for AnkiConnect addNote
         """
-        # Combine back and context if context exists
-        back_content = self.back
+        back_html = convert_newlines_to_html(self.back)
+        if self.images:
+            image_html = "".join(
+                f'<img src="{html.escape(validate_media_filename(filename))}">'
+                for filename in self.images
+            )
+            back_html += f"<br><br>{image_html}"
+
         if self.context:
-            back_content += f"\n\n---\n\n{self.context}"
+            back_html += "<br><br>---<br><br>" + convert_newlines_to_html(self.context)
 
         # Convert newlines to HTML for Anki display
         front_html = convert_newlines_to_html(self.front)
-        back_html = convert_newlines_to_html(back_content)
 
         return {
             "deckName": self.deck,
@@ -121,6 +130,12 @@ def validate_card(card: Flashcard) -> list[ValidationWarning]:
 
     if not card.back.strip():
         warnings.append(ValidationWarning("Back cannot be empty.", "error"))
+
+    for filename in card.images:
+        try:
+            resolve_media_path(filename)
+        except ValueError as e:
+            warnings.append(ValidationWarning(str(e), "error"))
 
     return warnings
 

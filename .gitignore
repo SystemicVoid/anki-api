@@ -21,7 +21,9 @@ env/
 
 # Project specific
 scraped/
-cards/
+cards/*
+!cards/media/
+!cards/media/**
 notes/
 .archive/
 

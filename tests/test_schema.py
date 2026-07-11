@@ -1,3 +1,5 @@
+from typing import cast
+
 from src.schema import (
     Flashcard,
     ValidationWarning,
@@ -30,6 +32,23 @@ def test_to_anki_note_converts_back_and_context_to_html():
     assert (
         note["fields"]["Back"]
         == "First line<br>Second line<br><br>---<br><br>Extra context line 1<br>Extra context line 2"
+    )
+
+
+def test_to_anki_note_includes_attached_images_before_context():
+    card = Flashcard(
+        front="What does the diagram show?",
+        back="Broadcasting a vector across matrix rows.",
+        context="The vector is reused without changing its stored values.",
+        images=["broadcasting.png"],
+    )
+
+    note = card.to_anki_note()
+
+    assert note["fields"]["Back"] == (
+        "Broadcasting a vector across matrix rows.<br><br>"
+        '<img src="broadcasting.png"><br><br>---<br><br>'
+        "The vector is reused without changing its stored values."
     )
 
 
@@ -77,6 +96,22 @@ def test_validate_card_valid_card_no_warnings():
     warnings = validate_card(card)
 
     assert len(warnings) == 0
+
+
+def test_validate_card_reports_non_string_image_filename():
+    card = Flashcard(
+        front="What does the diagram show?",
+        back="A matrix operation.",
+        images=cast("list[str]", [None]),
+    )
+
+    warnings = validate_card(card)
+
+    assert len(warnings) == 1
+    assert warnings[0].severity == "error"
+    assert warnings[0].message == (
+        "Invalid media filename: expected a string, got NoneType"
+    )
 
 
 # EAT 2.0: Previously problematic patterns should no longer trigger warnings

@@ -69,6 +69,20 @@ export function CardDisplay({ card }: Props) {
           </div>
         </section>
 
+        {cardData.images.length > 0 && (
+          <section className={styles.mediaSection} aria-label="Card illustrations">
+            {cardData.images.map((filename, index) => (
+              <img
+                key={filename}
+                src={`/api/media/${encodeURIComponent(filename)}`}
+                alt={`Card illustration ${index + 1}`}
+                className={styles.cardImage}
+                loading="eager"
+              />
+            ))}
+          </section>
+        )}
+
         {/* Context */}
         {hasContext && (
           <>

@@ -3,6 +3,7 @@
 from fastapi import APIRouter, HTTPException
 
 from src.anki_client import AnkiClient, AnkiConnectError
+from src.media import upload_media_files
 from src.schema import Flashcard
 
 from ..models import AddCardRequest, AddCardResponse, AnkiStatusResponse
@@ -57,14 +58,15 @@ async def add_card(request: AddCardRequest):
         back=request.back,
         context=request.context,
         tags=request.tags,
+        images=request.images,
         source=request.source,
         deck=request.deck,
         model=request.model,
     )
 
-    anki_note = card.to_anki_note()
-
     try:
+        anki_note = card.to_anki_note()
+        upload_media_files(client, card.images)
         note_id = client.add_note(
             deck_name=anki_note["deckName"],
             model_name=anki_note["modelName"],
@@ -72,5 +74,5 @@ async def add_card(request: AddCardRequest):
             tags=anki_note["tags"],
         )
         return AddCardResponse(success=True, note_id=note_id)
-    except AnkiConnectError as e:
+    except (AnkiConnectError, ValueError) as e:
         return AddCardResponse(success=False, error=str(e))

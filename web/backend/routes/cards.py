@@ -7,6 +7,7 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException
 
 from src.anki_client import AnkiClient, AnkiConnectError
+from src.media import upload_media_files
 from src.schema import (
     Flashcard,
     load_cards_from_json,
@@ -48,6 +49,7 @@ def flashcard_to_response(card: Flashcard) -> CardResponse:
         back=card.back,
         context=card.context,
         tags=card.tags,
+        images=card.images,
         source=card.source,
         deck=card.deck,
         model=card.model,
@@ -173,6 +175,8 @@ async def update_card(filename: str, index: int, update: CardUpdate):
         card.context = update.context
     if update.tags is not None:
         card.tags = update.tags
+    if update.images is not None:
+        card.images = update.images
 
     # Save back to file
     save_cards_to_json(cards, str(file_path))
@@ -206,6 +210,7 @@ async def approve_card(filename: str, index: int):
             # Already approved, return as-is (idempotent)
             pass
         else:
+            upload_media_files(client, card.images)
             anki_note = card.to_anki_note()
             note_id = client.add_note(
                 deck_name=anki_note["deckName"],
@@ -218,6 +223,8 @@ async def approve_card(filename: str, index: int):
             card.added_at = datetime.now(UTC)
             save_cards_to_json(cards, str(file_path))
 
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except AnkiConnectError as e:
         raise HTTPException(status_code=500, detail=f"Anki Connect Error: {e}")
 

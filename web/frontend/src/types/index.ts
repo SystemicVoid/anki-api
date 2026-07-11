@@ -3,6 +3,7 @@ export interface Card {
   back: string;
   context: string;
   tags: string[];
+  images: string[];
   source: string;
   deck: string;
   model: string;

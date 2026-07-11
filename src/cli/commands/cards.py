@@ -18,6 +18,7 @@ from src.cli.output import (
 )
 from src.cli.utils import default_docx_output_path
 from src.documents import export_docx_to_markdown
+from src.media import upload_media_files
 from src.schema import (
     Flashcard,
     load_cards_from_json,
@@ -196,6 +197,7 @@ def review(file: Path, deck: str, show_warnings: bool, reset: bool):
 
         # Add card to Anki (action == 'a' or after edit approval)
         try:
+            upload_media_files(client, card.images)
             note_id = client.add_note(
                 deck_name=card.deck,
                 model_name=card.model,
@@ -208,7 +210,7 @@ def review(file: Path, deck: str, show_warnings: bool, reset: bool):
             card.added_at = datetime.now(UTC)
             save_cards_to_json(cards, str(file))
             session_added += 1
-        except AnkiConnectError as e:
+        except (AnkiConnectError, ValueError) as e:
             print_error(f"Failed to add card: {e}")
             # Don't change status on error - let user retry
             session_skipped += 1
@@ -262,8 +264,16 @@ def add(file: Path, deck: str):
 
     # Prepare notes for batch add
     notes = []
-    for card in cards:
-        notes.append(card.to_anki_note())
+    try:
+        upload_media_files(
+            client,
+            (filename for card in cards for filename in card.images),
+        )
+        for card in cards:
+            notes.append(card.to_anki_note())
+    except (AnkiConnectError, ValueError) as e:
+        print_error(f"Failed to prepare card media: {e}")
+        sys.exit(1)
 
     # Add cards
     try:

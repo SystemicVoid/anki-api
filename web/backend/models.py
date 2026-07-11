@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class CardResponse(BaseModel):
@@ -13,6 +13,7 @@ class CardResponse(BaseModel):
     back: str
     context: str
     tags: list[str]
+    images: list[str]
     source: str
     deck: str
     model: str
@@ -28,6 +29,7 @@ class CardUpdate(BaseModel):
     back: str | None = None
     context: str | None = None
     tags: list[str] | None = None
+    images: list[str] | None = None
 
 
 class ValidationWarningResponse(BaseModel):
@@ -61,6 +63,7 @@ class AddCardRequest(BaseModel):
     back: str
     context: str
     tags: list[str]
+    images: list[str] = Field(default_factory=list)
     source: str
     deck: str
     model: str

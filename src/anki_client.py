@@ -1,5 +1,6 @@
 """AnkiConnect API client for interacting with Anki."""
 
+import base64
 from typing import Any
 
 import requests
@@ -135,6 +136,14 @@ class AnkiClient:
         }
 
         return self._invoke("addNote", {"note": note})
+
+    def store_media_file(self, filename: str, data: bytes) -> str:
+        """Store a binary media file in Anki's media collection."""
+        encoded = base64.b64encode(data).decode("ascii")
+        return self._invoke(
+            "storeMediaFile",
+            {"filename": filename, "data": encoded},
+        )
 
     def add_notes_batch(self, notes: list[dict[str, Any]]) -> list[int | None]:
         """Add multiple notes to Anki in a single request.

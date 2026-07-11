@@ -4,6 +4,9 @@ import time
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+
+from src.media import MEDIA_DIR
 
 from .routes import anki, cards, files, generate
 
@@ -18,7 +21,7 @@ app = FastAPI(
 
 # CORS middleware for Vite dev server
 app.add_middleware(
-    CORSMiddleware,  # type: ignore
+    CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",  # Vite default
         "http://127.0.0.1:5173",
@@ -34,6 +37,7 @@ app.include_router(cards.router, prefix="/api/cards", tags=["cards"])
 app.include_router(anki.router, prefix="/api/anki", tags=["anki"])
 app.include_router(generate.router, prefix="/api", tags=["generation"])
 app.include_router(files.router, prefix="/api/files", tags=["files"])
+app.mount("/api/media", StaticFiles(directory=MEDIA_DIR, check_dir=False), name="media")
 
 
 @app.middleware("http")
