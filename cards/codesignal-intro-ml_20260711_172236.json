@@ -1,25 +1,38 @@
 [
   {
-    "front": "In a house-price dataset, how do square footage and sale price differ?",
-    "back": "Square footage is a feature; sale price is the label.",
-    "context": "Features are inputs available to the model. The label is the target it learns to predict.",
-    "tags": ["codesignal", "machine-learning::intro::data", "type::concept"],
+    "front": "In supervised learning, what is the difference between a feature and a label?",
+    "back": "A feature is an input used to make a prediction; the label is the target the model learns to predict.",
+    "context": "These roles depend on the task, not on the variable itself. ",
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::data",
+      "type::concept"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
   {
     "front": "Why is encoding Red = 1 and Blue = 2 risky when color has no natural ranking?",
     "back": "It creates a fake order: the model may treat Blue as greater than Red.",
-    "context": "Use one-hot encoding for unordered categories. Use ordinal encoding only when the category order is meaningful, such as low < medium < high.",
-    "tags": ["codesignal", "machine-learning::intro::encoding", "type::comparison", "focus::misconception"],
+    "context": "Encoding means converting categories into numbers a model can use. One-hot encoding creates a separate 0-or-1 indicator for each unordered category. Ordinal encoding assigns numbers to categories with a meaningful order, such as low < medium < high.",
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::encoding",
+      "type::comparison",
+      "focus::misconception"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
   {
     "front": "What do a NumPy array's shape and dtype tell you?",
     "back": "Shape gives the size of each axis; dtype gives the shared element type.",
-    "context": "For an array shaped (3, 1, 2), there are three outer groups, one row per group, and two values per row. A uniform dtype such as int64 or float64 enables efficient computation.",
-    "tags": ["codesignal", "machine-learning::intro::numpy", "type::concept"],
+    "context": "Shape (3, 1, 2) means size 3 along axis 0, size 1 along axis 1, and size 2 along axis 2. Shape alone does not say what those axes represent; their meanings come from the data. A uniform dtype such as int64 or float64 enables efficient computation.",
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::numpy",
+      "type::concept"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
@@ -27,31 +40,50 @@
     "front": "What makes a NumPy operation such as arr * 2 vectorized?",
     "back": "It applies the operation to the whole array without a manual Python loop.",
     "context": "Vectorized elementwise operations express array math directly and are efficient for tasks such as averaging thousands of data points.",
-    "tags": ["codesignal", "machine-learning::intro::numpy", "type::concept"],
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::numpy",
+      "type::concept"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
   {
     "front": "A survey question is blank only for people routed past it by an earlier answer. Why should you not automatically delete those rows?",
     "back": "The missingness is systematic and may carry information; handle it explicitly instead of discarding the rows.",
-    "context": "A survey skip pattern is not a random blank cell. Depending on the task, use a missingness indicator, a meaningful category, or carefully justified imputation.",
-    "tags": ["codesignal", "machine-learning::intro::missing-values", "type::scenario", "focus::misconception"],
+    "context": "A survey skip pattern is not a random blank cell. Imputation means replacing a missing value using a chosen rule, such as the training-data median. Other options include adding a yes-or-no feature that records whether the value was missing, or treating the skip as a meaningful category.",
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::missing-values",
+      "type::scenario",
+      "focus::misconception"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
   {
-    "front": "Why can income shout over age in a distance-based model?",
-    "back": "Income's larger numeric scale can dominate the distance calculation.",
-    "context": "Without scaling, a $1,000 income difference can outweigh a one-year age difference merely because its number is larger—like shouting over whispers.",
-    "tags": ["codesignal", "machine-learning::intro::scaling", "type::transfer", "focus::misconception"],
+    "front": "Why should features often be scaled before using a distance-based model?",
+    "back": "Otherwise, features with larger numerical scales can dominate the distance.",
+    "context": "Scaling means changing numerical units or ranges so raw magnitude alone does not dominate. A $1,000 income difference can outweigh a one-year age difference merely because of the units—one feature shouts over the other.",
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::scaling",
+      "type::transfer",
+      "focus::misconception"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
   {
-    "front": "For test scores with a known 0–100 range, which is the more natural first choice: min-max scaling or standardization?",
-    "back": "Min-max scaling, because it cleanly maps the fixed range to 0–1.",
-    "context": "Min-max uses \\(x'=(x-x_{min})/(x_{max}-x_{min})\\). Standardization instead centers at zero and measures values in standard deviations: \\(z=(x-\\mu)/\\sigma\\).",
-    "tags": ["codesignal", "machine-learning::intro::scaling", "type::scenario", "focus::misconception"],
+    "front": "How do min-max scaling and standardization transform a numerical value?",
+    "back": "Min-max scaling: \\[x_{\\text{scaled}}=\\frac{x-x_{\\min}}{x_{\\max}-x_{\\min}}\\] Standardization: \\[x_{\\text{standardized}}=\\frac{x-\\mu_{\\text{train}}}{\\sigma_{\\text{train}}}\\]",
+    "context": "\\(x\\) is the value being transformed. \\(x_{\\min}\\) and \\(x_{\\max}\\) are the smallest and largest training values. \\(\\mu_{\\text{train}}\\) is the training-data average. \\(\\sigma_{\\text{train}}\\) is the training-data standard deviation, which measures typical spread around that average. Min-max scaling sends the training minimum to 0 and maximum to 1. Standardization makes the training average 0 and one standard deviation correspond to 1.",
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::scaling",
+      "type::comparison",
+      "focus::misconception"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
@@ -59,7 +91,11 @@
     "front": "When should a dataset be split chronologically rather than randomly?",
     "back": "When time order matters and the model must predict the future from the past.",
     "context": "Weather, energy, stock, and sales forecasting need earlier observations for training and later ones for evaluation. Random splitting can leak future or seasonal patterns.",
-    "tags": ["codesignal", "machine-learning::intro::splits", "type::scenario"],
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::splits",
+      "type::scenario"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
@@ -67,7 +103,11 @@
     "front": "What distinct jobs do the training, validation, and test sets perform?",
     "back": "Training fits the model; validation tunes choices; test is the final unbiased check.",
     "context": "Repeatedly consulting the test set during development turns it into another validation set and makes the reported result optimistically biased.",
-    "tags": ["codesignal", "machine-learning::intro::splits", "type::comparison"],
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::splits",
+      "type::comparison"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
@@ -75,39 +115,60 @@
     "front": "How do supervised and unsupervised learning differ?",
     "back": "Supervised learning learns from labeled targets; unsupervised learning finds structure without target labels.",
     "context": "Spam detection with known spam labels is supervised. Customer grouping without predefined segments is unsupervised. An application such as Chess AI can involve several learning setups, so classify the actual training signal, not the name.",
-    "tags": ["codesignal", "machine-learning::intro::learning-modes", "type::comparison"],
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::learning-modes",
+      "type::comparison"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
   {
-    "front": "What sequence turns a raw table into model-ready batches?",
-    "back": "Load data → handle missing values → encode categories → scale numeric features → create batches → feed the model.",
-    "context": "Fit learned preprocessing parameters only on training data, then apply the same transformation to validation and test data to avoid leakage.",
-    "tags": ["codesignal", "machine-learning::intro::preprocessing", "type::process"],
+    "front": "How should data preparation avoid learning from the validation and test sets?",
+    "back": "Choose the preparation rules using only the training data, freeze them, and reuse those same rules on validation and test data.",
+    "context": "Suppose the training ages have average 50 and standard deviation 10. The frozen rule is \\[x_{\\text{standardized}}=\\frac{x-50}{10}\\] A validation age of 70 therefore becomes 2. Do not calculate a new validation-set average. Missing-value replacements and category-to-number mappings must also be chosen from training data, with a rule decided in advance for a category not seen during training.",
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::preprocessing",
+      "type::process"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
   {
-    "front": "Which regression type fits each task: predicting house price and predicting the probability that a file is malicious?",
-    "back": "House price: linear regression. Malicious-file probability: logistic regression.",
-    "context": "Linear regression predicts a continuous amount. Logistic regression answers “how likely?” for a category by producing a probability.",
-    "tags": ["codesignal", "machine-learning::intro::regression", "type::comparison"],
+    "front": "What kinds of outputs do ordinary linear regression and binary logistic regression predict?",
+    "back": "Linear regression predicts a continuous value; binary logistic regression predicts the probability of one of two classes.",
+    "context": "For example, linear regression can predict a price, while binary logistic regression can estimate the probability that a file is malicious.",
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::regression",
+      "type::comparison"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
   {
     "front": "House price rises from $200,000 at 1,000 ft² to $300,000 at 2,000 ft². What is the slope, including units?",
     "back": "$100 per ft².",
-    "context": "\\(m=(300{,}000-200{,}000)/(2{,}000-1{,}000)=100\\). The 1,000 ft² change is only the denominator; slope is the change in price per unit change in size.",
-    "tags": ["codesignal", "machine-learning::intro::linear-regression", "type::calculation", "focus::misconception"],
+    "context": "\\[\\text{slope}=\\frac{\\$300{,}000-\\$200{,}000}{2{,}000\\,\\text{ft}^2-1{,}000\\,\\text{ft}^2}=\\$100/\\text{ft}^2\\] The 1,000 ft² change is only the denominator; slope is the change in price per unit change in size.",
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::linear-regression",
+      "type::calculation",
+      "focus::misconception"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
   {
     "front": "How does logistic regression turn a linear score into a probability?",
-    "back": "It passes the score through the sigmoid function \\(\\sigma(z)=1/(1+e^{-z})\\).",
-    "context": "The linear part computes \\(z=w^Tx+b\\); sigmoid squeezes any real value into 0–1. For example, \\(z=0\\) maps to 0.5.",
-    "tags": ["codesignal", "machine-learning::intro::logistic-regression", "type::concept"],
+    "back": "It passes the score through the sigmoid function. For a score \\(s\\), \\[\\operatorname{sigmoid}(s)=\\frac{1}{1+e^{-s}}\\]",
+    "context": "\\(s\\) is the model's real-valued score before conversion to a probability. It is calculated from the input values, learned weights, and a learned bias. Sigmoid maps any real score into the range 0–1; a score of \\(s=0\\) maps to 0.5.",
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::logistic-regression",
+      "type::concept"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
@@ -115,7 +176,11 @@
     "front": "How does k-nearest neighbors classify a new point?",
     "back": "It finds the k closest labeled points and predicts their majority class.",
     "context": "With k = 5 and neighbor labels [Blue, Red, Red, Blue, Red], the prediction is Red. Multiple closest neighbors are usually more stable than one.",
-    "tags": ["codesignal", "machine-learning::intro::knn", "type::process"],
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::knn",
+      "type::process"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
@@ -123,7 +188,11 @@
     "front": "What distance does k-NN commonly use between 2D points \\((x_1,y_1)\\) and \\((x_2,y_2)\\)?",
     "back": "Euclidean distance: \\(\\sqrt{(x_2-x_1)^2+(y_2-y_1)^2}\\).",
     "context": "It is the Pythagorean straight-line distance. Because raw feature scales affect this distance, scale features when their units differ substantially.",
-    "tags": ["codesignal", "machine-learning::intro::knn", "type::formula"],
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::knn",
+      "type::formula"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
@@ -131,15 +200,27 @@
     "front": "How does a decision tree make a prediction for one example?",
     "back": "Start at the root, answer each learned question, and follow branches to a leaf decision.",
     "context": "Tree training searches for useful feature splits; prediction only follows the resulting question path.",
-    "tags": ["codesignal", "machine-learning::intro::decision-trees", "type::process"],
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::decision-trees",
+      "type::process"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
   {
-    "front": "What does Gini impurity equal when every example in a decision-tree node has the same class?",
-    "back": "0, meaning the node is perfectly pure.",
-    "context": "Gini measures how mixed up the labels are. Tree splits prefer purer child groups; Gini is not a k-NN distance or voting rule.",
-    "tags": ["codesignal", "machine-learning::intro::decision-trees", "type::concept", "focus::misconception"],
+    "front": "What does Gini impurity measure in a decision-tree node?",
+    "back": "It measures how mixed the node's class labels are. A value of 0 means every example has the same class.",
+    "context": "\\[G=1-\\sum_{c=1}^{C}p_c^2\\] \\(G\\) is the node's Gini impurity. \\(C\\) is the number of possible classes. \\(p_c\\) is the fraction of examples in the node belonging to class \\(c\\). A node split evenly between two classes has \\(G=1-(0.5^2+0.5^2)=0.5\\). Gini is not a k-NN distance or voting rule.",
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::decision-trees",
+      "type::concept",
+      "focus::misconception"
+    ],
+    "images": [
+      "codesignal-intro-ml-gini.png"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
@@ -147,7 +228,12 @@
     "front": "A classifier is described using Euclidean distance, majority vote, and a chosen k. Is it k-NN or a decision tree?",
     "back": "k-NN.",
     "context": "Closest neighbors, distance, voting, and k belong to k-NN. Root nodes, question-based splits, branches, and Gini impurity belong to decision trees.",
-    "tags": ["codesignal", "machine-learning::intro::algorithm-choice", "type::comparison", "focus::misconception"],
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::algorithm-choice",
+      "type::comparison",
+      "focus::misconception"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
@@ -155,7 +241,11 @@
     "front": "What are the repeating assignment and update steps in k-means clustering?",
     "back": "Assign each point to its nearest centroid, then move each centroid to its cluster's average location.",
     "context": "Repeat until assignments or centroids stop changing substantially. Unlike k-NN, k-means uses no class labels.",
-    "tags": ["codesignal", "machine-learning::intro::k-means", "type::process"],
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::k-means",
+      "type::process"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
@@ -163,23 +253,24 @@
     "front": "A k-means cluster contains \\((1,1)\\), \\((2,1)\\), and \\((1,2)\\). Where does its centroid move?",
     "back": "To \\((4/3,4/3)\\), the coordinate-wise average location.",
     "context": "Average x coordinates and y coordinates separately: \\(((1+2+1)/3,(1+1+2)/3)\\).",
-    "tags": ["codesignal", "machine-learning::intro::k-means", "type::calculation"],
-    "deck": "Default",
-    "model": "Basic"
-  },
-  {
-    "front": "For an imbalanced disease detector, what do precision and recall ask?",
-    "back": "Precision: when the model predicts positive, how often is it right? Recall: of all actual positives, how many did it find?",
-    "context": "Accuracy can hide poor minority-class performance. F1 combines precision and recall when both matter.",
-    "tags": ["codesignal", "machine-learning::intro::metrics", "type::comparison"],
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::k-means",
+      "type::calculation"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
   {
     "front": "What is the key difference between MAE and RMSE when measuring regression error?",
     "back": "MAE averages absolute errors; RMSE takes the square root of mean squared errors and penalizes large misses more.",
-    "context": "\\(MAE=mean(|y-\\hat y|)\\); \\(RMSE=\\sqrt{mean((y-\\hat y)^2)}\\). An RMSE of 10 is not an average absolute error of 10.",
-    "tags": ["codesignal", "machine-learning::intro::metrics", "type::comparison", "focus::misconception"],
+    "context": "\\[\\operatorname{MAE}=\\frac{1}{N}\\sum_{i=1}^{N}|y_i-\\hat{y}_i|\\] \\[\\operatorname{RMSE}=\\sqrt{\\frac{1}{N}\\sum_{i=1}^{N}(y_i-\\hat{y}_i)^2}\\] \\(N\\) is the number of predictions, \\(y_i\\) is the actual value for example \\(i\\), and \\(\\hat{y}_i\\) is its predicted value. An RMSE of 10 is not an average absolute error of 10.",
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::metrics",
+      "type::comparison",
+      "focus::misconception"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
@@ -187,23 +278,36 @@
     "front": "Why does torch.tensor([1, [2, 3]]) fail as a regular tensor?",
     "back": "Its nested data are ragged: the elements do not form a consistent rectangular shape.",
     "context": "A regular dense tensor needs the same length along each nested level. For example, [[1, 2], [3, 4]] has shape (2, 2).",
-    "tags": ["codesignal", "machine-learning::intro::tensor-creation", "type::code", "focus::misconception"],
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::tensor-creation",
+      "type::code",
+      "focus::misconception"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
   {
     "front": "What shape does torch.tensor([[5, 1, 7], [6, 2, 8]]) have, and what does each axis count?",
-    "back": "Shape (2, 3): axis 0 counts rows and axis 1 counts columns.",
-    "context": "Read nested tensor shape from outside to inside: two row lists, each containing three values.",
-    "tags": ["codesignal", "machine-learning::intro::tensor-shapes", "type::code"],
+    "back": "Shape (2, 3): size 2 along axis 0 and size 3 along axis 1.",
+    "context": "Read nested tensor shape from outside to inside: there are two lists, each containing three values. In this 2D matrix view they appear as two rows and three columns, but axis meanings come from how the data is organized; axes are not intrinsically rows or columns.",
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::tensor-shapes",
+      "type::code"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
   {
     "front": "For t = torch.tensor([10, 20, 30, 40]), what do t[-1] and t[1:3] return?",
-    "back": "t[-1] returns 40; t[1:3] returns tensor([20, 30]).",
-    "context": "Negative index -1 selects the last item. A slice includes its start index and excludes its stop index.",
-    "tags": ["codesignal", "machine-learning::intro::tensor-indexing", "type::code"],
+    "back": "t[-1] returns tensor(40); t[1:3] returns tensor([20, 30]).",
+    "context": "Selecting one element produces a zero-dimensional tensor. Use t[-1].item() to obtain the Python integer 40. Negative index -1 selects the last item, and a slice includes its start index but excludes its stop index.",
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::tensor-indexing",
+      "type::code"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
@@ -211,7 +315,12 @@
     "front": "For a 2D tensor data, which slice selects every row but only the first two columns?",
     "back": "data[:, :2]",
     "context": "Before the comma selects rows; after it selects columns. data[:, 2:] instead starts at the third column.",
-    "tags": ["codesignal", "machine-learning::intro::tensor-slicing", "type::code", "focus::misconception"],
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::tensor-slicing",
+      "type::code",
+      "focus::misconception"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
@@ -219,7 +328,12 @@
     "front": "If data has shape (4, 3), what shape does data[:2, 1:] have?",
     "back": "(2, 2).",
     "context": "The first slice keeps two rows. The second keeps columns at indices 1 and 2, also two columns.",
-    "tags": ["codesignal", "machine-learning::intro::tensor-slicing", "type::code", "focus::misconception"],
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::tensor-slicing",
+      "type::code",
+      "focus::misconception"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
@@ -227,7 +341,11 @@
     "front": "What must remain unchanged when a tensor is reshaped?",
     "back": "Its total number of elements.",
     "context": "Reshape means “same data, new layout.” A 12-element tensor can become (3, 4), (2, 6), or (12, 1), but not (2, 4).",
-    "tags": ["codesignal", "machine-learning::intro::tensor-reshape", "type::concept"],
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::tensor-reshape",
+      "type::concept"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
@@ -235,7 +353,11 @@
     "front": "What shape results from calling squeeze() on a tensor shaped (1, 5, 1, 3)?",
     "back": "(5, 3).",
     "context": "squeeze() removes every size-1 axis by default. squeeze(dim) removes only the specified axis, and only if its size is 1.",
-    "tags": ["codesignal", "machine-learning::intro::tensor-reshape", "type::code"],
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::tensor-reshape",
+      "type::code"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
@@ -243,15 +365,25 @@
     "front": "A tensor x has shape (3,). What shapes do x.unsqueeze(0) and x.unsqueeze(1) create?",
     "back": "unsqueeze(0) → (1, 3); unsqueeze(1) → (3, 1).",
     "context": "unsqueeze inserts a size-1 axis at the requested position; it does not duplicate any data.",
-    "tags": ["codesignal", "machine-learning::intro::tensor-reshape", "type::code", "focus::misconception"],
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::tensor-reshape",
+      "type::code",
+      "focus::misconception"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
   {
-    "front": "A single grayscale image has shape (28, 28). How can it become a one-image batch shaped (1, 28, 28)?",
-    "back": "Use image.unsqueeze(0); image.reshape(1, 28, 28) also works because the element count is unchanged.",
-    "context": "unsqueeze(0) states the intent most directly: add a batch axis. squeeze(0) would remove a size-1 leading axis rather than add one.",
-    "tags": ["codesignal", "machine-learning::intro::batching", "type::comparison", "focus::misconception"],
+    "front": "Which PyTorch operation most directly adds a batch axis to an image tensor shaped (28, 28)?",
+    "back": "image.unsqueeze(0), which produces shape (1, 28, 28).",
+    "context": "unsqueeze(0) inserts a size-1 axis at the front without copying data. reshape(1, 28, 28) can produce the same shape, but unsqueeze states the intent directly. A model may also require a separate channel axis; check its documented input layout.",
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::batching",
+      "type::comparison",
+      "focus::misconception"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
@@ -259,7 +391,11 @@
     "front": "What does transpose(0, 1) do to a 2D tensor shaped (2, 3)?",
     "back": "It swaps rows and columns, producing shape (3, 2).",
     "context": "Transposition changes axis order, not the stored values themselves. It is useful for aligning shapes before matrix operations.",
-    "tags": ["codesignal", "machine-learning::intro::tensor-reshape", "type::concept"],
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::tensor-reshape",
+      "type::concept"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
@@ -267,23 +403,39 @@
     "front": "What is the result of torch.tensor([[1, 2], [3, 4]]) + 10?",
     "back": "tensor([[11, 12], [13, 14]])",
     "context": "Addition is elementwise, and the scalar 10 broadcasts to every position.",
-    "tags": ["codesignal", "machine-learning::intro::tensor-operations", "type::code"],
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::tensor-operations",
+      "type::code"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
   {
-    "front": "When can two tensor dimensions broadcast together?",
-    "back": "When their sizes match, or one of them is 1, comparing dimensions from the right.",
-    "context": "For example, shapes (2, 3) and (3,) broadcast: the length-3 vector is applied to each row. Shapes (2, 3) and (2,) do not align.",
-    "tags": ["codesignal", "machine-learning::intro::broadcasting", "type::concept"],
+    "front": "A PyTorch matrix and vector are \\[A=\\begin{bmatrix}1&2&3\\\\4&5&6\\end{bmatrix},\\qquad b=\\begin{bmatrix}10&20&30\\end{bmatrix}\\] What is \\(A+b\\)?",
+    "back": "\\[A+b=\\begin{bmatrix}11&22&33\\\\14&25&36\\end{bmatrix}\\] PyTorch reuses \\(b\\) once for every row of \\(A\\).",
+    "context": "\\(A\\) has shape (2, 3): two rows with three values each. In PyTorch, \\(b\\) has shape (3,): a length-three vector, pictured here as a row. Their final sizes both equal 3, so the values line up column by column. Because \\(b\\) has no row dimension, it is reused across both rows. A length-two vector cannot be added this way because its two values do not line up with the matrix's three columns.",
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::broadcasting",
+      "type::concept"
+    ],
+    "images": [
+      "codesignal-intro-ml-broadcasting.png"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
   {
     "front": "For data shaped (2, 3), which PyTorch call sums each column, and what shape does it return?",
     "back": "torch.sum(data, dim=0), returning shape (3,).",
-    "context": "A reduction over dim=0 collapses the row axis, leaving one result per column. The dim argument names the axis that disappears.",
-    "tags": ["codesignal", "machine-learning::intro::tensor-reductions", "type::code", "focus::misconception"],
+    "context": "With the default keepdim=False, a reduction over dim=0 removes axis 0 and leaves one result per column. Setting keepdim=True would retain that axis with size 1, producing shape (1, 3).",
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::tensor-reductions",
+      "type::code",
+      "focus::misconception"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
@@ -291,7 +443,12 @@
     "front": "In a time-series tensor shaped (batch, time, features), what does each axis represent?",
     "back": "Axis 0: sequences in the batch; axis 1: time steps; axis 2: features at each time step.",
     "context": "For shape (32, 100, 8), the tensor holds 32 sequences, 100 ordered observations per sequence, and 8 measurements per observation.",
-    "tags": ["codesignal", "machine-learning::intro::tensor-axes", "type::concept", "focus::misconception"],
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::tensor-axes",
+      "type::concept",
+      "focus::misconception"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
@@ -299,7 +456,12 @@
     "front": "For x shaped (batch, time, features), what does x[:, -1, :] select?",
     "back": "The final time step from every sequence, with all features.",
     "context": "The result has shape (batch, features). The colon keeps an axis; -1 selects one position and removes the time axis.",
-    "tags": ["codesignal", "machine-learning::intro::tensor-axes", "type::code", "focus::misconception"],
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::tensor-axes",
+      "type::code",
+      "focus::misconception"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
@@ -307,15 +469,28 @@
     "front": "For x shaped (batch, time, features), which mean computes one average feature vector per sequence?",
     "back": "x.mean(dim=1)",
     "context": "dim=1 is the time axis, so it is reduced. The output shape is (batch, features), preserving each sequence and feature.",
-    "tags": ["codesignal", "machine-learning::intro::tensor-axes", "type::code", "focus::misconception"],
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::tensor-axes",
+      "type::code",
+      "focus::misconception"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
   {
-    "front": "An image batch has shape (32, 224, 224, 3). What does the leading 32 mean?",
-    "back": "The batch contains 32 images.",
-    "context": "The remaining axes describe each image: height, width, and color channels in this channels-last layout. Always confirm an API's expected axis order.",
-    "tags": ["codesignal", "machine-learning::intro::batching", "type::concept", "focus::misconception"],
+    "front": "A batch of RGB images in PyTorch has shape (32, 3, 224, 224). What does each number mean?",
+    "back": "There are 32 images. Each image has 3 color channels, and every channel is a 224 × 224 grid.",
+    "context": "A channel is one layer of measurements covering every pixel position. An RGB image has a red-intensity layer, a green-intensity layer, and a blue-intensity layer. PyTorch image models commonly order these axes as (batch, channels, height, width).",
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::batching",
+      "type::concept",
+      "focus::misconception"
+    ],
+    "images": [
+      "codesignal-intro-ml-image-tensor.png"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
@@ -323,15 +498,23 @@
     "front": "How do torch.stack and torch.cat differ?",
     "back": "stack creates a new axis; cat joins tensors along an existing axis.",
     "context": "stack requires equal input shapes: two tensors shaped (2, 3) stack to (2, 2, 3) with dim=0, but concatenate to (4, 3) with dim=0.",
-    "tags": ["codesignal", "machine-learning::intro::tensor-operations", "type::comparison"],
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::tensor-operations",
+      "type::comparison"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
   {
     "front": "What compact equation computes a neuron's pre-activation from inputs x, weights w, and bias b?",
     "back": "\\(z=w^Tx+b\\): take the weighted dot product, then add the bias.",
-    "context": "Each weight controls an input's influence; the bias shifts the score. With inputs (70, 0), weights (0.5, -2), and bias -10, z = 25.",
-    "tags": ["codesignal", "machine-learning::intro::neurons", "type::formula"],
+    "context": "\\(z\\) is the pre-activation, \\(x\\) is the input vector, \\(w\\) is the learned weight vector, and \\(b\\) is the learned bias. Each weight controls one input's influence; the bias shifts the score. With inputs (70, 0), weights (0.5, -2), and bias -10, \\(z=25\\).",
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::neurons",
+      "type::formula"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
@@ -339,15 +522,23 @@
     "front": "What different roles do a neuron's activation function and the model's loss function play?",
     "back": "Activation transforms a neuron's score; loss measures how wrong the model's prediction is.",
     "context": "An activation such as ReLU or sigmoid shapes the signal passed forward. The loss supplies the training objective whose gradient guides weight updates.",
-    "tags": ["codesignal", "machine-learning::intro::neurons", "type::comparison"],
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::neurons",
+      "type::comparison"
+    ],
     "deck": "Default",
     "model": "Basic"
   },
   {
     "front": "What happens during a neural network's forward pass?",
-    "back": "Each layer computes weighted sums, adds biases, applies activations, and passes the results to the next layer until a prediction is produced.",
-    "context": "Training then compares that prediction with the target using a loss. Backpropagation is the separate step that sends gradients backward to improve parameters.",
-    "tags": ["codesignal", "machine-learning::intro::neurons", "type::process"],
+    "back": "Inputs pass through successive layer transformations until the network produces its output.",
+    "context": "A typical layer computes weighted sums, adds biases, and may apply an activation function. The exact output-layer transformation depends on the task. Computing a loss and sending gradients backward are later training steps, not part of the forward pass itself.",
+    "tags": [
+      "codesignal",
+      "machine-learning::intro::neurons",
+      "type::process"
+    ],
     "deck": "Default",
     "model": "Basic"
   }
