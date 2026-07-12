@@ -1,14 +1,12 @@
 """Anki integration routes."""
 
-from typing import Annotated
+from fastapi import APIRouter, HTTPException
 
-from fastapi import APIRouter, Depends, HTTPException
-
-from src.anki_client import AnkiClient, AnkiConnectError
+from src.anki_client import AnkiConnectError
 from src.anki_notes import add_card_to_anki
 from src.schema import Flashcard
 
-from ..deps import AnkiDependency, get_anki_client
+from ..deps import AnkiClientDependency, AnkiDependency
 from ..models import AddCardRequest, AddCardResponse, AnkiStatusResponse
 
 router = APIRouter()
@@ -17,7 +15,7 @@ router = APIRouter()
 # These handlers do blocking (requests-based) Anki I/O, so they are plain `def`
 # and run in FastAPI's threadpool rather than blocking the event loop.
 @router.get("/ping", response_model=AnkiStatusResponse)
-def ping_anki(client: Annotated[AnkiClient, Depends(get_anki_client)]):
+def ping_anki(client: AnkiClientDependency):
     """Check if Anki is connected and responsive."""
     try:
         connected = client.ping()
@@ -27,7 +25,7 @@ def ping_anki(client: Annotated[AnkiClient, Depends(get_anki_client)]):
 
 
 @router.get("/decks", response_model=list[str])
-def list_decks(client: Annotated[AnkiClient, Depends(get_anki_client)]):
+def list_decks(client: AnkiClientDependency):
     """List available Anki decks."""
     try:
         return client.get_decks()
@@ -36,7 +34,7 @@ def list_decks(client: Annotated[AnkiClient, Depends(get_anki_client)]):
 
 
 @router.get("/models", response_model=list[str])
-def list_models(client: Annotated[AnkiClient, Depends(get_anki_client)]):
+def list_models(client: AnkiClientDependency):
     """List available Anki note models."""
     try:
         return client.get_models()

@@ -7,7 +7,7 @@ adapters cross in production.
 """
 
 from collections.abc import Iterable
-from typing import Any
+from typing import Any, cast
 
 import pytest
 
@@ -22,6 +22,8 @@ class FakeAnkiClient:
     running Anki:
 
     - ``fail_on_add`` — ``add_note`` raises ``AnkiConnectError``.
+    - ``null_add`` — ``add_note`` returns ``None`` (as AnkiConnect can, e.g. a
+      ``{"result": null, "error": null}`` reply) without raising.
     - ``fail_media`` — ``store_media_file`` raises ``AnkiConnectError``.
     - ``batch_reject_indices`` — positions in an ``add_notes_batch`` call that
       come back as ``None`` (as Anki does for a duplicate).
@@ -31,6 +33,7 @@ class FakeAnkiClient:
         self,
         *,
         fail_on_add: bool = False,
+        null_add: bool = False,
         fail_media: bool = False,
         batch_reject_indices: Iterable[int] = (),
     ) -> None:
@@ -38,6 +41,7 @@ class FakeAnkiClient:
         self.batched: list[dict[str, Any]] = []
         self.media: list[tuple[str, bytes]] = []
         self.fail_on_add = fail_on_add
+        self.null_add = null_add
         self.fail_media = fail_media
         self.batch_reject_indices = set(batch_reject_indices)
         self._next_id = 1000
@@ -57,6 +61,10 @@ class FakeAnkiClient:
     ) -> int:
         if self.fail_on_add:
             raise AnkiConnectError("simulated add failure")
+        if self.null_add:
+            # Mirror AnkiConnect handing back a null result with no error; the
+            # real add_note is typed -> int, so cast keeps the fake conformant.
+            return cast("int", None)
         self._next_id += 1
         self.notes.append(
             {

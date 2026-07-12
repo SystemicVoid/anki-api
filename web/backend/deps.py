@@ -22,3 +22,8 @@ def get_anki_client() -> AnkiClient:
 # so the dependency reads as "something that can add a note" and tests can pass a
 # fake. ``Depends`` marks it as an injected dependency (not a request body).
 AnkiDependency = Annotated[NoteClient, Depends(get_anki_client)]
+
+# Routes that call concrete AnkiClient methods (ping/decks/models) annotate with
+# the client type; both aliases resolve the same provider, so a single override
+# of ``get_anki_client`` fakes every route.
+AnkiClientDependency = Annotated[AnkiClient, Depends(get_anki_client)]

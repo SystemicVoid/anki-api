@@ -204,3 +204,22 @@ def test_locked_session_loads_and_persists(tmp_path, fake_client):
 
     reloaded = load_cards_from_json(path)
     assert reloaded[0].status == "added"
+
+
+def test_approve_stays_pending_when_anki_returns_no_id(tmp_path):
+    """A null add id must not persist an added card with anki_id=None.
+
+    Otherwise the card is stuck: the next approve hits the invalid-state guard
+    (added but no id) instead of retrying. The error propagates and the card is
+    left pending so the user can try again.
+    """
+    path = _make_file(tmp_path, [Flashcard(front="Q?", back="A")])
+    session = ReviewSession.load(path)
+    client = FakeAnkiClient(null_add=True)
+
+    with pytest.raises(AnkiConnectError):
+        session.approve(0, client)
+
+    assert session.card(0).status == "pending"
+    assert session.card(0).anki_id is None
+    assert load_cards_from_json(path)[0].status == "pending"

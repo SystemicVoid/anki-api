@@ -21,6 +21,7 @@ from __future__ import annotations
 import html
 from typing import TYPE_CHECKING, Any, Protocol, TypedDict, cast
 
+from src.anki_client import AnkiConnectError
 from src.media import MediaStore, upload_media_files, validate_media_filename
 
 if TYPE_CHECKING:
@@ -118,15 +119,27 @@ def add_card_to_anki(
     without mutating the card. Returns the new note id. Raises
     ``AnkiConnectError`` or ``ValueError`` on failure so callers decide how to
     surface it — this function never swallows errors or mutates card state.
+
+    A null AnkiConnect result (no note id) is raised as ``AnkiConnectError``
+    rather than returned, so the single-note contract truly yields an ``int``
+    and callers never persist an "added" card with ``anki_id=None``. The batch
+    path keeps ``None`` per note, because there it is Anki's expected
+    rejection signal (e.g. a duplicate), not a contract violation.
     """
     upload_media_files(client, card.images)
     note = render_anki_note(card)
-    return client.add_note(
+    note_id = client.add_note(
         deck_name=deck_override or note["deckName"],
         model_name=note["modelName"],
         fields=note["fields"],
         tags=note["tags"],
     )
+    if note_id is None:
+        raise AnkiConnectError(
+            "AnkiConnect returned no note id for the add (the note may be a "
+            "duplicate or otherwise rejected); not recording it as added"
+        )
+    return note_id
 
 
 def add_cards_to_anki(

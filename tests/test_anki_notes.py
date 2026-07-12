@@ -167,3 +167,16 @@ def test_add_cards_deck_override_retargets_every_note(fake_client, sample_cards)
 
     assert all(note["deckName"] == "Elsewhere" for note in fake_client.batched)
     assert all(card.deck == "Default" for card in sample_cards)
+
+
+def test_add_card_raises_when_anki_returns_no_id():
+    """A null AnkiConnect result is an error, not a success with no note id.
+
+    The single-note contract is ``-> int``; a null add (e.g. a duplicate, or a
+    bare ``result: null`` reply) must raise so callers never persist or report
+    an added card with no id. Contrast the batch path, which keeps ``None``.
+    """
+    client = FakeAnkiClient(null_add=True)
+
+    with pytest.raises(AnkiConnectError):
+        add_card_to_anki(client, Flashcard(front="Q?", back="A"))
