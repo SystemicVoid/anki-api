@@ -1,28 +1,13 @@
 """Flashcard schema and validation based on EAT principles."""
 
-import html
 import json
+import os
+import tempfile
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
 
-from src.media import resolve_media_path, validate_media_filename
-
-
-def convert_newlines_to_html(text: str) -> str:
-    """Convert plain newlines to HTML <br> tags for Anki display.
-
-    Anki displays card content as HTML, so plain newlines are collapsed.
-    This function converts \\n to <br> tags for proper rendering.
-
-    Args:
-        text: Text with plain newlines
-
-    Returns:
-        Text with <br> tags for HTML rendering
-    """
-    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
-    return normalized.replace("\n", "<br>")
+from src.media import resolve_media_path
 
 
 @dataclass
@@ -46,36 +31,6 @@ class Flashcard:
     anki_id: int | None = None  # ID of the note in Anki, if added
     status: str = "pending"  # Review status: "pending" | "skipped" | "added"
     added_at: datetime | None = None  # Timestamp when added to Anki
-
-    def to_anki_note(self) -> dict:
-        """Convert to AnkiConnect note format.
-
-        Returns:
-            Dictionary formatted for AnkiConnect addNote
-        """
-        back_html = convert_newlines_to_html(self.back)
-        if self.images:
-            image_html = "".join(
-                f'<img src="{html.escape(validate_media_filename(filename))}">'
-                for filename in self.images
-            )
-            back_html += f"<br><br>{image_html}"
-
-        if self.context:
-            back_html += "<br><br>---<br><br>" + convert_newlines_to_html(self.context)
-
-        # Convert newlines to HTML for Anki display
-        front_html = convert_newlines_to_html(self.front)
-
-        return {
-            "deckName": self.deck,
-            "modelName": self.model,
-            "fields": {
-                "Front": front_html,
-                "Back": back_html,
-            },
-            "tags": self.tags,
-        }
 
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""
@@ -170,7 +125,13 @@ def load_cards_from_json(file_path: str) -> list[Flashcard]:
 
 
 def save_cards_to_json(cards: list[Flashcard], file_path: str) -> None:
-    """Save flashcards to a JSON file.
+    """Save flashcards to a JSON file atomically.
+
+    The cards are written to a temporary file in the same directory and then
+    :func:`os.replace`-d over the target, so a crash mid-write can never leave a
+    partially-written (corrupt) card file — a reader sees either the old file or
+    the complete new one. Review progress is persisted after every transition,
+    so this durability matters.
 
     Args:
         cards: List of Flashcard objects
@@ -185,5 +146,20 @@ def save_cards_to_json(cards: list[Flashcard], file_path: str) -> None:
 
     data = [card.to_dict() for card in cards]
 
-    with Path(file_path).open("w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False, default=datetime_serializer)
+    target = Path(file_path)
+    # A unique temp name (not a fixed ".{name}.tmp") so two writers to the same
+    # target never clobber each other's in-progress file before the replace.
+    fd, tmp_name = tempfile.mkstemp(
+        dir=target.parent, prefix=f".{target.name}.", suffix=".tmp"
+    )
+    tmp = Path(tmp_name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(
+                data, f, indent=2, ensure_ascii=False, default=datetime_serializer
+            )
+            f.flush()
+            os.fsync(f.fileno())
+        tmp.replace(target)
+    finally:
+        tmp.unlink(missing_ok=True)

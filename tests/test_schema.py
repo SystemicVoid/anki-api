@@ -3,54 +3,8 @@ from typing import cast
 from src.schema import (
     Flashcard,
     ValidationWarning,
-    convert_newlines_to_html,
     validate_card,
 )
-
-
-def test_convert_newlines_to_html_handles_mixed_endings():
-    text = "Line one\r\nLine two\rLine three\nLine four"
-    assert (
-        convert_newlines_to_html(text)
-        == "Line one<br>Line two<br>Line three<br>Line four"
-    )
-
-
-def test_to_anki_note_converts_back_and_context_to_html():
-    card = Flashcard(
-        front="What is foo?\nProvide two points?",
-        back="First line\nSecond line",
-        context="Extra context line 1\nExtra context line 2",
-        tags=["test"],
-        deck="Learning",
-        model="Basic",
-    )
-
-    note = card.to_anki_note()
-
-    assert note["fields"]["Front"] == "What is foo?<br>Provide two points?"
-    assert (
-        note["fields"]["Back"]
-        == "First line<br>Second line<br><br>---<br><br>Extra context line 1<br>Extra context line 2"
-    )
-
-
-def test_to_anki_note_includes_attached_images_before_context():
-    card = Flashcard(
-        front="What does the diagram show?",
-        back="Broadcasting a vector across matrix rows.",
-        context="The vector is reused without changing its stored values.",
-        images=["broadcasting.png"],
-    )
-
-    note = card.to_anki_note()
-
-    assert note["fields"]["Back"] == (
-        "Broadcasting a vector across matrix rows.<br><br>"
-        '<img src="broadcasting.png"><br><br>---<br><br>'
-        "The vector is reused without changing its stored values."
-    )
-
 
 # EAT 2.0: Simplified validation tests
 # Only structural errors (empty front/back) should fail
