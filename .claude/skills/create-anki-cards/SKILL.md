@@ -24,6 +24,7 @@ Before generating any cards, read the relevant rules:
 
 - **EAT Framework**: [rules/EAT_FRAMEWORK.md](rules/EAT_FRAMEWORK.md) - Full cognitive science rationale (always read)
 - **Math Notation**: [rules/MATH_NOTATION.md](rules/MATH_NOTATION.md) - Anki MathJax rules (read if content contains math/formulas)
+- **Images**: [rules/IMAGES.md](rules/IMAGES.md) - Media filename rules and how images render; the `storeMediaFile` + `updateNoteFields` transaction (read if a card needs a diagram, or when attaching an image to an already-added note)
 
 ## Input
 
@@ -135,7 +136,7 @@ EOF
 **Important notes:**
 - Use the `context` field for elaborative encoding (why it matters, related concepts, edge cases)
 - The `back` field contains the core answer; `context` provides schema connections
-- For a useful dual-coded visual, store the image under `cards/media/` and list its safe filename in the optional `images` field. Do not add decorative or redundant images.
+- For a useful dual-coded visual, store the image under `cards/media/` and list its safe filename in the optional `images` field. Do not add decorative or redundant images. To attach an image to a card that is **already in Anki**, see [rules/IMAGES.md](rules/IMAGES.md) (Case B — the `storeMediaFile` + `updateNoteFields` transaction).
 - When exporting to Anki Desktop, `to_anki_note()` automatically combines back + context with `---` separator
 - The web UI displays the `context` field in a separate styled frame
 - Source will be auto-filled by the script if passed as argument
