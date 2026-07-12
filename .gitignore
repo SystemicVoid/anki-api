@@ -26,6 +26,9 @@ cards/*
 !cards/media/**
 notes/
 .archive/
+# Image-generation working artifacts (prompts, palette studies, render
+# experiments). Final diagrams live tracked under cards/media/.
+codesignal-image-prompts/
 
 # Documents
 *.docx
