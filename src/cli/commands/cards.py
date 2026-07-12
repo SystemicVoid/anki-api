@@ -1,13 +1,12 @@
 """Card management commands: extract, review, add, quick, find, delete."""
 
 import sys
-from datetime import UTC, datetime
 from pathlib import Path
 
 import click
 
 from src.anki_client import AnkiConnectError
-from src.anki_notes import add_card_to_anki, add_cards_to_anki
+from src.anki_notes import add_card_to_anki
 from src.cli.anki_lifecycle import ensure_anki_running, get_client
 from src.cli.output import (
     print_card,
@@ -19,12 +18,8 @@ from src.cli.output import (
 )
 from src.cli.utils import default_docx_output_path
 from src.documents import export_docx_to_markdown
-from src.schema import (
-    Flashcard,
-    load_cards_from_json,
-    save_cards_to_json,
-    validate_card,
-)
+from src.review import ReviewSession
+from src.schema import Flashcard, validate_card
 
 
 @click.command("extract")
@@ -71,7 +66,7 @@ def extract_docx(file: Path, output: Path | None):
 @click.option(
     "--reset",
     is_flag=True,
-    help="Reset all cards to pending status and start fresh review",
+    help="Re-open skipped cards for another review pass",
 )
 def review(file: Path, deck: str, show_warnings: bool, reset: bool):
     """Review and approve cards from a JSON file before adding to Anki.
@@ -84,73 +79,58 @@ def review(file: Path, deck: str, show_warnings: bool, reset: bool):
 
     Review progress is persisted to the file. If interrupted, the review
     will resume from the first unreviewed card on next run.
-    Use --reset to start a fresh review of all cards.
+    Use --reset to re-open skipped cards for another pass (already-added
+    cards stay linked to their Anki notes).
     """
     # Ensure Anki is running (starts it if needed)
     client = ensure_anki_running()
 
-    # Load cards
     try:
-        cards = load_cards_from_json(str(file))
+        session = ReviewSession.load(str(file))
     except ValueError as e:
         print_error(str(e))
         sys.exit(1)
 
-    if not cards:
+    if not session.cards:
         print_warning("No cards found in file.")
         sys.exit(0)
 
-    # Reset all cards to pending if requested
     if reset:
-        for card in cards:
-            card.status = "pending"
-            card.anki_id = None
-            card.added_at = None
-        save_cards_to_json(cards, str(file))
-        print_info("Reset all cards to pending status.")
+        session.reset()
+        print_info("Re-opened skipped cards for review.")
 
-    # Find pending cards (not yet reviewed)
-    pending_indices = [i for i, card in enumerate(cards) if card.status == "pending"]
+    pending = session.pending_indices()
 
-    if not pending_indices:
+    if not pending:
         print_success("All cards have been reviewed!")
-        # Show summary of existing statuses
-        added = sum(1 for c in cards if c.status == "added")
-        skipped = sum(1 for c in cards if c.status == "skipped")
-        click.echo(f"  Previously added: {added}")
-        click.echo(f"  Previously skipped: {skipped}")
-        click.echo("\nUse --reset to review all cards again.")
+        counts = session.counts()
+        click.echo(f"  Previously added: {counts.added}")
+        click.echo(f"  Previously skipped: {counts.skipped}")
+        click.echo("\nUse --reset to re-open skipped cards.")
         sys.exit(0)
 
     # Show resume info if some cards were already reviewed
-    already_reviewed = len(cards) - len(pending_indices)
+    already_reviewed = len(session.cards) - len(pending)
     if already_reviewed > 0:
         print_info(f"Resuming review: {already_reviewed} cards already processed")
-        added = sum(1 for c in cards if c.status == "added")
-        skipped = sum(1 for c in cards if c.status == "skipped")
-        click.echo(f"  Added: {added}, Skipped: {skipped}")
+        counts = session.counts()
+        click.echo(f"  Added: {counts.added}, Skipped: {counts.skipped}")
         click.echo()
 
-    print_info(f"Reviewing {len(pending_indices)} pending cards from {file.name}")
+    print_info(f"Reviewing {len(pending)} pending cards from {file.name}")
     print_success("✓ Connected to Anki\n")
 
     session_added = 0
     session_skipped = 0
 
-    for review_num, card_idx in enumerate(pending_indices, 1):
-        card = cards[card_idx]
-
-        # Override deck if specified
-        if deck:
-            card.deck = deck
+    for review_num, card_idx in enumerate(pending, 1):
+        card = session.card(card_idx)
 
         # Print card (show position as "review X of Y pending")
-        print_card(card, review_num, len(pending_indices))
+        print_card(card, review_num, len(pending))
 
-        # Validate card (always run validation, but only display if flag is set)
-        warnings = validate_card(card)
         if show_warnings:
-            print_validation_warnings(warnings)
+            print_validation_warnings(validate_card(card))
 
         # Get user action
         click.echo()
@@ -159,20 +139,19 @@ def review(file: Path, deck: str, show_warnings: bool, reset: bool):
             type=click.Choice(["a", "e", "s", "q"], case_sensitive=False),
             default="a",
             show_choices=True,
-        )
+        ).lower()
 
-        if action.lower() == "q":
+        if action == "q":
             print_info("\nStopped reviewing. Progress has been saved.")
             break
 
-        elif action.lower() == "s":
+        if action == "s":
             print_warning("Skipped card.")
-            card.status = "skipped"
-            save_cards_to_json(cards, str(file))
+            session.skip(card_idx)
             session_skipped += 1
             continue
 
-        elif action.lower() == "e":
+        if action == "e":
             # Edit mode
             click.echo("\nEdit card (press Enter to keep current value):")
             new_front = click.prompt("Front", default=card.front)
@@ -181,32 +160,28 @@ def review(file: Path, deck: str, show_warnings: bool, reset: bool):
             new_tags = click.prompt(
                 "Tags (comma-separated)", default=",".join(card.tags)
             )
+            session.edit(
+                card_idx,
+                front=new_front,
+                back=new_back,
+                context=new_context,
+                tags=[t.strip() for t in new_tags.split(",") if t.strip()],
+            )
 
-            card.front = new_front
-            card.back = new_back
-            card.context = new_context
-            card.tags = [t.strip() for t in new_tags.split(",") if t.strip()]
-
-            # Ask to approve after editing
             if not click.confirm("\nApprove edited card?", default=True):
                 print_warning("Skipped card after edit.")
-                card.status = "skipped"
-                save_cards_to_json(cards, str(file))
+                session.skip(card_idx)
                 session_skipped += 1
                 continue
 
-        # Add card to Anki (action == 'a' or after edit approval)
+        # Approve (action == 'a' or after edit approval)
         try:
-            note_id = add_card_to_anki(client, card)
-            print_success(f"✓ Card added to Anki (ID: {note_id})")
-            card.status = "added"
-            card.anki_id = note_id
-            card.added_at = datetime.now(UTC)
-            save_cards_to_json(cards, str(file))
+            approved = session.approve(card_idx, client, deck_override=deck)
+            print_success(f"✓ Card added to Anki (ID: {approved.anki_id})")
             session_added += 1
         except (AnkiConnectError, ValueError) as e:
             print_error(f"Failed to add card: {e}")
-            # Don't change status on error - let user retry
+            # Status left untouched so the card can be retried
             session_skipped += 1
 
     # Summary
@@ -214,12 +189,10 @@ def review(file: Path, deck: str, show_warnings: bool, reset: bool):
     print_success("Review session complete!")
     click.echo(f"  This session - Added: {session_added}, Skipped: {session_skipped}")
 
-    # Show total progress
-    total_added = sum(1 for c in cards if c.status == "added")
-    total_skipped = sum(1 for c in cards if c.status == "skipped")
-    total_pending = sum(1 for c in cards if c.status == "pending")
+    counts = session.counts()
     click.echo(
-        f"  Total progress - Added: {total_added}, Skipped: {total_skipped}, Pending: {total_pending}"
+        f"  Total progress - Added: {counts.added}, "
+        f"Skipped: {counts.skipped}, Pending: {counts.pending}"
     )
 
 
@@ -233,36 +206,41 @@ def review(file: Path, deck: str, show_warnings: bool, reset: bool):
 def add(file: Path, deck: str):
     """Add cards from JSON file directly to Anki without review.
 
-    Use this for batch adding cards you've already reviewed.
+    Use this for batch adding cards you've already reviewed. Cards already
+    added are skipped; accepted cards are marked added and the file is saved.
     """
     # Ensure Anki is running (starts it if needed)
     client = ensure_anki_running()
 
-    # Load cards
     try:
-        cards = load_cards_from_json(str(file))
+        session = ReviewSession.load(str(file))
     except ValueError as e:
         print_error(str(e))
         sys.exit(1)
 
-    if not cards:
+    if not session.cards:
         print_warning("No cards found in file.")
         sys.exit(0)
 
-    print_info(f"Adding {len(cards)} cards to Anki...")
+    print_info(f"Adding cards from {file.name} to Anki...")
 
     try:
-        note_ids = add_cards_to_anki(client, cards, deck_override=deck)
+        note_ids = session.submit_all(client, deck_override=deck)
     except (AnkiConnectError, ValueError) as e:
         print_error(f"Failed to add cards: {e}")
         sys.exit(1)
 
-    success_count = sum(1 for nid in note_ids if nid is not None)
-    failed_count = len(note_ids) - success_count
+    added = sum(1 for nid in note_ids if nid is not None)
+    rejected = len(note_ids) - added
+    counts = session.counts()
 
-    print_success(f"✓ Successfully added {success_count} cards")
-    if failed_count > 0:
-        print_warning(f"  Failed to add {failed_count} cards (duplicates?)")
+    print_success(f"✓ Successfully added {added} cards")
+    if rejected > 0:
+        print_warning(f"  {rejected} cards not added (duplicates?)")
+    click.echo(
+        f"  Total in file - Added: {counts.added}, "
+        f"Skipped: {counts.skipped}, Pending: {counts.pending}"
+    )
 
 
 @click.command()

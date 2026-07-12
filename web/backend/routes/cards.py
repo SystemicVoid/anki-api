@@ -1,20 +1,21 @@
-"""Card file management routes."""
+"""Card file management routes.
+
+Thin adapters over :class:`~src.review.ReviewSession`. Mutating handlers run
+inside :func:`~src.review.locked_session` so the load -> transition -> save
+window is serialised per file (FastAPI runs these ``def`` handlers in a
+threadpool), and they map review-state errors to HTTP status codes.
+"""
 
 import re
-from datetime import UTC, datetime
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
 
-from src.anki_client import AnkiClient, AnkiConnectError
-from src.anki_notes import add_card_to_anki
-from src.schema import (
-    Flashcard,
-    load_cards_from_json,
-    save_cards_to_json,
-    validate_card,
-)
+from src.anki_client import AnkiConnectError
+from src.review import ReviewSession, ReviewStateError, locked_session
+from src.schema import Flashcard, validate_card
 
+from ..deps import AnkiDependency
 from ..models import (
     CardResponse,
     CardsFileResponse,
@@ -40,6 +41,16 @@ def validate_filename(filename: str) -> bool:
         return False
     # No path separators
     return not ("/" in filename or "\\" in filename)
+
+
+def _resolve_card_file(filename: str) -> Path:
+    """Validate the filename and return its path, or raise the right HTTP error."""
+    if not validate_filename(filename):
+        raise HTTPException(status_code=400, detail="Invalid filename")
+    file_path = CARDS_DIR / filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail=f"File not found: {filename}")
+    return file_path
 
 
 def flashcard_to_response(card: Flashcard) -> CardResponse:
@@ -76,7 +87,7 @@ def get_card_with_validation(
 
 
 @router.get("/files", response_model=FileListResponse)
-async def list_card_files():
+def list_card_files():
     """List available JSON card files with review statistics."""
     if not CARDS_DIR.exists():
         return FileListResponse(files=[])
@@ -85,20 +96,14 @@ async def list_card_files():
     for f in CARDS_DIR.iterdir():
         if f.is_file() and f.suffix == ".json":
             try:
-                cards = load_cards_from_json(str(f))
-
-                # Calculate statistics based on status field
-                added_count = sum(1 for c in cards if c.status == "added")
-                skipped_count = sum(1 for c in cards if c.status == "skipped")
-                pending_count = sum(1 for c in cards if c.status == "pending")
-
+                counts = ReviewSession.load(str(f)).counts()
                 files.append(
                     FileStat(
                         filename=f.name,
-                        total_cards=len(cards),
-                        added_cards=added_count,
-                        skipped_cards=skipped_count,
-                        pending_cards=pending_count,
+                        total_cards=counts.added + counts.skipped + counts.pending,
+                        added_cards=counts.added,
+                        skipped_cards=counts.skipped,
+                        pending_cards=counts.pending,
                     )
                 )
             except Exception:
@@ -121,20 +126,16 @@ async def list_card_files():
 
 
 @router.get("/{filename}", response_model=CardsFileResponse)
-async def get_cards(filename: str):
+def get_cards(filename: str):
     """Load all cards from a JSON file with validation warnings."""
-    if not validate_filename(filename):
-        raise HTTPException(status_code=400, detail="Invalid filename")
-
-    file_path = CARDS_DIR / filename
-    if not file_path.exists():
-        raise HTTPException(status_code=404, detail=f"File not found: {filename}")
+    file_path = _resolve_card_file(filename)
 
     try:
-        cards = load_cards_from_json(str(file_path))
+        session = ReviewSession.load(str(file_path))
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+    cards = session.cards
     cards_with_validation = [
         get_card_with_validation(card, i, len(cards)) for i, card in enumerate(cards)
     ]
@@ -147,106 +148,58 @@ async def get_cards(filename: str):
 
 
 @router.put("/{filename}/{index}", response_model=CardWithValidation)
-async def update_card(filename: str, index: int, update: CardUpdate):
-    """Update a card's fields and return with new validation warnings."""
-    if not validate_filename(filename):
-        raise HTTPException(status_code=400, detail="Invalid filename")
-
-    file_path = CARDS_DIR / filename
-    if not file_path.exists():
-        raise HTTPException(status_code=404, detail=f"File not found: {filename}")
+def update_card(filename: str, index: int, update: CardUpdate):
+    """Update a not-yet-added card's fields and return new validation warnings."""
+    file_path = _resolve_card_file(filename)
 
     try:
-        cards = load_cards_from_json(str(file_path))
+        with locked_session(str(file_path)) as session:
+            card = session.edit(
+                index,
+                front=update.front,
+                back=update.back,
+                context=update.context,
+                tags=update.tags,
+                images=update.images,
+            )
+            return get_card_with_validation(card, index, len(session.cards))
+    except IndexError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ReviewStateError as e:
+        raise HTTPException(status_code=409, detail=str(e))
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-    if index < 0 or index >= len(cards):
-        raise HTTPException(status_code=404, detail=f"Card index {index} out of range")
-
-    card = cards[index]
-
-    # Apply updates
-    if update.front is not None:
-        card.front = update.front
-    if update.back is not None:
-        card.back = update.back
-    if update.context is not None:
-        card.context = update.context
-    if update.tags is not None:
-        card.tags = update.tags
-    if update.images is not None:
-        card.images = update.images
-
-    # Save back to file
-    save_cards_to_json(cards, str(file_path))
-
-    return get_card_with_validation(card, index, len(cards))
 
 
 @router.post("/{filename}/{index}/approve", response_model=CardWithValidation)
-async def approve_card(filename: str, index: int):
-    """Approve a card: Add to Anki and save resulting ID and timestamp to file."""
-    if not validate_filename(filename):
-        raise HTTPException(status_code=400, detail="Invalid filename")
-
-    file_path = CARDS_DIR / filename
-    if not file_path.exists():
-        raise HTTPException(status_code=404, detail=f"File not found: {filename}")
+def approve_card(filename: str, index: int, client: AnkiDependency):
+    """Approve a card: add to Anki and persist its note id and timestamp."""
+    file_path = _resolve_card_file(filename)
 
     try:
-        cards = load_cards_from_json(str(file_path))
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-    if index < 0 or index >= len(cards):
-        raise HTTPException(status_code=404, detail=f"Card index {index} out of range")
-
-    card = cards[index]
-    client = AnkiClient()
-
-    try:
-        if card.status == "added" and card.anki_id:
-            # Already approved, return as-is (idempotent)
-            pass
-        else:
-            note_id = add_card_to_anki(client, card)
-            card.anki_id = note_id
-            card.status = "added"
-            card.added_at = datetime.now(UTC)
-            save_cards_to_json(cards, str(file_path))
-
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        with locked_session(str(file_path)) as session:
+            card = session.approve(index, client)
+            return get_card_with_validation(card, index, len(session.cards))
+    except IndexError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ReviewStateError as e:
+        raise HTTPException(status_code=409, detail=str(e))
     except AnkiConnectError as e:
-        raise HTTPException(status_code=500, detail=f"Anki Connect Error: {e}")
-
-    return get_card_with_validation(card, index, len(cards))
+        raise HTTPException(status_code=503, detail=f"Anki Connect Error: {e}")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.post("/{filename}/{index}/skip", response_model=CardWithValidation)
-async def skip_card(filename: str, index: int):
-    """Skip a card: Mark as skipped and persist to file."""
-    if not validate_filename(filename):
-        raise HTTPException(status_code=400, detail="Invalid filename")
-
-    file_path = CARDS_DIR / filename
-    if not file_path.exists():
-        raise HTTPException(status_code=404, detail=f"File not found: {filename}")
+def skip_card(filename: str, index: int):
+    """Skip a card: mark as skipped and persist."""
+    file_path = _resolve_card_file(filename)
 
     try:
-        cards = load_cards_from_json(str(file_path))
+        with locked_session(str(file_path)) as session:
+            card = session.skip(index)
+            return get_card_with_validation(card, index, len(session.cards))
+    except IndexError as e:
+        raise HTTPException(status_code=404, detail=str(e))
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-    if index < 0 or index >= len(cards):
-        raise HTTPException(status_code=404, detail=f"Card index {index} out of range")
-
-    card = cards[index]
-
-    # Only update if not already processed (idempotent)
-    if card.status == "pending":
-        card.status = "skipped"
-        save_cards_to_json(cards, str(file_path))
-
-    return get_card_with_validation(card, index, len(cards))
