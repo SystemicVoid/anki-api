@@ -42,3 +42,10 @@ Thumbs.db
 # Release artifacts
 HANDOFF-*.md
 docs/gemini cli custom commands.md
+
+# Locally-installed agent skills (symlinked from the forge skills-store).
+# The project's own create-anki-cards skill stays tracked.
+/.claude/skills/*
+!/.claude/skills/create-anki-cards/
+/.agents/skills/*
+!/.agents/skills/create-anki-cards
