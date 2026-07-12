@@ -192,12 +192,11 @@ class ReviewSession:
         Anki rejected, e.g. a duplicate); rejected cards keep their prior status
         so they remain reviewable. Persists once if anything changed.
         """
-        targets = [(i, c) for i, c in enumerate(self.cards) if c.status != "added"]
-        note_ids = add_cards_to_anki(
-            client, [card for _, card in targets], deck_override=deck_override
-        )
+        targets = [card for card in self.cards if card.status != "added"]
+        note_ids = add_cards_to_anki(client, targets, deck_override=deck_override)
         changed = False
-        for (_, card), note_id in zip(targets, note_ids, strict=True):
+        # zip(strict=True) also asserts Anki returned one result per submitted card.
+        for card, note_id in zip(targets, note_ids, strict=True):
             if note_id is not None:
                 if deck_override is not None:
                     card.deck = deck_override
@@ -210,6 +209,10 @@ class ReviewSession:
         return note_ids
 
 
+# One lock per resolved card-file path. The registry grows by the number of
+# distinct card files touched in a process (a handful), never per request, so it
+# is not an unbounded leak; locks are intentionally never evicted so a file keeps
+# the same lock for the process lifetime.
 _locks: dict[str, threading.Lock] = {}
 _locks_guard = threading.Lock()
 
