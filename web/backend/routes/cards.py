@@ -133,7 +133,7 @@ def get_cards(filename: str):
     try:
         session = ReviewSession.load(str(file_path))
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
     cards = session.cards
     cards_with_validation = [
@@ -164,11 +164,11 @@ def update_card(filename: str, index: int, update: CardUpdate):
             )
             return get_card_with_validation(card, index, len(session.cards))
     except IndexError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
     except ReviewStateError as e:
-        raise HTTPException(status_code=409, detail=str(e))
+        raise HTTPException(status_code=409, detail=str(e)) from e
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.post("/{filename}/{index}/approve", response_model=CardWithValidation)
@@ -181,13 +181,13 @@ def approve_card(filename: str, index: int, client: AnkiDependency):
             card = session.approve(index, client)
             return get_card_with_validation(card, index, len(session.cards))
     except IndexError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
     except ReviewStateError as e:
-        raise HTTPException(status_code=409, detail=str(e))
+        raise HTTPException(status_code=409, detail=str(e)) from e
     except AnkiConnectError as e:
-        raise HTTPException(status_code=503, detail=f"Anki Connect Error: {e}")
+        raise HTTPException(status_code=503, detail=f"Anki Connect Error: {e}") from e
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.post("/{filename}/{index}/skip", response_model=CardWithValidation)
@@ -200,6 +200,6 @@ def skip_card(filename: str, index: int):
             card = session.skip(index)
             return get_card_with_validation(card, index, len(session.cards))
     except IndexError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e

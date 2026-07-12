@@ -129,7 +129,7 @@ def add_card_to_anki(
     upload_media_files(client, card.images)
     note = render_anki_note(card)
     note_id = client.add_note(
-        deck_name=deck_override or note["deckName"],
+        deck_name=note["deckName"] if deck_override is None else deck_override,
         model_name=note["modelName"],
         fields=note["fields"],
         tags=note["tags"],
@@ -159,7 +159,11 @@ def add_cards_to_anki(
         (filename for card in cards for filename in card.images),
     )
     notes = [render_anki_note(card) for card in cards]
-    if deck_override:
+    # `is not None` (not truthiness) so an explicit "" override is treated
+    # consistently with ReviewSession, which persists deck_override when it is
+    # not None — otherwise a note is added to its original deck yet recorded
+    # with deck="".
+    if deck_override is not None:
         for note in notes:
             note["deckName"] = deck_override
     return client.add_notes_batch(cast("list[dict[str, Any]]", notes))

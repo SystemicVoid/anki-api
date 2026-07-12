@@ -2,6 +2,7 @@
 
 import json
 import os
+import tempfile
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -146,9 +147,14 @@ def save_cards_to_json(cards: list[Flashcard], file_path: str) -> None:
     data = [card.to_dict() for card in cards]
 
     target = Path(file_path)
-    tmp = target.with_name(f".{target.name}.tmp")
+    # A unique temp name (not a fixed ".{name}.tmp") so two writers to the same
+    # target never clobber each other's in-progress file before the replace.
+    fd, tmp_name = tempfile.mkstemp(
+        dir=target.parent, prefix=f".{target.name}.", suffix=".tmp"
+    )
+    tmp = Path(tmp_name)
     try:
-        with tmp.open("w", encoding="utf-8") as f:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
             json.dump(
                 data, f, indent=2, ensure_ascii=False, default=datetime_serializer
             )

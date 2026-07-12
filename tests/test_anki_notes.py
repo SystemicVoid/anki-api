@@ -180,3 +180,20 @@ def test_add_card_raises_when_anki_returns_no_id():
 
     with pytest.raises(AnkiConnectError):
         add_card_to_anki(client, Flashcard(front="Q?", back="A"))
+
+
+def test_add_card_empty_deck_override_is_an_override_not_ignored():
+    """deck_override='' is an explicit override (is-not-None), not "use card deck".
+
+    Truthiness (``deck_override or ...``) would send the note to the card's own
+    deck while ReviewSession persists deck='' — the inconsistency this guards.
+    """
+    client = FakeAnkiClient()
+
+    add_card_to_anki(
+        client,
+        Flashcard(front="Q?", back="A", deck="Original"),
+        deck_override="",
+    )
+
+    assert client.notes[0]["deckName"] == ""
