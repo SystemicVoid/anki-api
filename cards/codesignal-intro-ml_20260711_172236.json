@@ -114,7 +114,9 @@
       "type::comparison",
       "focus::misconception"
     ],
-    "images": [],
+    "images": [
+      "codesignal-intro-ml-scaling.png"
+    ],
     "source": "",
     "deck": "Default",
     "model": "Basic",
@@ -217,7 +219,9 @@
       "type::calculation",
       "focus::misconception"
     ],
-    "images": [],
+    "images": [
+      "codesignal-intro-ml-slope.png"
+    ],
     "source": "",
     "deck": "Default",
     "model": "Basic",
@@ -234,7 +238,9 @@
       "machine-learning::intro::logistic-regression",
       "type::concept"
     ],
-    "images": [],
+    "images": [
+      "codesignal-intro-ml-sigmoid.png"
+    ],
     "source": "",
     "deck": "Default",
     "model": "Basic",
@@ -251,7 +257,9 @@
       "machine-learning::intro::knn",
       "type::process"
     ],
-    "images": [],
+    "images": [
+      "codesignal-intro-ml-knn.png"
+    ],
     "source": "",
     "deck": "Default",
     "model": "Basic",
@@ -268,7 +276,9 @@
       "machine-learning::intro::knn",
       "type::formula"
     ],
-    "images": [],
+    "images": [
+      "codesignal-intro-ml-euclidean-distance.png"
+    ],
     "source": "",
     "deck": "Default",
     "model": "Basic",
@@ -285,7 +295,9 @@
       "machine-learning::intro::decision-trees",
       "type::process"
     ],
-    "images": [],
+    "images": [
+      "codesignal-intro-ml-decision-tree.png"
+    ],
     "source": "",
     "deck": "Default",
     "model": "Basic",
@@ -340,7 +352,9 @@
       "machine-learning::intro::k-means",
       "type::process"
     ],
-    "images": [],
+    "images": [
+      "codesignal-intro-ml-kmeans.png"
+    ],
     "source": "",
     "deck": "Default",
     "model": "Basic",
@@ -712,7 +726,9 @@
       "machine-learning::intro::neurons",
       "type::formula"
     ],
-    "images": [],
+    "images": [
+      "codesignal-intro-ml-neuron.png"
+    ],
     "source": "",
     "deck": "Default",
     "model": "Basic",
