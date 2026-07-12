@@ -1,25 +1,22 @@
 """Anki integration routes."""
 
-from fastapi import APIRouter, HTTPException
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException
 
 from src.anki_client import AnkiClient, AnkiConnectError
-from src.media import upload_media_files
+from src.anki_notes import add_card_to_anki
 from src.schema import Flashcard
 
+from ..deps import AnkiDependency, get_anki_client
 from ..models import AddCardRequest, AddCardResponse, AnkiStatusResponse
 
 router = APIRouter()
 
 
-def get_anki_client() -> AnkiClient:
-    """Get AnkiConnect client instance."""
-    return AnkiClient()
-
-
 @router.get("/ping", response_model=AnkiStatusResponse)
-async def ping_anki():
+async def ping_anki(client: Annotated[AnkiClient, Depends(get_anki_client)]):
     """Check if Anki is connected and responsive."""
-    client = get_anki_client()
     try:
         connected = client.ping()
         return AnkiStatusResponse(connected=connected)
@@ -28,9 +25,8 @@ async def ping_anki():
 
 
 @router.get("/decks", response_model=list[str])
-async def list_decks():
+async def list_decks(client: Annotated[AnkiClient, Depends(get_anki_client)]):
     """List available Anki decks."""
-    client = get_anki_client()
     try:
         return client.get_decks()
     except AnkiConnectError as e:
@@ -38,9 +34,8 @@ async def list_decks():
 
 
 @router.get("/models", response_model=list[str])
-async def list_models():
+async def list_models(client: Annotated[AnkiClient, Depends(get_anki_client)]):
     """List available Anki note models."""
-    client = get_anki_client()
     try:
         return client.get_models()
     except AnkiConnectError as e:
@@ -48,11 +43,8 @@ async def list_models():
 
 
 @router.post("/add", response_model=AddCardResponse)
-async def add_card(request: AddCardRequest):
-    """Add a card to Anki."""
-    client = get_anki_client()
-
-    # Create Flashcard object to use its to_anki_note conversion
+def add_card(request: AddCardRequest, client: AnkiDependency):
+    """Add a card to Anki through the shared submission primitive."""
     card = Flashcard(
         front=request.front,
         back=request.back,
@@ -65,14 +57,7 @@ async def add_card(request: AddCardRequest):
     )
 
     try:
-        anki_note = card.to_anki_note()
-        upload_media_files(client, card.images)
-        note_id = client.add_note(
-            deck_name=anki_note["deckName"],
-            model_name=anki_note["modelName"],
-            fields=anki_note["fields"],
-            tags=anki_note["tags"],
-        )
+        note_id = add_card_to_anki(client, card)
         return AddCardResponse(success=True, note_id=note_id)
     except (AnkiConnectError, ValueError) as e:
         return AddCardResponse(success=False, error=str(e))

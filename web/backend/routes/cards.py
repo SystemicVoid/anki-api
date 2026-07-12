@@ -7,7 +7,7 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException
 
 from src.anki_client import AnkiClient, AnkiConnectError
-from src.media import upload_media_files
+from src.anki_notes import add_card_to_anki
 from src.schema import (
     Flashcard,
     load_cards_from_json,
@@ -210,14 +210,7 @@ async def approve_card(filename: str, index: int):
             # Already approved, return as-is (idempotent)
             pass
         else:
-            upload_media_files(client, card.images)
-            anki_note = card.to_anki_note()
-            note_id = client.add_note(
-                deck_name=anki_note["deckName"],
-                model_name=anki_note["modelName"],
-                fields=anki_note["fields"],
-                tags=anki_note["tags"],
-            )
+            note_id = add_card_to_anki(client, card)
             card.anki_id = note_id
             card.status = "added"
             card.added_at = datetime.now(UTC)

@@ -7,6 +7,7 @@ from pathlib import Path
 import click
 
 from src.anki_client import AnkiConnectError
+from src.anki_notes import add_card_to_anki, add_cards_to_anki
 from src.cli.anki_lifecycle import ensure_anki_running, get_client
 from src.cli.output import (
     print_card,
@@ -18,7 +19,6 @@ from src.cli.output import (
 )
 from src.cli.utils import default_docx_output_path
 from src.documents import export_docx_to_markdown
-from src.media import upload_media_files
 from src.schema import (
     Flashcard,
     load_cards_from_json,
@@ -197,13 +197,7 @@ def review(file: Path, deck: str, show_warnings: bool, reset: bool):
 
         # Add card to Anki (action == 'a' or after edit approval)
         try:
-            upload_media_files(client, card.images)
-            note_id = client.add_note(
-                deck_name=card.deck,
-                model_name=card.model,
-                fields=card.to_anki_note()["fields"],
-                tags=card.tags,
-            )
+            note_id = add_card_to_anki(client, card)
             print_success(f"✓ Card added to Anki (ID: {note_id})")
             card.status = "added"
             card.anki_id = note_id
@@ -257,37 +251,18 @@ def add(file: Path, deck: str):
 
     print_info(f"Adding {len(cards)} cards to Anki...")
 
-    # Override deck if specified
-    if deck:
-        for card in cards:
-            card.deck = deck
-
-    # Prepare notes for batch add
-    notes = []
     try:
-        upload_media_files(
-            client,
-            (filename for card in cards for filename in card.images),
-        )
-        for card in cards:
-            notes.append(card.to_anki_note())
+        note_ids = add_cards_to_anki(client, cards, deck_override=deck)
     except (AnkiConnectError, ValueError) as e:
-        print_error(f"Failed to prepare card media: {e}")
-        sys.exit(1)
-
-    # Add cards
-    try:
-        note_ids = client.add_notes_batch(notes)
-        success_count = sum(1 for nid in note_ids if nid is not None)
-        failed_count = len(note_ids) - success_count
-
-        print_success(f"✓ Successfully added {success_count} cards")
-        if failed_count > 0:
-            print_warning(f"  Failed to add {failed_count} cards (duplicates?)")
-
-    except AnkiConnectError as e:
         print_error(f"Failed to add cards: {e}")
         sys.exit(1)
+
+    success_count = sum(1 for nid in note_ids if nid is not None)
+    failed_count = len(note_ids) - success_count
+
+    print_success(f"✓ Successfully added {success_count} cards")
+    if failed_count > 0:
+        print_warning(f"  Failed to add {failed_count} cards (duplicates?)")
 
 
 @click.command()
@@ -332,14 +307,9 @@ def quick(
 
     # Add to Anki
     try:
-        note_id = client.add_note(
-            deck_name=card.deck,
-            model_name=card.model,
-            fields=card.to_anki_note()["fields"],
-            tags=card.tags,
-        )
+        note_id = add_card_to_anki(client, card)
         print_success(f"✓ Card added to Anki (ID: {note_id})")
-    except AnkiConnectError as e:
+    except (AnkiConnectError, ValueError) as e:
         print_error(f"Failed to add card: {e}")
         sys.exit(1)
 
