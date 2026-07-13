@@ -96,6 +96,49 @@ extended with keyword arguments like "end" and "sep".
 
 **Poor context**: Copy-pasting the source paragraph without synthesis.
 
+#### 2.1.1 The Layering Principle: Intuition → Concrete → Formal (for gateway concepts)
+
+Elaborative encoding is not only *what* you attach — it is *the order* you attach it in. For a **gateway concept** (one that later cards build on, or that a bare definition would leave inert), the answer should ascend through three layers, in this order:
+
+1. **Intuition** — the plain-language gist or analogy, before any notation ("a blurry ruler flattens the fitted line toward zero").
+2. **Concrete** — one specific worked instance that makes the intuition tangible, using the source's real numbers ("regressing on the *stated* expectation recovers only 75% of the true slope").
+3. **Formal** — the precise definition and formula, on a single line, with a diagram that re-encodes it visually.
+
+Lead with the definition and you invert the order the brain actually learns in.
+
+**Why the order is not arbitrary (the mechanisms):**
+
+- **Schema-first encoding.** Elaborative encoding works by attaching new material to an existing schema. A formal definition delivered cold has nothing to attach to, so it is memorized as a *string*. The intuition/analogy *is* the attachment point — it activates or instantiates a schema first, so the formal layer lands in a prepared slot instead of a vacuum. Encoding is sequential: the anchor must precede what it anchors.
+- **Concreteness fading** (Bruner's enactive→iconic→symbolic modes; Goldstone & Son; Fyfe, McNeil, Son & Rittle-Johnson, 2014). The empirical finding is that *transfer* is strongest when instruction **starts concrete and fades to abstract** — not when it starts abstract, and not when it stays concrete. Starting concrete builds meaning; fading to the symbol preserves generality. A definition-first card is exactly the abstract-first condition shown to produce brittle, non-transferable knowledge. These three layers are concreteness fading compressed onto a single card.
+- **Dual coding** (Paivio; Mayer's multimedia principle). The formal layer is verbal-symbolic; the diagram is visuospatial. Encoding one concept in *both* channels adds an independent retrieval route. The image is therefore not decoration — it is a second code for the same fact, and it belongs at the formal layer, where the notation is most compressed and most in need of a picture.
+- **Cognitive-load management** (Sweller; the worked-example effect). For a novice, bare formalism carries high intrinsic + extraneous load; a concrete instance scaffolds it, freeing working memory to build the schema instead of decoding symbols.
+- **Recall over recognition** (the Testing Effect, 1.1). A definition-first card trains *recognition* of jargon ("I've seen this phrase") — the fluency illusion. Leading with intuition forces the learner to reconstruct meaning, which is the generative retrieval the whole framework exists to produce.
+
+**This does NOT violate Atomicity — the crucial reconciliation.** Atomicity (2.2, 1NF) constrains the **unit of retrieval**: one question, one testable fact, unambiguous feedback. Layering constrains the **encoding of the answer to that one question**. The three layers are three *representations of the same concept* (intuition, instance, and formula all denote the identical fact), not three *different facts*. A layered card still asks one thing and tests one thing; the layers are scaffolding on the answer side. The diagnostic for an atomicity violation is not "the back is long" but "could you know part of the answer and not the rest, giving ambiguous feedback?" — and by construction the layers cannot come apart that way, because they all point at one idea.
+
+```
+List card (violates 1NF):  one card, five DIFFERENT principles        → split into five
+Layered card (honors 1NF): one card, one principle explained THREE WAYS → keep
+```
+
+Length is never the metric; *number of distinct facts* is.
+
+**When to layer — and when not to (a boundary condition, not a default):**
+
+| Layer it | Leave it lean |
+|----------|---------------|
+| Gateway concepts later cards depend on (AUROC, d′, entropy, gradient descent, errors-in-variables) | Atomic facts (a constant, a date, a default port) |
+| Concepts that carry an analogy worth planting | Comparison cards — the *contrast* is the content; layering dilutes it |
+| A definition that is inert without grounding | Pure syntax / procedure recall |
+
+Over-layering is a real failure mode, predicted by the **expertise-reversal** and **redundancy** effects: scaffolding that helps a novice on a hard concept *hurts* a learner who is past that stage or facing a simple item — it bloats the card, adds interference, and slows the deck. Rule of thumb: **if you cannot name the schema the intuition is anchoring to, or the concept is already atomic, do not layer it.**
+
+**On the card:**
+- `front`: one question (unchanged — a why/how/what-does-it-mean probe).
+- `back`: three short movements in order — intuition, then concrete instance, then formal definition + single-line formula.
+- image: the visual that re-encodes the formal layer (dual coding).
+- `context`: cross-links to sibling/comparison cards, exact numbers, caveats.
+
 ### 2.2 Atomic → Database Normalization
 
 **Old interpretation**: "No 'and' or 'or' in questions"
@@ -337,6 +380,12 @@ Before saving each card, mentally verify:
 - [ ] Am I testing understanding, not just keyword matching?
 - [ ] Would someone who understood the concept answer correctly, while someone pattern-matching might fail?
 
+### Depth (gateway concepts — see 2.1.1)
+- [ ] Is this a gateway concept (later cards build on it, or a definition alone leaves it inert)?
+- [ ] If yes, does the `back` lead with intuition, then a concrete instance, then the formal definition — not the reverse?
+- [ ] If yes, is there a diagram re-encoding the formal layer (dual coding)?
+- [ ] If it is an atomic fact or a comparison, did I keep it lean instead of over-layering?
+
 ---
 
 ## Part 6: Quick Reference
@@ -379,6 +428,8 @@ This framework synthesizes research from:
 - Database Normalization theory (1NF, 2NF, 3NF)
 - Interference Theory (Proactive and Retroactive Interference)
 - Context-Dependent Memory research
-- Dual Coding Theory (Paivio)
+- Dual Coding Theory (Paivio); Mayer - Multimedia Learning
+- Concreteness Fading (Bruner - modes of representation; Goldstone & Son; Fyfe, McNeil, Son & Rittle-Johnson, 2014)
+- Cognitive Load Theory (Sweller - worked-example effect, expertise-reversal effect)
 
 For the full research synthesis, see: `AI Flashcard Design Framework Research.md`

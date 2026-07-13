@@ -18,6 +18,8 @@ Generate high-quality flashcards following cognitive science principles.
 - **A**tomic: Database normalization—one fact per card, contextually self-sufficient
 - **T**imeless: Interference management—semantic distinctiveness, comparison cards for similar concepts
 
+**Layering (gateway concepts)**: for a load-bearing concept a definition alone would leave inert, order the answer **intuition → concrete → formal + visual** (concreteness fading), not definition-first. Reserve it for concepts later cards build on; keep atomic facts and comparison cards lean. Rationale and boundary conditions: [rules/EAT_FRAMEWORK.md](rules/EAT_FRAMEWORK.md) §2.1.1.
+
 ## Reference Materials (MUST READ)
 
 Before generating any cards, read the relevant rules:
@@ -196,6 +198,20 @@ After saving, report:
 }
 ```
 
+### Pattern 5: Layered Concept Card (gateway concepts only)
+
+For a load-bearing concept a bare definition would leave inert, order the answer intuition → concrete → formal, and attach a diagram that re-encodes the formal layer. This layers three *representations of one fact*, so it stays atomic. Reserve for gateway concepts (AUROC, d′, entropy, errors-in-variables); for atomic facts and comparisons, use Patterns 1–4 and keep them lean. When NOT to layer: see [rules/EAT_FRAMEWORK.md](rules/EAT_FRAMEWORK.md) §2.1.1.
+
+```json
+{
+  "front": "What does [gateway concept] mean, and why does [its key property] hold?",
+  "back": "Intuition: plain-language gist or analogy, no notation yet.\n\nConcrete: one worked instance with the source's real numbers.\n\nFormal: the precise definition and single-line formula \\( … \\).",
+  "context": "Links to sibling/comparison cards, exact figures, caveats",
+  "tags": ["domain::topic", "type::concept"],
+  "images": ["diagram-supporting-the-formal-layer.png"]
+}
+```
+
 ## Quality Checklist
 
 Before saving, verify each card:
@@ -215,6 +231,10 @@ Before saving, verify each card:
 **Retrieval Quality**
 - [ ] Does this require generative retrieval, not just recognition?
 - [ ] Am I testing understanding, not just keyword matching?
+
+**Depth (gateway concepts)**
+- [ ] For a gateway concept, does the back lead with intuition, then concrete, then formal — with a diagram for the formal layer? (Pattern 5)
+- [ ] For an atomic fact or comparison, did I keep it lean (no over-layering)?
 
 **Formatting**
 - [ ] No markdown formatting (plain text only)

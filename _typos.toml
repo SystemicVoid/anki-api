@@ -12,3 +12,5 @@ extend-ignore-re = [
 [default.extend-words]
 # Domain-specific terms that are not typos
 anki = "anki"
+# Proper noun: Bethany Rittle-Johnson (concreteness-fading research, cited in EAT_FRAMEWORK.md)
+Rittle = "Rittle"
