@@ -158,6 +158,25 @@ When writing MathJax in JSON (for card generation), backslashes must be doubled:
 }
 ```
 
+## Never put a newline inside math delimiters
+
+Keep the **entire** `\( … \)` or `\[ … \]` span — delimiters and body — on a single
+line in the JSON string value. Never embed a raw newline inside it.
+
+Why: the Anki render path (`convert_newlines_to_html` in `src/anki_notes.py`)
+replaces every `\n` with `<br>` **unconditionally** — including newlines inside a
+math span. A `<br>` inside `\( … \)` / `\[ … \]` breaks MathJax rendering in Anki.
+(The web UI collapses such newlines to a space, so they buy you nothing there
+either — see `web/frontend/src/components/MathJaxContent.tsx`.)
+
+The multi-line matrix and display examples above are laid out for *readability of
+the LaTeX*; in an actual card the same content must be one line. Use `\\` for row
+breaks inside a `bmatrix`/`pmatrix`, never a literal newline:
+
+```json
+{ "back": "The rotation is \\(\\begin{bmatrix} a & b \\\\ c & d \\end{bmatrix}\\)" }
+```
+
 ## Quick Reference Card
 
 ```

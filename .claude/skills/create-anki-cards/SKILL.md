@@ -97,10 +97,15 @@ Use the Read tool directly—no preprocessing needed.
 
 The `---` separator is added automatically when exporting to Anki Desktop (via `to_anki_note()`). In the web UI, context displays in a separate styled frame.
 
+**Why this matters — two render paths.** Cards render on two surfaces with *different* rules, and only one authoring style is correct on both:
+- **Anki desktop / AnkiDroid** (`render_anki_note` + `convert_newlines_to_html` in `src/anki_notes.py`): every `\n` becomes `<br>` — *everywhere, including inside `\( … \)` / `\[ … \]`* — and Front/Back/Context are passed through as raw, unescaped HTML (see `docs/adr/0001-card-content-trust-and-escaping.md`). So a literal `<b>`/`<i>` *would* render as HTML here.
+- **Web review UI** (`web/frontend/src/components/MathJaxContent.tsx`): text is HTML-escaped, so a literal `<b>`, `<i>`, `<br>`, or an entity like `&mdash;` shows up as *literal characters*, not formatting. Only `\n` (→ `<br/>`) and MathJax spans are interpreted; a newline inside a math span is collapsed to a space.
+
 **Formatting rules:**
-- **NO markdown** (no `**bold**`, `*italic*`, code blocks)
-- **NO HTML tags** (no `<br>`, `<b>`, etc.)
-- **Line breaks**: Use plain newlines only
+- **NO markdown** (no `**bold**`, `*italic*`, code blocks) — Anki does not render it.
+- **NO HTML tags** (`<b>`, `<i>`, `<u>`, `<br>`) and **NO HTML entities** (`&mdash;`, `&rarr;`, `&lt;`) — they render as literal text in the web review UI. Convey emphasis through structure (line breaks, plain-text lead-ins like `Analogy:` or `Note:`) and type special characters directly as Unicode (—, →, ×, ≤, σ) instead of entities.
+- **Line breaks**: use plain newlines (`\n`) only — they become `<br>` in Anki and `<br/>` in the web UI.
+- **NEVER put a newline inside `\( … \)` or `\[ … \]`** — keep every formula (delimiters and body) on ONE line. The Anki path converts `\n`→`<br>` unconditionally, and a `<br>` inside a math span breaks MathJax rendering. Use `\\` for row breaks inside a matrix, never a raw newline. See [rules/MATH_NOTATION.md](rules/MATH_NOTATION.md).
 - **Math**: Use `\( inline \)` and `\[ display \]` (NOT `$` or `$$`)
 
 **Lists** (for visual clarity):
@@ -213,7 +218,9 @@ Before saving, verify each card:
 
 **Formatting**
 - [ ] No markdown formatting (plain text only)
+- [ ] No HTML tags or entities (they render as literal text in the web review UI)
 - [ ] Math uses `\( \)` not `$` (if applicable)
+- [ ] No newline inside `\( \)` or `\[ \]` — each formula stays on one line
 - [ ] Every non-obvious mathematical symbol is defined on the same card
 
 ## Guidelines Summary
