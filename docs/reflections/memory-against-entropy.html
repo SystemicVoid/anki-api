@@ -1,0 +1,1178 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>*{margin:0;padding:0}</style>
+<title>Memory Against Entropy</title>
+
+<style>
+  :root {
+    /* type roles */
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Times New Roman", serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+
+    /* LIGHT (default) — a cool designed paper, not plain white */
+    --ground: #eef1f5;
+    --surface: #f7f9fb;
+    --surface-2: #ffffff;
+    --line: #d6dce4;
+    --line-soft: #e4e9ef;
+    --ink: #171922;
+    --ink-dim: #4c5160;
+    --ink-faint: #7c8394;
+    --cold: #0b8ea1;
+    --cold-ink: #0a6c7c;
+    --heat: #c2521a;
+    --heat-ink: #a84413;
+    --heat-glow: rgba(194, 82, 26, 0.16);
+    --cold-glow: rgba(11, 142, 161, 0.14);
+    --scrim: rgba(14, 18, 28, 0.04);
+    --focus: #c2521a;
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #0a0b12;
+      --surface: #12131f;
+      --surface-2: #171930;
+      --line: rgba(233, 231, 245, 0.10);
+      --line-soft: rgba(233, 231, 245, 0.055);
+      --ink: #ece7de;
+      --ink-dim: #a6a2b6;
+      --ink-faint: #6f6d86;
+      --cold: #45cdd8;
+      --cold-ink: #86e2ec;
+      --heat: #ff9a4d;
+      --heat-ink: #ffb072;
+      --heat-glow: rgba(255, 154, 77, 0.16);
+      --cold-glow: rgba(69, 205, 216, 0.13);
+      --scrim: rgba(255, 255, 255, 0.03);
+      --focus: #ff9a4d;
+      color-scheme: dark;
+    }
+  }
+
+  /* explicit viewer toggle wins over the media query, both directions */
+  :root[data-theme="light"] {
+    --ground: #eef1f5; --surface: #f7f9fb; --surface-2: #ffffff;
+    --line: #d6dce4; --line-soft: #e4e9ef;
+    --ink: #171922; --ink-dim: #4c5160; --ink-faint: #7c8394;
+    --cold: #0b8ea1; --cold-ink: #0a6c7c; --heat: #c2521a; --heat-ink: #a84413;
+    --heat-glow: rgba(194,82,26,0.16); --cold-glow: rgba(11,142,161,0.14);
+    --scrim: rgba(14,18,28,0.04); --focus: #c2521a; color-scheme: light;
+  }
+  :root[data-theme="dark"] {
+    --ground: #0a0b12; --surface: #12131f; --surface-2: #171930;
+    --line: rgba(233,231,245,0.10); --line-soft: rgba(233,231,245,0.055);
+    --ink: #ece7de; --ink-dim: #a6a2b6; --ink-faint: #6f6d86;
+    --cold: #45cdd8; --cold-ink: #86e2ec; --heat: #ff9a4d; --heat-ink: #ffb072;
+    --heat-glow: rgba(255,154,77,0.16); --cold-glow: rgba(69,205,216,0.13);
+    --scrim: rgba(255,255,255,0.03); --focus: #ff9a4d; color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 1.0625rem;
+    line-height: 1.72;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 clamp(1.15rem, 4vw, 2.5rem); }
+  .prose { max-width: 40rem; }
+
+  a { color: var(--cold-ink); text-decoration-color: var(--line); text-underline-offset: 3px; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 3px; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0;
+  }
+
+  /* ---------- top bar ---------- */
+  .topbar {
+    border-bottom: 1px solid var(--line-soft);
+    background: color-mix(in srgb, var(--ground) 84%, transparent);
+  }
+  .topbar .row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 0.95rem; padding-bottom: 0.95rem; gap: 1rem;
+  }
+  .mark { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-dim); }
+  .mark b { color: var(--ink); font-weight: 600; }
+  .mark-dot { color: var(--heat); }
+
+  /* ---------- hero ---------- */
+  .hero { padding: clamp(3.4rem, 8vw, 6rem) 0 clamp(2.6rem, 6vw, 4rem); }
+  .hero-grid { display: grid; grid-template-columns: 1fr; gap: clamp(2rem, 5vw, 3.4rem); align-items: center; }
+  @media (min-width: 920px) { .hero-grid { grid-template-columns: 1.05fr 0.95fr; } }
+
+  h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(2.5rem, 6.2vw, 4.3rem);
+    line-height: 1.03;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    margin: 1.1rem 0 0;
+  }
+  h1 em { font-style: italic; color: var(--heat-ink); }
+  .lead {
+    max-width: 34rem;
+    font-size: clamp(1.08rem, 1.6vw, 1.24rem);
+    line-height: 1.62;
+    color: var(--ink-dim);
+    margin: 1.4rem 0 0;
+  }
+  .lead .cold { color: var(--cold-ink); font-style: italic; }
+
+  /* ---------- instrument panel ---------- */
+  .instrument {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 0.9rem 0.9rem 1rem;
+    box-shadow: 0 24px 60px -34px rgba(0,0,0,0.5);
+  }
+  .inst-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; padding: 0.15rem 0.35rem 0.7rem; }
+  .inst-title { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint); }
+  .inst-read { font-family: var(--mono); font-size: 0.78rem; color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+  .inst-read b { color: var(--heat-ink); font-weight: 600; }
+  canvas { display: block; width: 100%; height: auto; border-radius: 8px; background: var(--surface-2); }
+  .inst-foot { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.7rem 0.35rem 0.1rem; flex-wrap: wrap; }
+  .legend { display: flex; align-items: center; gap: 0.5rem; font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); }
+  .legend .bar { width: 66px; height: 7px; border-radius: 4px; background: linear-gradient(90deg, var(--cold), var(--heat)); }
+  .ghostbtn {
+    font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-dim); background: transparent; border: 1px solid var(--line);
+    border-radius: 999px; padding: 0.34rem 0.8rem; cursor: pointer; transition: border-color .18s, color .18s;
+  }
+  .ghostbtn:hover { color: var(--ink); border-color: var(--ink-faint); }
+  .caption { max-width: 40rem; margin: 1.6rem auto 0; font-size: 0.92rem; color: var(--ink-faint); font-style: italic; text-align: center; }
+
+  /* ---------- spine / movements ---------- */
+  .spine { position: relative; padding: clamp(2rem,5vw,3.4rem) 0 1rem; }
+  .spine-rail {
+    position: absolute; top: 0; bottom: 0; left: clamp(0.9rem, 2.2vw, 1.4rem);
+    width: 2px; border-radius: 2px;
+    background: linear-gradient(180deg, var(--cold) 0%, var(--cold) 12%, var(--heat) 92%);
+    opacity: 0.55;
+  }
+  .move {
+    position: relative;
+    padding-left: clamp(3.2rem, 7vw, 4.6rem);
+    padding-block: clamp(1.6rem, 4vw, 2.6rem);
+  }
+  .node {
+    position: absolute; left: clamp(0.9rem, 2.2vw, 1.4rem); top: clamp(1.9rem, 4.4vw, 3rem);
+    transform: translate(-50%, 0);
+    width: 2.35rem; height: 2.35rem; border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--surface); border: 1px solid var(--line);
+    font-family: var(--serif); font-size: 1.1rem; font-weight: 600; color: var(--ink);
+    box-shadow: 0 0 0 5px var(--ground);
+  }
+  .kicker { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--cold-ink); margin: 0 0 0.5rem; }
+  .move.warm .kicker { color: var(--heat-ink); }
+  h2 {
+    font-family: var(--serif); font-weight: 600;
+    font-size: clamp(1.55rem, 3.1vw, 2.15rem); line-height: 1.12; letter-spacing: -0.01em;
+    text-wrap: balance; margin: 0 0 0.9rem;
+  }
+  .move p { margin: 0 0 1.05rem; max-width: 40rem; }
+  .move p:last-child { margin-bottom: 0; }
+  .move em { font-style: italic; }
+  .term { font-style: italic; color: var(--cold-ink); }
+  .term-h { font-style: italic; color: var(--heat-ink); }
+
+  /* ---------- equation readout ---------- */
+  .eqpanel {
+    margin: 1.3rem 0 1.25rem; max-width: 40rem;
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--heat);
+    border-radius: 10px; padding: 1.1rem 1.25rem 1.15rem;
+  }
+  .eqpanel.cold { border-left-color: var(--cold); }
+  .eq {
+    font-family: var(--serif); font-size: clamp(1.3rem, 2.4vw, 1.7rem);
+    letter-spacing: 0.01em; color: var(--ink); line-height: 1.2;
+  }
+  .eq i { font-style: italic; }
+  .eq sub { font-size: 0.62em; }
+  .eqwhere { margin: 0.85rem 0 0; font-family: var(--mono); font-size: 0.76rem; line-height: 1.65; color: var(--ink-dim); }
+  .eqwhere b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- pull quote ---------- */
+  .pull {
+    margin: 1.5rem 0; max-width: 38rem;
+    font-family: var(--serif); font-style: italic;
+    font-size: clamp(1.35rem, 2.7vw, 1.8rem); line-height: 1.3; letter-spacing: -0.005em;
+    color: var(--ink);
+  }
+  .pull .hi { color: var(--heat-ink); font-style: italic; }
+
+  /* ---------- compare panel ---------- */
+  .compare { margin: 1.4rem 0 1.2rem; max-width: 40rem; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .compare-head { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint); padding: 0.7rem 1rem; border-bottom: 1px solid var(--line-soft); background: var(--scrim); }
+  .compare-body { display: grid; grid-template-columns: 1fr; }
+  @media (min-width: 560px) { .compare-body { grid-template-columns: 1fr 1fr; } }
+  .col { padding: 1.05rem 1.15rem 1.15rem; }
+  .col + .col { border-top: 1px solid var(--line-soft); }
+  @media (min-width: 560px) { .col + .col { border-top: none; border-left: 1px solid var(--line-soft); } }
+  .col .tag { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; margin: 0 0 0.5rem; }
+  .col.cold .tag { color: var(--cold-ink); }
+  .col.warm .tag { color: var(--heat-ink); }
+  .col .big { font-family: var(--serif); font-size: 1.12rem; line-height: 1.35; margin: 0 0 0.4rem; color: var(--ink); }
+  .col p { font-size: 0.94rem; line-height: 1.6; color: var(--ink-dim); margin: 0; max-width: none; }
+
+  /* ---------- landauer widget ---------- */
+  .demo { margin: 1.4rem 0 1.2rem; max-width: 40rem; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1.1rem 1.15rem 1.2rem; }
+  .demo-top { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 0.9rem; }
+  .demo-top .inst-title { color: var(--ink-faint); }
+  .register { display: flex; align-items: center; gap: 0.7rem; }
+  .cell {
+    position: relative; width: 3.3rem; height: 3.3rem; border-radius: 9px;
+    display: grid; place-items: center;
+    font-family: var(--mono); font-size: 1.15rem; color: var(--ink-faint);
+    border: 1px solid var(--line); background: var(--surface-2);
+    transition: color .2s, border-color .2s, background .2s, box-shadow .2s;
+  }
+  .cell.armed { color: var(--ink); border-color: var(--ink-faint); }
+  .cell.settled { color: var(--heat-ink); border-color: var(--heat); box-shadow: 0 0 0 3px var(--heat-glow); }
+  .cell .puff { position: absolute; inset: 0; border-radius: 9px; pointer-events: none; opacity: 0; }
+  .cell.blast .puff { animation: blast .7s ease-out; }
+  @keyframes blast {
+    0% { opacity: 0.9; box-shadow: 0 0 0 0 var(--heat); }
+    100% { opacity: 0; box-shadow: 0 0 0 26px transparent; }
+  }
+  .arrowto { font-family: var(--mono); color: var(--ink-faint); font-size: 0.85rem; }
+  .demo-controls { display: flex; align-items: center; gap: 0.6rem; margin: 1rem 0 0; flex-wrap: wrap; }
+  .btn {
+    font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 0.5rem 0.95rem; border-radius: 8px; cursor: pointer; border: 1px solid transparent; transition: filter .16s, background .16s;
+  }
+  .btn.primary { background: var(--heat); color: #10100a; font-weight: 600; }
+  .btn.primary:hover { filter: brightness(1.08); }
+  .btn.ghost { background: transparent; border-color: var(--line); color: var(--ink-dim); }
+  .btn.ghost:hover { color: var(--ink); border-color: var(--ink-faint); }
+  .tally { margin-left: auto; font-family: var(--mono); font-size: 0.78rem; color: var(--ink-dim); font-variant-numeric: tabular-nums; text-align: right; }
+  .tally b { color: var(--heat-ink); font-weight: 600; }
+
+  /* ---------- coda ---------- */
+  .coda { margin: clamp(2rem,5vw,3.6rem) 0; padding: clamp(1.8rem,4vw,2.6rem); background: var(--surface); border: 1px solid var(--line); border-radius: 16px; position: relative; overflow: hidden; }
+  .coda::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px; background: linear-gradient(180deg, var(--cold), var(--heat)); }
+  .coda h2 { max-width: 30rem; }
+  .coda p { max-width: 42rem; color: var(--ink-dim); margin: 0 0 1rem; }
+  .coda .prose-strong { color: var(--ink); }
+  .codecard {
+    margin-top: 1.3rem; font-family: var(--mono); font-size: 0.82rem; color: var(--ink-dim);
+    background: var(--ground); border: 1px solid var(--line-soft); border-radius: 8px; padding: 0.85rem 1rem;
+    overflow-x: auto; white-space: nowrap;
+  }
+  .codecard .c { color: var(--cold-ink); }
+
+  /* ---------- footer ---------- */
+  footer { border-top: 1px solid var(--line-soft); padding: 2.2rem 0 3rem; margin-top: 1rem; }
+  .sources { font-family: var(--mono); font-size: 0.72rem; line-height: 1.9; color: var(--ink-faint); letter-spacing: 0.02em; }
+  .sources b { color: var(--ink-dim); font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; font-size: 0.66rem; display: block; margin-bottom: 0.4rem; }
+  .colophon { margin-top: 1.5rem; font-size: 0.85rem; color: var(--ink-faint); max-width: 40rem; }
+  .colophon em { color: var(--ink-dim); }
+
+  /* ---------- figures / charts ---------- */
+  .figure { margin: 1.5rem 0 1.3rem; max-width: 44rem; }
+  .figframe { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1.05rem 1.15rem 0.7rem; }
+  .figure svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .figcap { margin: 0.85rem 0.15rem 0.3rem; font-family: var(--mono); font-size: 0.73rem; line-height: 1.65; letter-spacing: 0.01em; color: var(--ink-faint); }
+  .figcap b { color: var(--ink-dim); font-weight: 600; }
+  .gridln { stroke: var(--line-soft); stroke-width: 1; }
+  .axisln { stroke: var(--line); stroke-width: 1.25; }
+  .axislab { fill: var(--ink-faint); font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; }
+  .tick { fill: var(--ink-faint); font-family: var(--mono); font-size: 11px; }
+  .annot { fill: var(--ink-dim); font-family: var(--sans); font-size: 13px; }
+  .annot-cold { fill: var(--cold-ink); font-family: var(--sans); font-size: 13px; }
+  .annot-heat { fill: var(--heat-ink); font-family: var(--sans); font-size: 13px; }
+  .curve { fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .curve-actual { stroke: url(#thermal1); }
+  .curve-et { stroke: url(#thermal2); }
+  .curve-pred { fill: none; stroke: var(--ink-faint); stroke-width: 1.6; stroke-dasharray: 5 6; stroke-linecap: round; }
+  .guideln { stroke: var(--ink-faint); stroke-width: 1; stroke-dasharray: 2 4; }
+  .dot { fill: var(--surface); stroke-width: 2.5; }
+  .dot-now { stroke: var(--heat); }
+  .dot-cold { stroke: var(--cold); }
+  .stop-cold { stop-color: var(--cold); }
+  .stop-heat { stop-color: var(--heat); }
+  .msbox { fill: var(--ground); stroke: var(--line); }
+  .mslab { fill: var(--ink-faint); font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .msw { fill: var(--ink); font-family: var(--serif); font-size: 17px; }
+  .msarrow { stroke: var(--ink-faint); stroke-width: 1.5; fill: none; }
+  .msnote { fill: var(--ink-dim); font-family: var(--sans); font-style: italic; font-size: 12.5px; }
+  .dot-fill-cold { fill: var(--cold); }
+  .dot-fill-heat { fill: var(--heat); }
+
+  /* ---------- demon lab ---------- */
+  .demonlab { margin: 1.6rem 0 1.3rem; max-width: 44rem; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 0.9rem 0.95rem 1.15rem; box-shadow: 0 24px 60px -40px rgba(0,0,0,0.5); }
+  .demon-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.2rem 0.35rem 0.8rem; }
+  .demon-head .inst-title { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint); }
+  .switch { display: inline-flex; align-items: center; gap: 0.55rem; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-dim); cursor: pointer; user-select: none; position: relative; }
+  .switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .track { width: 40px; height: 22px; border-radius: 999px; background: var(--line); position: relative; transition: background .2s; flex: none; }
+  .track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--surface-2); box-shadow: 0 1px 2px rgba(0,0,0,.35); transition: transform .2s; }
+  .switch input:checked + .track { background: var(--heat); }
+  .switch input:checked + .track::after { transform: translateX(18px); }
+  .switch input:focus-visible + .track { outline: 2px solid var(--focus); outline-offset: 2px; }
+  #demon { width: 100%; height: auto; display: block; border-radius: 8px; background: var(--surface-2); }
+  .demon-reads { display: grid; grid-template-columns: 1fr; gap: 0.85rem 1.4rem; margin-top: 1rem; }
+  @media (min-width: 620px) { .demon-reads { grid-template-columns: 1fr 1fr; } }
+  .temprow { display: flex; align-items: center; gap: 0.7rem; }
+  .temprow .rlab { font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); width: 5.1rem; flex: none; }
+  .tempbar { flex: 1; height: 9px; border-radius: 5px; background: var(--ground); overflow: hidden; border: 1px solid var(--line-soft); }
+  .tempbar i { display: block; height: 100%; width: 50%; border-radius: 5px; transition: width .25s ease; }
+  .tempbar.cold i { background: var(--cold); }
+  .tempbar.heat i { background: var(--heat); }
+  .temprow .rval { font-family: var(--mono); font-size: 0.7rem; color: var(--ink-dim); width: 3.4rem; text-align: right; flex: none; font-variant-numeric: tabular-nums; }
+  .memrow { grid-column: 1 / -1; display: flex; align-items: center; gap: 0.7rem; }
+  .memcells { flex: 1; display: flex; gap: 4px; }
+  .memcell { flex: 1; height: 12px; border-radius: 3px; background: var(--ground); border: 1px solid var(--line-soft); transition: background .16s, border-color .16s; }
+  .memcell.on { background: var(--heat); border-color: var(--heat); }
+  .memrow.flush .memcell { animation: memflush .5s ease-out; }
+  @keyframes memflush { 0% { background: var(--heat); box-shadow: 0 0 0 0 var(--heat); } 45% { background: var(--heat); box-shadow: 0 0 9px 2px var(--heat); } 100% { background: var(--ground); box-shadow: none; } }
+  .memrow .rlab { font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); width: 5.1rem; flex: none; }
+  .memrow .rval { font-family: var(--mono); font-size: 0.7rem; color: var(--ink-dim); width: 3.4rem; text-align: right; flex: none; font-variant-numeric: tabular-nums; }
+  .ledger { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; border-top: 1px solid var(--line-soft); padding-top: 1rem; }
+  .stat .n { font-family: var(--serif); font-size: 1.55rem; color: var(--ink); font-variant-numeric: tabular-nums; line-height: 1; }
+  .stat.debt .n { color: var(--heat-ink); }
+  .stat .k { display: block; margin-top: 0.4rem; font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-faint); }
+  .demon-note { margin: 1.05rem 0.15rem 0; font-size: 0.92rem; color: var(--ink-dim); font-style: italic; max-width: none; }
+  @media (max-width: 440px) { .ledger { grid-template-columns: 1fr; } .stat { display: flex; align-items: baseline; gap: 0.6rem; } .stat .k { margin-top: 0; } }
+
+  /* ---------- reveal ---------- */
+  .reveal { opacity: 0; transform: translateY(14px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+
+  /* ---------- grain: a faint deep-time texture over the ground ---------- */
+  .grain {
+    position: fixed; inset: 0; z-index: 40; pointer-events: none; opacity: 0.05; mix-blend-mode: soft-light;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 140px 140px;
+  }
+  @media (prefers-color-scheme: dark) { .grain { opacity: 0.07; } }
+  :root[data-theme="dark"] .grain { opacity: 0.07; }
+  :root[data-theme="light"] .grain { opacity: 0.05; }
+
+  /* ---------- one orchestrated page-load moment (hero only) ---------- */
+  @media (prefers-reduced-motion: no-preference) {
+    .hero .eyebrow, .hero h1, .hero .lead, .hero .instrument, .hero .caption { animation: heroIn 0.85s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+    .hero h1 { animation-delay: 0.07s; }
+    .hero .lead { animation-delay: 0.16s; }
+    .hero .instrument { animation-delay: 0.24s; }
+    .hero .caption { animation-delay: 0.4s; }
+  }
+  @keyframes heroIn { from { opacity: 0; transform: translateY(13px); } to { opacity: 1; transform: none; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+    .reveal { opacity: 1; transform: none; }
+  }
+</style>
+
+<div class="topbar">
+  <div class="wrap row">
+    <span class="mark"><b>Memory</b> <span class="mark-dot">&#9670;</span> Entropy</span>
+    <span class="mark">An explainer</span>
+  </div>
+</div>
+
+<div class="grain" aria-hidden="true"></div>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="eyebrow">The physics of memory</p>
+      <h1>Memory is a local rebellion against <em>entropy</em>.</h1>
+      <p class="lead">
+        A record is a fragile pocket of order in a universe that is running down. Forming one,
+        keeping one, even <span class="cold">erasing</span> one &mdash; each has a price, and the price
+        is set by thermodynamics. Here is the physics of remembering, from the arrow of time
+        to the demon who guards the second law.
+      </p>
+    </div>
+
+    <figure class="instrument" style="margin:0">
+      <div class="inst-head">
+        <span class="inst-title">Live &middot; a gas released into a box</span>
+        <span class="inst-read">entropy <b id="entReadout">0.00</b></span>
+      </div>
+      <canvas id="gas" width="900" height="560" aria-label="A simulation of gas molecules released from one corner of a box, spreading to fill it and never spontaneously regathering."></canvas>
+      <div class="inst-foot">
+        <span class="legend"><span class="bar" aria-hidden="true"></span> slow &rarr; fast</span>
+        <button class="ghostbtn" id="replay" type="button">&#8635; release again</button>
+      </div>
+    </figure>
+  </div>
+  <p class="caption">
+    The molecules spread and never regather. That one-way drift &mdash; not any law of the individual
+    collisions &mdash; is the arrow of time. The meter reads the Shannon entropy of their arrangement;
+    it rises, then holds.
+  </p>
+</header>
+
+<main class="wrap spine">
+  <div class="spine-rail" aria-hidden="true"></div>
+
+  <!-- I -->
+  <section class="move reveal">
+    <div class="node">I</div>
+    <p class="kicker">Statistics, not law</p>
+    <h2>Time points the way disorder does</h2>
+    <p>
+      The microscopic laws of physics run the same forwards and backwards; watch two molecules
+      collide and you cannot tell which way the film is playing. Yet a drop of ink in water spreads
+      and never gathers back into a drop. Why the asymmetry?
+    </p>
+    <p>
+      Because there are vastly more <span class="term-h">disordered</span> arrangements of many
+      particles than <span class="term">ordered</span> ones. An isolated system, nudged at random,
+      drifts &mdash; overwhelmingly probably &mdash; toward the more numerous states. The
+      &ldquo;direction of time&rdquo; is just the direction of that drift. Entropy counts those
+      arrangements.
+    </p>
+    <div class="eqpanel">
+      <div class="eq"><i>S</i> = <i>k</i><sub>B</sub> ln <i>W</i></div>
+      <p class="eqwhere">
+        <b>S</b> entropy of the macrostate &nbsp;&middot;&nbsp;
+        <b>W</b> number of microscopic arrangements that look the same &nbsp;&middot;&nbsp;
+        <b>k<sub>B</sub></b> Boltzmann&rsquo;s constant. The second law: for an isolated system, <b>S</b> does not fall.
+      </p>
+    </div>
+    <figure class="figure">
+      <div class="figframe">
+        <svg viewBox="0 0 640 168" role="img" aria-label="Two boxes: an ordered cluster of molecules in one corner has essentially one arrangement; the same molecules spread out have astronomically many arrangements.">
+          <text class="msw" x="130" y="20" text-anchor="middle">W &#8776; 1</text>
+          <text class="msw" x="510" y="20" text-anchor="middle">W &#8776; 10&#178;&#179;</text>
+          <rect class="msbox" x="40" y="32" width="180" height="104" rx="6"></rect>
+          <rect class="msbox" x="420" y="32" width="180" height="104" rx="6"></rect>
+          <!-- ordered cluster, bottom-left corner -->
+          <circle class="dot-fill-cold" cx="60" cy="120" r="6"></circle>
+          <circle class="dot-fill-cold" cx="76" cy="118" r="6"></circle>
+          <circle class="dot-fill-cold" cx="66" cy="104" r="6"></circle>
+          <circle class="dot-fill-cold" cx="84" cy="104" r="6"></circle>
+          <circle class="dot-fill-cold" cx="58" cy="90" r="6"></circle>
+          <circle class="dot-fill-cold" cx="78" cy="90" r="6"></circle>
+          <circle class="dot-fill-heat" cx="96" cy="118" r="6"></circle>
+          <!-- spread out -->
+          <circle class="dot-fill-cold" cx="452" cy="58" r="6"></circle>
+          <circle class="dot-fill-heat" cx="530" cy="70" r="6"></circle>
+          <circle class="dot-fill-cold" cx="576" cy="104" r="6"></circle>
+          <circle class="dot-fill-heat" cx="470" cy="112" r="6"></circle>
+          <circle class="dot-fill-cold" cx="512" cy="120" r="6"></circle>
+          <circle class="dot-fill-heat" cx="558" cy="52" r="6"></circle>
+          <circle class="dot-fill-cold" cx="496" cy="86" r="6"></circle>
+          <path class="msarrow" d="M248 84 L392 84"></path>
+          <path class="msarrow" d="M384 78 L392 84 L384 90"></path>
+          <text class="msnote" x="320" y="70" text-anchor="middle">10&#178;&#179;&#215; more</text>
+          <text class="msnote" x="320" y="102" text-anchor="middle">ways</text>
+          <text class="mslab" x="130" y="158" text-anchor="middle">few arrangements</text>
+          <text class="mslab" x="510" y="158" text-anchor="middle">astronomically many</text>
+        </svg>
+        <figcaption class="figcap">
+          <b>Entropy is a count.</b> The all-in-a-corner macrostate has essentially one arrangement;
+          the spread-out macrostate has vastly more. A system wanders into the larger set and, in
+          practice, never wanders back. Colour marks each molecule&rsquo;s speed &mdash; hold that thought for Movement V.
+        </figcaption>
+      </div>
+    </figure>
+    <p>
+      The gas above is this sentence, made moving. Every collision is reversible; the spreading is not.
+    </p>
+  </section>
+
+  <!-- II -->
+  <section class="move reveal">
+    <div class="node">II</div>
+    <p class="kicker">The starting line</p>
+    <h2>Something had to be tidy first</h2>
+    <p>
+      Here is the twist that undoes a lazy answer. The statistics behind the second law are themselves
+      time-symmetric: applied to a typical present, they predict <em>higher</em> entropy in
+      <em>both</em> directions &mdash; future and past alike. On its own, the law gives you a valley,
+      not an arrow.
+    </p>
+    <p>
+      To get a real past, you must add one stark assumption: the early universe began in an
+      extraordinarily <span class="term">low-entropy</span> state. Physicists call it the
+      <span class="term-h">Past Hypothesis</span>. It relocates the mystery &mdash; the deep fact is
+      not that entropy rises, but that it started so improbably low, and everything since has been
+      running downhill from that one tidy beginning.
+    </p>
+    <p class="pull">
+      Every memory you will ever form is a debt drawn against <span class="hi">the low-entropy
+      start of the universe.</span>
+    </p>
+    <figure class="figure">
+      <div class="figframe">
+        <svg viewBox="0 0 720 300" role="img" aria-label="Entropy plotted against time. The solid curve rises monotonically from a low-entropy past to a high-entropy future. A dashed curve shows what time-symmetric statistics alone would predict for the past: high entropy, curving up into the past.">
+          <defs>
+            <linearGradient id="thermal1" x1="0" y1="1" x2="1" y2="0">
+              <stop class="stop-cold" offset="0"></stop>
+              <stop class="stop-heat" offset="1"></stop>
+            </linearGradient>
+          </defs>
+          <!-- axes -->
+          <line class="axisln" x1="64" y1="34" x2="64" y2="250"></line>
+          <line class="axisln" x1="64" y1="250" x2="688" y2="250"></line>
+          <!-- now marker -->
+          <line class="guideln" x1="376" y1="34" x2="376" y2="250"></line>
+          <!-- prediction (past branch) -->
+          <path class="curve-pred" d="M376 146 C320 131 150 78 64 55"><title>Time-symmetric statistics, applied without a boundary condition, retrodict a high-entropy past.</title></path>
+          <!-- actual arrow of time -->
+          <path class="curve curve-actual" d="M64 235 C168 222 258 190 376 146 C474 108 592 66 688 45"><title>Entropy rising monotonically from a low-entropy past to a high-entropy future — the arrow of time.</title></path>
+          <circle class="dot dot-now" cx="376" cy="146" r="5.5"><title>Now: the present macrostate, shared by both curves.</title></circle>
+          <circle class="dot dot-cold" cx="64" cy="235" r="5"><title>The Past Hypothesis: a stipulated low-entropy beginning.</title></circle>
+          <!-- labels -->
+          <text class="annot-cold" x="78" y="228">low-entropy past</text>
+          <text class="annot-cold" x="78" y="245" style="font-size:11.5px">the Past Hypothesis</text>
+          <text class="annot" x="158" y="44" style="fill:var(--ink-faint)">what symmetry alone</text>
+          <text class="annot" x="158" y="60" style="fill:var(--ink-faint)">predicts for the past</text>
+          <text class="annot-heat" x="684" y="38" text-anchor="end">high-entropy future</text>
+          <text class="tick" x="376" y="268" text-anchor="middle">now</text>
+          <text class="axislab" x="64" y="24" text-anchor="start">ENTROPY &#8593;</text>
+          <text class="axislab" x="688" y="285" text-anchor="end">TIME &#8594;</text>
+        </svg>
+        <figcaption class="figcap">
+          <b>The second law needs a boundary condition.</b> Run the statistics forward and backward from
+          <b>now</b> and you get the dashed curve &mdash; a high-entropy past. Only stipulating a low-entropy
+          beginning (the solid curve, pinned low at the far left) gives a past worth remembering.
+        </figcaption>
+      </div>
+    </figure>
+  </section>
+
+  <!-- III -->
+  <section class="move reveal">
+    <div class="node">III</div>
+    <p class="kicker">Records only point back</p>
+    <h2>Why we remember the past, never the future</h2>
+    <p>
+      A memory is a physical system whose state is reliably <em>correlated</em> with an earlier event
+      &mdash; a photograph, a groove in a synapse, a flashcard. Laying down that correlation requires
+      the recording medium to start in a special, blank, low-entropy &ldquo;ready&rdquo; state and end
+      up marked by what it recorded. That process always raises total entropy.
+    </p>
+    <p>
+      So reliable records can be written only in the direction entropy increases &mdash; toward what we
+      call the future. Records therefore accumulate about the past and never about the future.
+      <em>The past simply is the temporal direction we hold records of.</em> The felt arrow of memory
+      is a child of the thermodynamic arrow, which is a child of that tidy beginning.
+    </p>
+    <p>
+      This is why a spaced-repetition system can exist at all. Learning from the past is not a given.
+      It is a privilege granted by physics &mdash; and, like every record, it comes with a bill.
+    </p>
+  </section>
+
+  <!-- IV -->
+  <section class="move warm reveal">
+    <div class="node">IV</div>
+    <p class="kicker">The price of forgetting</p>
+    <h2>Erasing a memory costs heat</h2>
+    <p>
+      To erase a bit is to take many possible prior states and map them onto one &mdash;
+      <span class="mono">reset to 0</span>. That collapse shrinks the number of arrangements the
+      memory can be in, which <em>lowers</em> its entropy. And the second law will not permit a free
+      lunch: the lost entropy must be paid out to the surroundings as heat.
+    </p>
+    <div class="eqpanel">
+      <div class="eq"><i>E</i> &ge; <i>k</i><sub>B</sub><i>T</i> ln 2</div>
+      <p class="eqwhere">
+        Landauer&rsquo;s bound, per bit erased. <b>T</b> absolute temperature of the surroundings;
+        <b>ln 2</b> is the cost of collapsing two states into one. At room temperature that floor is
+        about <b>2.9 &times; 10<sup>&minus;21</sup> J</b> &mdash; tiny, strictly non-zero, and measured
+        in the lab (B&eacute;rut et al., 2012).
+      </p>
+    </div>
+    <figure class="figure">
+      <div class="figframe">
+        <svg viewBox="0 0 560 244" role="img" aria-label="The minimum energy to erase one bit rises linearly with temperature. At 300 kelvin it is about 2.9 times 10 to the minus 21 joules.">
+          <defs>
+            <linearGradient id="thermal2" x1="0" y1="1" x2="1" y2="0">
+              <stop class="stop-cold" offset="0"></stop>
+              <stop class="stop-heat" offset="1"></stop>
+            </linearGradient>
+          </defs>
+          <line class="axisln" x1="64" y1="40" x2="64" y2="200"></line>
+          <line class="axisln" x1="64" y1="200" x2="520" y2="200"></line>
+          <line class="gridln" x1="64" y1="108" x2="338" y2="108"></line>
+          <line class="guideln" x1="338" y1="108" x2="338" y2="200"></line>
+          <path class="curve curve-et" d="M64 200 L520 47"></path>
+          <circle class="dot dot-now" cx="338" cy="108" r="5.5"></circle>
+          <text class="tick" x="338" y="216" text-anchor="middle">300 K</text>
+          <text class="tick" x="58" y="112" text-anchor="end">2.9</text>
+          <text class="annot-heat" x="352" y="98">room temperature</text>
+          <text class="annot" x="352" y="114" style="fill:var(--ink-faint); font-family:var(--mono); font-size:11.5px">&#8776; 2.9 &#215; 10&#8315;&#178;&#185; J</text>
+          <text class="annot" x="148" y="152" style="fill:var(--ink-faint); font-style:italic; font-size:12px">slope = k<tspan baseline-shift="sub" font-size="8.5">B</tspan> ln 2</text>
+          <text class="axislab" x="520" y="234" text-anchor="end">TEMPERATURE &#8594;</text>
+          <text class="axislab" x="64" y="30" text-anchor="start">ENERGY / BIT (&#215;10&#8315;&#178;&#185; J) &#8593;</text>
+        </svg>
+        <figcaption class="figcap">
+          <b>Colder is cheaper.</b> The erasure floor scales with the temperature of the surroundings.
+          The cost never reaches zero at any finite temperature &mdash; forgetting is never quite free.
+        </figcaption>
+      </div>
+    </figure>
+    <div class="demo">
+      <div class="demo-top">
+        <span class="inst-title">One-bit register</span>
+        <span class="inst-title">Landauer, live</span>
+      </div>
+      <div class="register" aria-hidden="true">
+        <div class="cell" id="cell0">0</div>
+        <span class="arrowto">&larr;&rarr;</span>
+        <div class="cell" id="cell1">1</div>
+      </div>
+      <div class="demo-controls">
+        <button class="btn primary" id="eraseBtn" type="button">Erase &rarr; 0</button>
+        <button class="btn ghost" id="randBtn" type="button">Randomize bit</button>
+        <span class="tally" id="tally" aria-live="polite">0 bits erased &middot; <b>0.0 &times; 10<sup>&minus;21</sup> J</b> dissipated</span>
+      </div>
+    </div>
+    <p>
+      A subtle point rescues computation from the same fate: it is <em>erasure</em> &mdash; discarding
+      information &mdash; that costs, not calculation itself.
+    </p>
+    <div class="compare">
+      <div class="compare-head">Where the cost actually lives</div>
+      <div class="compare-body">
+        <div class="col cold">
+          <p class="tag">Computation</p>
+          <p class="big">No fundamental floor.</p>
+          <p>Logically reversible steps keep every bit, so in principle they can run on arbitrarily little energy. Reversible computing lives here.</p>
+        </div>
+        <div class="col warm">
+          <p class="tag">Erasure</p>
+          <p class="big">At least <i>k</i><sub>B</sub><i>T</i> ln 2 per bit.</p>
+          <p>Many-to-one, logically irreversible, unavoidably dissipative. The price is for <em>forgetting</em> &mdash; Bennett&rsquo;s correction to the old folklore that every logic gate must burn energy.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- V -->
+  <section class="move warm reveal">
+    <div class="node">V</div>
+    <p class="kicker">The demon&rsquo;s debt</p>
+    <h2>What actually saves the second law</h2>
+    <p>
+      Maxwell imagined a demon at a trapdoor between two chambers of gas, letting fast molecules
+      through one way and slow ones the other &mdash; sorting hot from cold, lowering the gas&rsquo;s
+      entropy for free, apparently breaking the second law. (In the box above, colour already marks
+      speed; the demon would simply sort by colour.)
+    </p>
+    <div class="demonlab">
+      <div class="demon-head">
+        <span class="inst-title">Maxwell&rsquo;s demon &middot; interactive</span>
+        <label class="switch">
+          <input type="checkbox" id="demonToggle" checked>
+          <span class="track" aria-hidden="true"></span>
+          <span id="demonState">demon on</span>
+        </label>
+      </div>
+      <canvas id="demon" width="900" height="360" aria-label="Two chambers of gas separated by a wall with a gate. When the demon is on, it lets fast molecules pass one way and slow molecules the other, sorting hot from cold."></canvas>
+      <div class="demon-reads">
+        <div class="temprow">
+          <span class="rlab">Left / cold</span>
+          <span class="tempbar cold"><i id="leftBar"></i></span>
+          <span class="rval" id="leftVal">&mdash;</span>
+        </div>
+        <div class="temprow">
+          <span class="rlab">Right / hot</span>
+          <span class="tempbar heat"><i id="rightBar"></i></span>
+          <span class="rval" id="rightVal">&mdash;</span>
+        </div>
+        <div class="memrow" id="memRow">
+          <span class="rlab">Memory</span>
+          <span class="memcells" id="memCells" aria-hidden="true"></span>
+          <span class="rval" id="memVal">0 / 12</span>
+        </div>
+        <div class="ledger">
+          <div class="stat"><span class="n" id="sortedN">0</span><span class="k">molecules sorted<br>order created</span></div>
+          <div class="stat"><span class="n" id="erasesN">0</span><span class="k">memory wipes<br>times it forgot</span></div>
+          <div class="stat debt"><span class="n" id="debtN">0</span><span class="k">heat dissipated (&times;10&#8315;&#178;&#185; J)<br>the second law&rsquo;s fee</span></div>
+        </div>
+      </div>
+      <p class="demon-note">
+        The demon&rsquo;s memory is finite &mdash; twelve bits. Each molecule it sorts stores one bit; the gas
+        grows more ordered and the chambers drift apart in temperature. But when the register fills, the demon
+        must <em>erase</em> to keep going &mdash; and every wipe dumps at least k<sub>B</sub>T ln 2 of heat per
+        bit. Order goes into the gas; the bill comes due the moment it forgets.
+      </p>
+    </div>
+    <p>
+      The resolution took a century. The demon must <em>remember</em> what it observes to decide how to
+      sort, and its memory is finite. To keep working it must eventually erase old records &mdash; and by
+      Landauer&rsquo;s principle, each erased bit dumps at least <span class="term-h">k<sub>B</sub>T ln 2</span>
+      of heat outward. That erasure cost meets or exceeds every scrap of entropy the demon skimmed off the
+      gas. Total entropy still rises.
+    </p>
+    <p class="pull">
+      The law is saved not by the cost of <em>measuring</em>, but by <span class="hi">the cost of
+      forgetting.</span>
+    </p>
+  </section>
+
+  <!-- VI -->
+  <section class="move reveal">
+    <div class="node">VI</div>
+    <p class="kicker">The synthesis</p>
+    <h2>Learning is buying order with heat</h2>
+    <p>
+      Now the whole chain closes. A durable memory &mdash; the very thing a review schedule is built to
+      protect &mdash; is a low-entropy, ordered correlation between a system and a past fact: more ordered
+      than the same matter left to chance. The second law permits that local order only because a larger
+      disorder is exported to pay for it: metabolic heat, the energy to write, to review, to re-consolidate.
+    </p>
+    <p>
+      Learning never breaks the second law. It <em>reverses entropy locally at a net global cost</em> &mdash;
+      the same trade that keeps a cell alive or a refrigerator cold. And the two entropies in that sentence
+      are, at bottom, one quantity.
+    </p>
+    <div class="compare">
+      <div class="compare-head">Two entropies, one currency</div>
+      <div class="compare-body">
+        <div class="col cold">
+          <p class="tag">Shannon (information)</p>
+          <p class="big"><i>H</i> = &minus;&Sigma; <i>p</i><sub>i</sub> log<sub>2</sub> <i>p</i><sub>i</sub></p>
+          <p>Missing information about which state a system is in, measured in bits. <i>p<sub>i</sub></i> is the probability of state <i>i</i>.</p>
+        </div>
+        <div class="col warm">
+          <p class="tag">Thermodynamic (Gibbs)</p>
+          <p class="big"><i>S</i> = &minus;<i>k</i><sub>B</sub> &Sigma; <i>p</i><sub>i</sub> ln <i>p</i><sub>i</sub></p>
+          <p>The same uncertainty over physical microstates, scaled by <i>k<sub>B</sub></i> into joules per kelvin. Same quantity, up to <i>k<sub>B</sub></i> ln 2 per bit.</p>
+        </div>
+      </div>
+    </div>
+    <p>
+      That identity is the hinge. It is what lets Landauer convert &ldquo;one erased bit&rdquo; into
+      &ldquo;<span class="term-h">k<sub>B</sub>T ln 2</span> joules.&rdquo; Information has a temperature.
+      Spaced repetition, then, is a schedule for repaying a memory&rsquo;s entropy debt &mdash; re-lowering the
+      local disorder the universe is forever trying to raise, one review before the trace fades.
+    </p>
+  </section>
+</main>
+
+<div class="wrap">
+  <section class="coda reveal">
+    <p class="eyebrow" style="color:var(--cold-ink)">The strange loop</p>
+    <h2>A tool for remembering, reasoning about the physics of forgetting</h2>
+    <p>
+      This explainer began as an eight-card deck built inside <span class="prose-strong">anki-api</span> &mdash;
+      a system whose entire purpose is to make knowledge <em>timeless</em>, to hold it against decay. The most
+      fitting thing to encode there was the physics of the very force it resists. A spaced-repetition system is
+      a small, deliberate stand against the second law &mdash; and it is only <em>possible</em> because of that
+      same law, which alone gives us a low-entropy past to learn from.
+    </p>
+    <p>
+      Keep even one of these cards and a little ordered correlation persists a while longer against the tide
+      that Movement VI is about. That is a good thing to leave behind.
+    </p>
+    <div class="codecard">uv run anki-api review cards/<span class="c">thermodynamics-of-memory</span>_20260713_235855.json</div>
+  </section>
+</div>
+
+<footer>
+  <div class="wrap">
+    <p class="sources">
+      <b>The shoulders this stands on</b>
+      Boltzmann &mdash; entropy as microstate counting &nbsp;/&nbsp;
+      Reichenbach, Albert, Carroll &mdash; the arrow of time &amp; the Past Hypothesis &nbsp;/&nbsp;
+      Landauer (1961) &mdash; the thermodynamic cost of erasure &nbsp;/&nbsp;
+      Bennett (1982) &mdash; the demon&rsquo;s resolution &amp; reversible computing &nbsp;/&nbsp;
+      Jaynes &mdash; information and thermodynamic entropy as one &nbsp;/&nbsp;
+      B&eacute;rut et al. (2012) &mdash; Landauer&rsquo;s bound, measured
+    </p>
+    <p class="colophon">
+      <em>Memory Against Entropy</em> &mdash; a companion to the <em>thermodynamics-of-memory</em> deck.
+      Built during an open-exploration session, following a thread of genuine curiosity.
+    </p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Both canvases cache their theme colors; refresh them when the viewer flips theme.
+  var themeRefreshers = [];
+  function onThemeChange() { themeRefreshers.forEach(function (f) { try { f(); } catch (e) {} }); }
+  try {
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", onThemeChange);
+    new MutationObserver(onThemeChange).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  } catch (e) {}
+
+  /* ---------- hero gas: diffusion + live Shannon entropy ---------- */
+  var canvas = document.getElementById("gas");
+  var readout = document.getElementById("entReadout");
+  if (canvas && canvas.getContext) {
+    var ctx = canvas.getContext("2d");
+    var DPR = Math.min(window.devicePixelRatio || 1, 2);
+    var W = 0, H = 0;
+    var N = 92;
+    var parts = [];
+    var GX = 14, GY = 9;               // occupancy grid for entropy
+    var maxEnt = Math.log(GX * GY);
+    var cold, heat, faint, surfaceCol;
+    function gasRefresh() {
+      var css = getComputedStyle(document.documentElement);
+      cold = parseColor(css.getPropertyValue("--cold"));
+      heat = parseColor(css.getPropertyValue("--heat"));
+      faint = css.getPropertyValue("--line").trim();
+      surfaceCol = css.getPropertyValue("--surface-2").trim();
+    }
+    gasRefresh();
+    themeRefreshers.push(gasRefresh);
+
+    function parseColor(s) {
+      s = s.trim();
+      if (s[0] === "#") {
+        var n = parseInt(s.slice(1), 16);
+        if (s.length >= 7) return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+      }
+      var m = s.match(/rgba?\(([^)]+)\)/);
+      if (m) { var a = m[1].split(","); return [+a[0], +a[1], +a[2]]; }
+      return [140, 140, 150];
+    }
+    function mix(a, b, t) { return "rgb(" + Math.round(a[0]+(b[0]-a[0])*t) + "," + Math.round(a[1]+(b[1]-a[1])*t) + "," + Math.round(a[2]+(b[2]-a[2])*t) + ")"; }
+
+    function resize() {
+      var rect = canvas.getBoundingClientRect();
+      W = rect.width; H = rect.width * 560 / 900;
+      canvas.style.height = H + "px";
+      canvas.width = Math.round(W * DPR);
+      canvas.height = Math.round(H * DPR);
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    }
+
+    function seed() {
+      parts = [];
+      for (var i = 0; i < N; i++) {
+        // Maxwell-Boltzmann-ish speed: sum of a couple uniforms
+        var speed = (0.35 + 0.65 * Math.pow(rnd(), 0.7)) * 0.9;
+        var ang = rnd() * Math.PI * 2;
+        parts.push({
+          x: W * (0.03 + rnd() * 0.16),          // clustered: low-entropy start
+          y: H * (0.62 + rnd() * 0.34),
+          vx: Math.cos(ang) * speed,
+          vy: Math.sin(ang) * speed,
+          r: 2.6 + rnd() * 1.7,
+          s: speed
+        });
+      }
+    }
+    var _s = 987654321 % 2147483647;
+    function rnd() { _s = (_s * 16807) % 2147483647; return (_s - 1) / 2147483646; } // deterministic, no Date/random cliffs
+
+    function entropy() {
+      var grid = new Float64Array(GX * GY);
+      for (var i = 0; i < parts.length; i++) {
+        var gx = Math.min(GX - 1, Math.max(0, (parts[i].x / W * GX) | 0));
+        var gy = Math.min(GY - 1, Math.max(0, (parts[i].y / H * GY) | 0));
+        grid[gy * GX + gx] += 1;
+      }
+      var e = 0, n = parts.length;
+      for (var k = 0; k < grid.length; k++) {
+        if (grid[k] > 0) { var p = grid[k] / n; e -= p * Math.log(p); }
+      }
+      return e / maxEnt; // 0..1
+    }
+
+    function step(dt) {
+      for (var i = 0; i < parts.length; i++) {
+        var p = parts[i];
+        p.x += p.vx * dt; p.y += p.vy * dt;
+        if (p.x < p.r) { p.x = p.r; p.vx = -p.vx; }
+        else if (p.x > W - p.r) { p.x = W - p.r; p.vx = -p.vx; }
+        if (p.y < p.r) { p.y = p.r; p.vy = -p.vy; }
+        else if (p.y > H - p.r) { p.y = H - p.r; p.vy = -p.vy; }
+      }
+    }
+
+    function draw(trail) {
+      if (trail) { ctx.globalAlpha = 0.2; ctx.fillStyle = surfaceCol; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; }
+      else { ctx.clearRect(0, 0, W, H); }
+      // faint chamber gridlines
+      ctx.strokeStyle = faint; ctx.lineWidth = 1;
+      for (var gx = 1; gx < 6; gx++) { ctx.globalAlpha = 0.4; ctx.beginPath(); ctx.moveTo(W*gx/6, 0); ctx.lineTo(W*gx/6, H); ctx.stroke(); }
+      ctx.globalAlpha = 1;
+      for (var i = 0; i < parts.length; i++) {
+        var p = parts[i];
+        var t = Math.min(1, Math.max(0, (p.s - 0.315) / 0.585));
+        var col = mix(cold, heat, t);
+        ctx.fillStyle = col;
+        ctx.globalAlpha = 0.13; ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 2.0, 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = 0.92; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    var eShown = 0;
+    function tickReadout() {
+      var e = entropy();
+      eShown += (e - eShown) * 0.08;
+      if (readout) readout.textContent = eShown.toFixed(2);
+    }
+
+    var last = 0, raf = 0;
+    function loop(ts) {
+      if (!last) last = ts;
+      var dt = Math.min(2.4, (ts - last) / 16.67);
+      last = ts;
+      step(dt); draw(true); tickReadout();
+      raf = requestAnimationFrame(loop);
+    }
+
+    function start() {
+      resize(); gasRefresh(); seed();
+      if (reduce) {
+        // settle to equilibrium invisibly, then draw one frame
+        for (var i = 0; i < 900; i++) step(1.2);
+        draw(false); if (readout) readout.textContent = entropy().toFixed(2);
+        return;
+      }
+      last = 0; cancelAnimationFrame(raf); raf = requestAnimationFrame(loop);
+    }
+
+    var replay = document.getElementById("replay");
+    if (replay) replay.addEventListener("click", function () { eShown = 0; start(); });
+
+    var rt;
+    window.addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(function () {
+      var wasReduced = reduce; resize();
+      if (!wasReduced) { /* keep running; just rescale positions loosely */ }
+      // reseed only if size changed a lot to avoid particles stuck outside
+      for (var i = 0; i < parts.length; i++) { if (parts[i].x > W) parts[i].x = W - parts[i].r; if (parts[i].y > H) parts[i].y = H - parts[i].r; }
+    }, 180); });
+
+    start();
+  }
+
+  /* ---------- Landauer one-bit widget ---------- */
+  var cell0 = document.getElementById("cell0");
+  var cell1 = document.getElementById("cell1");
+  var eraseBtn = document.getElementById("eraseBtn");
+  var randBtn = document.getElementById("randBtn");
+  var tally = document.getElementById("tally");
+  if (cell0 && cell1 && eraseBtn) {
+    var erased = 0;
+    var flicker = null;
+    var seedBit = 12345;
+    function nrnd() { seedBit = (seedBit * 16807) % 2147483647; return (seedBit - 1) / 2147483646; }
+
+    function armUnknown() {
+      cell0.classList.remove("settled"); cell1.classList.remove("settled");
+      cell0.classList.add("armed"); cell1.classList.add("armed");
+      if (flicker) clearInterval(flicker);
+      if (!reduce) {
+        flicker = setInterval(function () {
+          var on = nrnd() > 0.5;
+          cell0.style.opacity = on ? "1" : "0.4";
+          cell1.style.opacity = on ? "0.4" : "1";
+        }, 110);
+      }
+    }
+    function settleZero() {
+      if (flicker) { clearInterval(flicker); flicker = null; }
+      cell0.style.opacity = "1"; cell1.style.opacity = "0.35";
+      cell0.classList.remove("armed"); cell1.classList.remove("armed");
+      cell1.classList.remove("settled");
+      cell0.classList.add("settled");
+      if (!reduce) { cell0.classList.remove("blast"); void cell0.offsetWidth; cell0.classList.add("blast"); }
+      erased += 1;
+      var joules = (erased * 2.9).toFixed(1);
+      tally.innerHTML = erased + (erased === 1 ? " bit erased &middot; <b>" : " bits erased &middot; <b>") + joules + " &times; 10<sup>&minus;21</sup> J</b> dissipated";
+    }
+    eraseBtn.addEventListener("click", settleZero);
+    if (randBtn) randBtn.addEventListener("click", armUnknown);
+    armUnknown();
+  }
+
+  /* ---------- Maxwell's demon: sorting + finite memory + erasure ---------- */
+  var dcanvas = document.getElementById("demon");
+  if (dcanvas && dcanvas.getContext) {
+    var dctx = dcanvas.getContext("2d");
+    var DPR2 = Math.min(window.devicePixelRatio || 1, 2);
+    var DW = 0, DH = 0, DN = 74;
+    var dp = [];
+    var thr = 1.0, refSq = 1.0;
+    var sorted = 0, erases = 0, erasedBits = 0, memUsed = 0, MEMCAP = 12;
+    var demonOn = true, pulse = 0, lmCur = 1, rmCur = 1;
+    var cold2, heat2, wallCol, gateGlow;
+    function demonRefresh() {
+      var c = getComputedStyle(document.documentElement);
+      cold2 = pc(c.getPropertyValue("--cold")); heat2 = pc(c.getPropertyValue("--heat"));
+      wallCol = c.getPropertyValue("--line").trim(); gateGlow = c.getPropertyValue("--heat").trim();
+    }
+
+    function pc(s) {
+      s = s.trim();
+      if (s[0] === "#") { var n = parseInt(s.slice(1), 16); if (s.length >= 7) return [(n>>16)&255,(n>>8)&255,n&255]; }
+      var m = s.match(/rgba?\(([^)]+)\)/); if (m) { var a = m[1].split(","); return [+a[0],+a[1],+a[2]]; }
+      return [140,140,150];
+    }
+    function mix2(a, b, t) { return "rgb(" + Math.round(a[0]+(b[0]-a[0])*t) + "," + Math.round(a[1]+(b[1]-a[1])*t) + "," + Math.round(a[2]+(b[2]-a[2])*t) + ")"; }
+    function rgba(a, al) { return "rgba(" + a[0] + "," + a[1] + "," + a[2] + "," + al + ")"; }
+    demonRefresh(); themeRefreshers.push(demonRefresh);
+
+    var ds = 24680; function drnd() { ds = (ds * 16807) % 2147483647; return (ds - 1) / 2147483646; }
+
+    var memCells = document.getElementById("memCells"), memRow = document.getElementById("memRow"), cellEls = [];
+    if (memCells) { for (var ci = 0; ci < MEMCAP; ci++) { var d = document.createElement("span"); d.className = "memcell"; memCells.appendChild(d); cellEls.push(d); } }
+
+    function dresize() {
+      var rect = dcanvas.getBoundingClientRect();
+      DW = rect.width; DH = rect.width * 360 / 900;
+      dcanvas.style.height = DH + "px";
+      dcanvas.width = Math.round(DW * DPR2); dcanvas.height = Math.round(DH * DPR2);
+      dctx.setTransform(DPR2, 0, 0, DPR2, 0, 0);
+    }
+    function gate() { var h = DH * 0.24; return { top: DH/2 - h, bot: DH/2 + h, x: DW/2 }; }
+
+    function dseed(preSorted) {
+      dp = []; var sumS = 0, sumSq = 0;
+      for (var i = 0; i < DN; i++) {
+        var speed = 0.5 + 1.15 * Math.pow(drnd(), 0.8);
+        var left = i % 2 === 0;
+        if (preSorted) left = speed < 1.06;               // reduced-motion: already sorted
+        var ang = drnd() * Math.PI * 2;
+        var x = left ? DW * (0.05 + drnd() * 0.38) : DW * (0.57 + drnd() * 0.38);
+        dp.push({ x: x, y: DH * (0.07 + drnd() * 0.86), vx: Math.cos(ang)*speed, vy: Math.sin(ang)*speed, s: speed, r: 3.0 + drnd()*1.7 });
+        sumS += speed; sumSq += speed*speed;
+      }
+      thr = sumS / DN; refSq = sumSq / DN;
+    }
+
+    function flush() {
+      erases++; erasedBits += MEMCAP; memUsed = 0;
+      if (!reduce && memRow) { memRow.classList.remove("flush"); void memRow.offsetWidth; memRow.classList.add("flush"); pulse = 1; }
+    }
+
+    function dstep(dt) {
+      var g = gate();
+      for (var i = 0; i < dp.length; i++) {
+        var p = dp[i], ox = p.x;
+        p.x += p.vx * dt; p.y += p.vy * dt;
+        if (p.y < p.r) { p.y = p.r; p.vy = -p.vy; } else if (p.y > DH - p.r) { p.y = DH - p.r; p.vy = -p.vy; }
+        if (p.x < p.r) { p.x = p.r; p.vx = -p.vx; } else if (p.x > DW - p.r) { p.x = DW - p.r; p.vx = -p.vx; }
+        if ((ox - g.x) * (p.x - g.x) < 0) {
+          var inGate = p.y > g.top && p.y < g.bot;
+          if (!inGate) { p.x = ox; p.vx = -p.vx; }
+          else if (demonOn) {
+            var allow = (p.vx > 0 && p.s >= thr) || (p.vx < 0 && p.s < thr);
+            if (allow) { sorted++; memUsed++; if (memUsed >= MEMCAP) flush(); }
+            else { p.x = ox; p.vx = -p.vx; }
+          }
+        }
+      }
+    }
+
+    function computeTemps() {
+      var lS = 0, lC = 0, rS = 0, rC = 0, mid = DW/2;
+      for (var i = 0; i < dp.length; i++) { var p = dp[i]; if (p.x < mid) { lS += p.s*p.s; lC++; } else { rS += p.s*p.s; rC++; } }
+      lmCur = lC ? lS/lC : refSq; rmCur = rC ? rS/rC : refSq;
+    }
+
+    function ddraw() {
+      var g = gate();
+      dctx.clearRect(0, 0, DW, DH);
+      // chamber temperature tint — the sorted state, read at a glance
+      var lDev = Math.max(0, Math.min(1, (refSq - lmCur) / refSq));
+      var rDev = Math.max(0, Math.min(1, (rmCur - refSq) / refSq));
+      dctx.fillStyle = rgba(cold2, 0.13 * lDev); dctx.fillRect(0, 0, g.x, DH);
+      dctx.fillStyle = rgba(heat2, 0.13 * rDev); dctx.fillRect(g.x, 0, DW - g.x, DH);
+      // wall
+      dctx.fillStyle = wallCol; dctx.fillRect(g.x - 1.5, 0, 3, g.top); dctx.fillRect(g.x - 1.5, g.bot, 3, DH - g.bot);
+      // gate
+      dctx.globalAlpha = demonOn ? 0.55 : 0.16; dctx.strokeStyle = gateGlow; dctx.lineWidth = 2;
+      dctx.beginPath(); dctx.moveTo(g.x, g.top); dctx.lineTo(g.x, g.bot); dctx.stroke(); dctx.globalAlpha = 1;
+      // particles with soft halo
+      for (var i = 0; i < dp.length; i++) {
+        var p = dp[i], t = Math.min(1, Math.max(0, (p.s - 0.5) / 1.15)), col = mix2(cold2, heat2, t);
+        dctx.fillStyle = col;
+        dctx.globalAlpha = 0.15; dctx.beginPath(); dctx.arc(p.x, p.y, p.r * 2.1, 0, Math.PI*2); dctx.fill();
+        dctx.globalAlpha = 0.95; dctx.beginPath(); dctx.arc(p.x, p.y, p.r, 0, Math.PI*2); dctx.fill();
+      }
+      dctx.globalAlpha = 1;
+      // erasure heat pulse
+      if (pulse > 0) { dctx.fillStyle = rgba(heat2, 0.22 * pulse); dctx.fillRect(0, 0, DW, DH); pulse -= 0.045; if (pulse < 0) pulse = 0; }
+    }
+
+    var leftBar = document.getElementById("leftBar"), rightBar = document.getElementById("rightBar");
+    var leftVal = document.getElementById("leftVal"), rightVal = document.getElementById("rightVal");
+    var sortedN = document.getElementById("sortedN"), erasesN = document.getElementById("erasesN"), debtN = document.getElementById("debtN"), memVal = document.getElementById("memVal");
+    function updateReads() {
+      var lw = Math.max(4, Math.min(100, lmCur/(refSq*1.9)*100)), rw = Math.max(4, Math.min(100, rmCur/(refSq*1.9)*100));
+      if (leftBar) leftBar.style.width = lw + "%";
+      if (rightBar) rightBar.style.width = rw + "%";
+      if (leftVal) leftVal.textContent = (lmCur/refSq).toFixed(2);
+      if (rightVal) rightVal.textContent = (rmCur/refSq).toFixed(2);
+      if (sortedN) sortedN.textContent = sorted;
+      if (erasesN) erasesN.textContent = erases;
+      if (debtN) debtN.textContent = Math.round(erasedBits * 2.9).toLocaleString();
+      if (memVal) memVal.textContent = memUsed + " / " + MEMCAP;
+      for (var i = 0; i < cellEls.length; i++) { if (i < memUsed) cellEls[i].classList.add("on"); else cellEls[i].classList.remove("on"); }
+    }
+
+    var dlast = 0, draf = 0;
+    function dloop(ts) {
+      if (!dlast) dlast = ts; var dt = Math.min(2.4, (ts - dlast)/16.67); dlast = ts;
+      dstep(dt); computeTemps(); ddraw(); updateReads();
+      draf = requestAnimationFrame(dloop);
+    }
+
+    var toggle = document.getElementById("demonToggle"), stateLbl = document.getElementById("demonState");
+    if (toggle) toggle.addEventListener("change", function () {
+      demonOn = toggle.checked;
+      if (stateLbl) stateLbl.textContent = demonOn ? "demon on" : "demon off";
+    });
+
+    function dstart() {
+      dresize();
+      if (reduce) {
+        dseed(true); for (var i = 0; i < 260; i++) dstep(1.0);
+        sorted = 48; erases = 4; erasedBits = 48; memUsed = 0;
+        computeTemps(); ddraw(); updateReads(); return;
+      }
+      dseed(false); dlast = 0; cancelAnimationFrame(draf); draf = requestAnimationFrame(dloop);
+    }
+    var drt;
+    window.addEventListener("resize", function () { clearTimeout(drt); drt = setTimeout(function () {
+      dresize();
+      for (var i = 0; i < dp.length; i++) { if (dp[i].x > DW) dp[i].x = DW - dp[i].r; if (dp[i].y > DH) dp[i].y = DH - dp[i].r; }
+    }, 180); });
+    dstart();
+  }
+
+  /* ---------- scroll reveal ---------- */
+  var items = document.querySelectorAll(".reveal");
+  if (reduce || !("IntersectionObserver" in window)) {
+    items.forEach(function (el) { el.classList.add("in"); });
+  } else {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
+    }, { rootMargin: "0px 0px -12% 0px", threshold: 0.06 });
+    items.forEach(function (el) { io.observe(el); });
+    // failsafe: content is never allowed to stay hidden if the observer misses.
+    setTimeout(function () { items.forEach(function (el) { el.classList.add("in"); }); }, 4000);
+  }
+})();
+</script>
