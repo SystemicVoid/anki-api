@@ -47,6 +47,17 @@ to the EAT standard, sitting inside a memory system. The map folded onto the ter
    repaying that debt* — re-lowering the local entropy the world is always trying to raise,
    just before the trace fades.
 
+## The interactive companion
+
+There is a visual, interactive version of this argument: an explainer that opens with a live
+gas whose Shannon entropy you can watch rise and hold, charts the arrow of time against the
+symmetric prediction it corrects, plots Landauer's energy floor, and lets you switch on
+Maxwell's demon and watch it sort hot from cold while the ledger of its erasure debt ticks up
+in lockstep with the order it creates.
+
+- Standalone page (opens in any browser): [`memory-against-entropy.html`](./memory-against-entropy.html)
+- It is built entirely from the same six-movement argument below.
+
 ## The deck
 
 Eight cards, authored to the EAT 2.0 standard (two gateway concepts layered
