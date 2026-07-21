@@ -1,0 +1,131 @@
+[
+  {
+    "front": "What is the shape of forgetting over time — how does the probability of recalling a freshly-learned fact change as time passes since you learned it?",
+    "back": "Intuition: a new memory does not fade at a steady drip. It drops fast at first, then the loss slows to a crawl. Plot recall probability against time and you get a steep initial cliff that flattens into a long, shallow tail.\n\nConcrete: Ebbinghaus (1885) memorized lists of nonsense syllables and re-tested his own recall. Retention fell to roughly half within about an hour and to about a third within a day — then barely moved over the following weeks.\n\nFormal: idealized as exponential decay \\(R(t) = e^{-t/S}\\), where \\(R\\) is retrievability (probability of recall right now, from 0 to 1), \\(t\\) is time elapsed since the last review, and \\(S\\) is stability (the memory's time constant; at \\(t = S\\), \\(R\\) has fallen to \\(1/e \\approx 0.37\\)).",
+    "context": "This is the forgetting curve. The steep-then-flat shape is exactly why the timing of a review matters: reviewing during the cliff wastes effort on a fact you still hold, while reviewing after the tail risks losing it entirely. Empirically the tail is even heavier than a pure exponential (see the exponential-vs-power-law card). It also connects to the thermodynamics-of-memory deck: this curve is the quantitative shape of the 'decay' that spaced repetition repays a memory's entropy debt just ahead of.",
+    "tags": [
+      "cognitive-science::memory::spaced-repetition",
+      "type::concept"
+    ],
+    "images": [],
+    "source": "",
+    "deck": "Default",
+    "model": "Basic",
+    "anki_id": null,
+    "status": "pending",
+    "added_at": null
+  },
+  {
+    "front": "In the two-component model of memory (and Anki's FSRS scheduler), distinguish retrievability from stability.",
+    "back": "Retrievability \\(R\\) = the probability you could recall the item right now (0 to 1). It slides continuously downward with time since the last review; it is what the forgetting curve plots.\n\nStability \\(S\\) = how durable the memory is — the time constant that sets how slowly \\(R\\) decays. Higher \\(S\\) means a flatter, longer-lasting curve.\n\nThe relation: retrievability is momentary and always falling; stability is the slowly-built property that governs how steep that fall is.",
+    "context": "Bjork and Bjork's 'retrieval strength vs storage strength'; FSRS names them R and S (the D is difficulty). The crucial, counterintuitive part: a successful review barely changes R — it was already high if you reviewed on schedule — but it can multiply S. The whole art of scheduling is spending reviews to grow stability, not to top up retrievability. This sets up the desirable-difficulties card.",
+    "tags": [
+      "cognitive-science::memory::spaced-repetition",
+      "type::concept"
+    ],
+    "images": [],
+    "source": "",
+    "deck": "Default",
+    "model": "Basic",
+    "anki_id": null,
+    "status": "pending",
+    "added_at": null
+  },
+  {
+    "front": "Why does spreading the same number of study repetitions out over time produce far stronger long-term memory than packing them together in one session?",
+    "back": "Massed repetitions all happen while retrievability is still high, so each one adds almost nothing — you are re-studying something you already hold. Spacing lets retrievability fall between reviews, so each repetition becomes an effortful retrieval from a partly-decayed trace, and that effort is what drives a large gain in stability.",
+    "context": "The spacing effect (distributed vs massed practice) is one of the most robust findings in learning science (Cepeda et al. meta-analyses). Cramming feels effective because in-the-moment retrievability is high — a metacognitive illusion. Mechanistically it reduces to the desirable-difficulties card: lower retrievability at review time yields a bigger stability increase. This is the reason a spaced-repetition system exists at all.",
+    "tags": [
+      "cognitive-science::memory::spaced-repetition",
+      "type::principle"
+    ],
+    "images": [],
+    "source": "",
+    "deck": "Default",
+    "model": "Basic",
+    "anki_id": null,
+    "status": "pending",
+    "added_at": null
+  },
+  {
+    "front": "Distinguish retrieval practice from re-reading regarding their effect on long-term retention and how effective each one feels while you do it.",
+    "back": "Retrieval practice (testing yourself) = you reconstruct the answer from memory. Produces large, durable gains in stability, but feels hard and error-prone.\n\nRe-reading (restudy) = you re-expose yourself to the material. Produces weak long-term gains, but feels fluent and productive.\n\nThe reversal: the method that feels better in the moment (re-reading) is the weaker one for lasting memory.",
+    "context": "The testing effect (Roediger and Karpicke, 2006). The felt fluency of re-reading is a metacognitive illusion — recognition ('I have seen this') masquerading as recall. It is precisely why a flashcard hides its answer and forces a guess first: the retrieval attempt IS the strengthening mechanism, not a measurement of it. Links directly to desirable difficulties.",
+    "tags": [
+      "cognitive-science::memory::spaced-repetition",
+      "type::concept"
+    ],
+    "images": [],
+    "source": "",
+    "deck": "Default",
+    "model": "Basic",
+    "anki_id": null,
+    "status": "pending",
+    "added_at": null
+  },
+  {
+    "front": "Why do spaced-repetition schedulers deliberately wait until your probability of recall has dropped well below certainty before showing a card again, rather than reviewing while recall is still easy?",
+    "back": "Because the stability gain from a successful review grows as the retrievability at review time falls — harder, later retrievals strengthen the memory more. Reviewing while recall is trivially easy (high \\(R\\)) yields almost no gain. So the scheduler courts difficulty on purpose, stopping just short of the point where the memory would actually be lost.",
+    "context": "Bjork's 'desirable difficulties.' It defines an optimal window: too early (R near 1) wastes the review; too late (R near 0) risks a lapse that collapses stability. Anki's FSRS exposes this as a tunable 'desired retention' target (historically around 0.9) — the retrievability at which it schedules the next review. Lower targets mean harder, more efficient reviews but more lapses. This is why intervals expand rather than staying fixed.",
+    "tags": [
+      "cognitive-science::memory::spaced-repetition",
+      "type::principle"
+    ],
+    "images": [],
+    "source": "",
+    "deck": "Default",
+    "model": "Basic",
+    "anki_id": null,
+    "status": "pending",
+    "added_at": null
+  },
+  {
+    "front": "How does a spaced-repetition scheduler decide when to next show a card, and why do the intervals grow after each success?",
+    "back": "It inverts the forgetting curve. Given a target retrievability \\(R_{\\text{target}}\\) (the recall probability you want to still have at review time), it solves \\(R(t) = R_{\\text{target}}\\) for \\(t\\). With \\(R(t) = e^{-t/S}\\), the next interval is \\(t = -S \\ln(R_{\\text{target}})\\). Each successful review multiplies the stability \\(S\\), so the very same formula returns a larger \\(t\\) next time — the intervals stretch geometrically (days, then a week, then weeks, then months).",
+    "context": "Under the exponential model with \\(R_{\\text{target}} = 0.9\\), the interval is about \\(0.105 \\cdot S\\); the exact factor depends on the curve's true shape, but the structure is the point: interval is proportional to stability, and stability compounds with each success. This is SM-2's 'ease factor' and FSRS's stability growth made explicit. It ties the forgetting-curve card (the shape) to the desirable-difficulties card (the target): the scheduler is just those two facts turned into arithmetic.",
+    "tags": [
+      "cognitive-science::memory::spaced-repetition",
+      "type::procedure"
+    ],
+    "images": [],
+    "source": "",
+    "deck": "Default",
+    "model": "Basic",
+    "anki_id": null,
+    "status": "pending",
+    "added_at": null
+  },
+  {
+    "front": "Distinguish the idealized exponential forgetting curve from the empirically observed power-law (heavy-tailed) curve, and why the difference matters for review timing.",
+    "back": "Exponential \\(R(t) = e^{-t/S}\\) = a constant relative decay rate; the memory has one fixed time constant.\n\nPower-law \\(R(t) \\approx (1 + t/(kS))^{-c}\\) = a decay rate that itself slows the longer a memory has already survived; the tail is far heavier than exponential.\n\nWhy it matters: real forgetting fits the power law better, so a memory that has already lasted a long time decays even more slowly than an exponential predicts — which means well-spaced reviews buy disproportionately long retention.",
+    "context": "Wixted and Ebbesen's work on the 'law of forgetting.' FSRS uses a power function rather than an exponential for exactly this reason. The heavy tail is the mathematical good news underneath spaced repetition: a review does not merely reset the curve, it bends the whole tail flatter, so intervals can grow faster than a naive exponential model would allow. Here \\(k\\) and \\(c\\) are fitted constants and \\(S\\) is stability.",
+    "tags": [
+      "cognitive-science::memory::spaced-repetition",
+      "type::concept"
+    ],
+    "images": [],
+    "source": "",
+    "deck": "Default",
+    "model": "Basic",
+    "anki_id": null,
+    "status": "pending",
+    "added_at": null
+  },
+  {
+    "front": "Connecting the physics and the psychology: at what moment does spaced repetition schedule its 'repayment' of a memory's entropy debt, and how does that moment relate to the forgetting curve?",
+    "back": "The entropy account says a durable memory is local order that the second law is always working to erase, and that each review re-lowers that local entropy at a net global cost. The forgetting curve says when to act: the trace's retrievability slides down its decay curve, and the scheduler triggers a review just as \\(R\\) nears its target — late enough that the effortful retrieval maximally strengthens stability, early enough that the trace has not been lost.",
+    "context": "This is the hinge between the two decks. The thermodynamics-of-memory deck established that forming a memory is a paid-for local decrease in entropy, and that spaced repetition repays that debt 'just before it decays.' This deck supplies the missing quantities: 'decay' is the forgetting curve \\(R(t) = e^{-t/S}\\), and 'just before' is the desirable-difficulty window where \\(R\\) approaches the target. Physics says a memory has a price; the forgetting curve says when to pay it.",
+    "tags": [
+      "cognitive-science::memory::spaced-repetition",
+      "physics::thermodynamics::entropy",
+      "type::principle"
+    ],
+    "images": [],
+    "source": "",
+    "deck": "Default",
+    "model": "Basic",
+    "anki_id": null,
+    "status": "pending",
+    "added_at": null
+  }
+]
