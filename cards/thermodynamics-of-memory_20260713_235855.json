@@ -1,0 +1,132 @@
+[
+  {
+    "front": "Why does time appear to have a direction — a real difference between past and future — when the microscopic laws of physics run the same forwards and backwards?",
+    "back": "Intuition: for a system of many particles there are vastly more disordered arrangements than ordered ones, so an isolated system drifts, overwhelmingly probably, toward the more numerous states. The \"direction of time\" is the direction of that drift — a statistical tendency, not a rule written into the microscopic dynamics.\n\nConcrete: a drop of ink in water spreads and never spontaneously re-gathers into a blob, because the \"mixed\" molecular arrangements astronomically outnumber the \"one-blob\" ones — even though every individual molecular collision is perfectly time-reversible.\n\nFormal: Boltzmann entropy \\(S = k_B \\ln W\\), where \\(W\\) is the number of microstates consistent with the observed macrostate and \\(k_B\\) is Boltzmann's constant. The second law states that for an isolated system \\(S\\) does not decrease over time.",
+    "context": "This is the thermodynamic arrow of time. The puzzle it answers (Loschmidt's paradox): time-symmetric microscopic laws cannot, by themselves, produce a preferred direction. The asymmetry is statistical plus a boundary condition — see the Past Hypothesis card. Every other arrow of time (memory, causation, growth) is downstream of this one.",
+    "tags": [
+      "physics::thermodynamics::arrow-of-time",
+      "type::concept"
+    ],
+    "images": [],
+    "source": "",
+    "deck": "Default",
+    "model": "Basic",
+    "anki_id": null,
+    "status": "pending",
+    "added_at": null
+  },
+  {
+    "front": "The second law says entropy increases toward the future — but what additional assumption is needed to explain why entropy was ever low enough to increase from?",
+    "back": "The Past Hypothesis: a stipulation that the very early universe began in an extraordinarily low-entropy macrostate.\n\nThe statistical reasoning behind the second law is itself time-symmetric — applied to a typical microstate, it predicts higher entropy in BOTH temporal directions. To get an actual arrow rather than a symmetric valley, you must additionally impose a low-entropy boundary condition on one end (the past), and only that end.",
+    "context": "Named by David Albert; central to Sean Carroll's work on time. It relocates the mystery: the second law is not the deep fact — the deep fact is the improbable low-entropy start, from which everything since has been running downhill. Without it, no records, no memory, no learning could exist (see the memory-vs-arrow card).",
+    "tags": [
+      "physics::thermodynamics::arrow-of-time",
+      "type::principle"
+    ],
+    "images": [],
+    "source": "",
+    "deck": "Default",
+    "model": "Basic",
+    "anki_id": null,
+    "status": "pending",
+    "added_at": null
+  },
+  {
+    "front": "Why can we remember the past but never the future, given that a memory is just a physical record and the underlying physics is time-symmetric?",
+    "back": "A memory is a physical system whose state is reliably correlated with an earlier event. Creating such a correlation requires the recording system to start in a special, low-entropy \"ready\" state and end up correlated with what it recorded — a process that increases total entropy.\n\nBecause reliable records can only be laid down in the direction entropy increases, records accumulate about the past and never about the future. \"The past\" just is the temporal direction we hold records of.",
+    "context": "Reichenbach's insight, sharpened by Albert and Carroll: the psychological arrow (memory) is parasitic on the thermodynamic arrow, which is in turn parasitic on the Past Hypothesis. This is the hinge of the whole deck — and the reason a spaced-repetition system can exist at all: learning from the past is a physical privilege granted by the universe's low-entropy start.",
+    "tags": [
+      "cognitive-science::memory",
+      "physics::thermodynamics::arrow-of-time",
+      "type::concept"
+    ],
+    "images": [],
+    "source": "",
+    "deck": "Default",
+    "model": "Basic",
+    "anki_id": null,
+    "status": "pending",
+    "added_at": null
+  },
+  {
+    "front": "Why does erasing one bit of information carry an unavoidable physical energy cost, and how large is that cost?",
+    "back": "Intuition: erasing means mapping many possible prior states onto one (\"reset to 0\"). Collapsing several microstates into one lowers the memory's entropy, and the second law demands that the lost entropy be exported to the surroundings as heat. Information erasure is physically irreversible even when the computation around it is not.\n\nConcrete: resetting a single bit — two equally likely states collapsed to one — at room temperature (~300 K) dissipates at least about \\(2.9 \\times 10^{-21}\\) J. Minuscule, but strictly nonzero, and measured directly by Bérut et al. (2012).\n\nFormal: Landauer's bound, \\(E \\ge k_B T \\ln 2\\) per bit erased, where \\(k_B\\) is Boltzmann's constant, \\(T\\) is the absolute temperature of the surroundings, and the \\(\\ln 2\\) is the entropy of collapsing 2 states into 1.",
+    "context": "Rolf Landauer, 1961. The deep move: it ties an abstract informational act (erasure) to a concrete thermodynamic price. This is the bridge that resolves Maxwell's demon and connects Shannon entropy to physical entropy.",
+    "tags": [
+      "physics::information-thermodynamics::landauer",
+      "type::concept"
+    ],
+    "images": [],
+    "source": "",
+    "deck": "Default",
+    "model": "Basic",
+    "anki_id": null,
+    "status": "pending",
+    "added_at": null
+  },
+  {
+    "front": "Distinguish computation from erasure regarding whether they carry a fundamental lower bound on energy dissipation.",
+    "back": "Computation (logically reversible steps) = no fundamental lower bound; in principle it can proceed with arbitrarily little energy dissipated.\n\nErasure (logically irreversible, many-to-one operations) = costs at least \\(k_B T \\ln 2\\) per bit, unavoidably dissipated as heat, where \\(k_B\\) is Boltzmann's constant and \\(T\\) the absolute temperature.",
+    "context": "Charles Bennett's key correction to the folklore that every logic gate must cost energy. It is logical irreversibility — throwing information away — that carries the price, not computation itself. This is the theoretical basis of reversible computing, which avoids the bound by never discarding bits.",
+    "tags": [
+      "physics::information-thermodynamics::landauer",
+      "type::concept"
+    ],
+    "images": [],
+    "source": "",
+    "deck": "Default",
+    "model": "Basic",
+    "anki_id": null,
+    "status": "pending",
+    "added_at": null
+  },
+  {
+    "front": "Maxwell's demon appears to lower a gas's entropy for free by observing molecules and sorting fast from slow. What actually rescues the second law?",
+    "back": "The demon must store what it observes to decide how to sort, and its memory is finite. To keep operating it must eventually erase old records — and by Landauer's principle each erased bit dumps at least \\(k_B T \\ln 2\\) of heat into the surroundings.\n\nThat erasure cost equals or exceeds the entropy the demon extracted from the gas, so the total entropy of gas-plus-demon still rises. The second law holds.",
+    "context": "Szilard, Landauer, and finally Bennett (1982) closed the loophole. The beautiful inversion: the law is saved not by the cost of measuring, but by the cost of forgetting. The demon is a memory-bearing agent, and its unavoidable debt is the price of clearing its own memory.",
+    "tags": [
+      "physics::information-thermodynamics::maxwells-demon",
+      "type::principle"
+    ],
+    "images": [],
+    "source": "",
+    "deck": "Default",
+    "model": "Basic",
+    "anki_id": null,
+    "status": "pending",
+    "added_at": null
+  },
+  {
+    "front": "Distinguish Shannon (information) entropy from thermodynamic (Gibbs/Boltzmann) entropy regarding what they quantify and their units.",
+    "back": "Shannon entropy \\(H = -\\sum_i p_i \\log_2 p_i\\) measures missing information — uncertainty about which state a system occupies — in bits.\n\nThermodynamic entropy \\(S = -k_B \\sum_i p_i \\ln p_i\\) measures the same uncertainty over physical microstates, scaled by \\(k_B\\) into energy per temperature (J/K).\n\nThey are the same quantity up to the constant \\(k_B \\ln 2\\) per bit and the choice of logarithm base. Here \\(p_i\\) is the probability of state \\(i\\) and \\(k_B\\) is Boltzmann's constant.",
+    "context": "Jaynes' identification of the two entropies. This equivalence is exactly what lets Landauer's bound convert \"one erased bit\" into \"\\(k_B T \\ln 2\\) joules\" — the reason information has a temperature-dependent physical price.",
+    "tags": [
+      "physics::information-thermodynamics::entropy",
+      "type::concept"
+    ],
+    "images": [],
+    "source": "",
+    "deck": "Default",
+    "model": "Basic",
+    "anki_id": null,
+    "status": "pending",
+    "added_at": null
+  },
+  {
+    "front": "In what physical sense is forming a durable memory — the very goal of spaced repetition — a local decrease in entropy, and what pays for it?",
+    "back": "A durable memory is a low-entropy, ordered correlation between a system (a brain, or a flashcard) and a past fact — more ordered than a random arrangement of the same matter.\n\nThe second law permits this local order only because it is paid for by a larger entropy increase exported outward: metabolic heat, the energy to write, review, and re-consolidate. Learning never breaks the second law; it locally reverses entropy at a net global entropy cost.",
+    "context": "The synthesis of the deck. An open system can build and hold order — memory, life, knowledge — indefinitely, as long as it keeps dumping entropy into its surroundings. Spaced repetition is, physically, a schedule for repaying a memory trace's entropy debt just before it decays: each review re-lowers the local entropy the world is always trying to raise.",
+    "tags": [
+      "cognitive-science::memory",
+      "physics::thermodynamics::entropy",
+      "type::principle"
+    ],
+    "images": [],
+    "source": "",
+    "deck": "Default",
+    "model": "Basic",
+    "anki_id": null,
+    "status": "pending",
+    "added_at": null
+  }
+]
