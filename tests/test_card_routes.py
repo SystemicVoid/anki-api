@@ -5,15 +5,18 @@ monkeypatched CARDS_DIR and a FakeAnkiClient — no TestClient, no running Anki.
 They verify the adapter maps ReviewSession outcomes to the right HTTP codes.
 """
 
+import asyncio
 import os
 from datetime import UTC, datetime
+from typing import cast
 
 import pytest
-from fastapi import HTTPException
+from fastapi import HTTPException, WebSocket
 
 from src.schema import Flashcard, load_cards_from_json, save_cards_to_json
 from web.backend.models import CardUpdate
 from web.backend.routes import cards as cards_route
+from web.backend.routes import generate as generate_route
 
 
 def _seed(tmp_path, monkeypatch, cards, name="deck.json") -> str:
@@ -140,18 +143,44 @@ def test_list_files_orders_by_activity_and_open_moves_file_first(tmp_path, monke
     )
 
     response = cards_route.open_card_file(older_name)
-    touched_mtime = (tmp_path / older_name).stat().st_mtime
 
     assert response.filename == older_name
-    assert touched_mtime > newer_mtime
+    assert (tmp_path / older_name).stat().st_mtime == older_mtime
     refreshed_listing = cards_route.list_card_files()
     assert [file.filename for file in refreshed_listing.files] == [
         older_name,
         newer_name,
     ]
-    assert refreshed_listing.files[0].last_activity_at == datetime.fromtimestamp(
-        touched_mtime, tz=UTC
+    assert refreshed_listing.files[0].last_activity_at > datetime.fromtimestamp(
+        newer_mtime, tz=UTC
     )
+
+
+def test_open_card_file_does_not_hide_generated_output(tmp_path, monkeypatch):
+    older_name = _seed(
+        tmp_path,
+        monkeypatch,
+        [Flashcard(front="Older?", back="A")],
+        name="older.json",
+    )
+    generated_name = _seed(
+        tmp_path,
+        monkeypatch,
+        [Flashcard(front="Generated?", back="A")],
+        name="generated.json",
+    )
+    monkeypatch.setattr(generate_route, "CARDS_DIR", tmp_path)
+    older_mtime = 1_700_000_000
+    generated_mtime = older_mtime + 60
+    os.utime(tmp_path / older_name, (older_mtime, older_mtime))
+    os.utime(tmp_path / generated_name, (generated_mtime, generated_mtime))
+
+    cards_route.open_card_file(older_name)
+    session = generate_route.GenerationSession(
+        "test-session", cast("WebSocket", object())
+    )
+
+    assert asyncio.run(session.find_output_file()) == str(tmp_path / generated_name)
 
 
 def test_open_card_file_activity_failure_is_500(tmp_path, monkeypatch):
@@ -160,7 +189,7 @@ def test_open_card_file_activity_failure_is_500(tmp_path, monkeypatch):
     def fail_activity_update(*_args):
         raise OSError("read-only filesystem")
 
-    monkeypatch.setattr(cards_route.os, "utime", fail_activity_update)
+    monkeypatch.setattr(cards_route, "_record_file_activity", fail_activity_update)
 
     with pytest.raises(HTTPException) as exc:
         cards_route.open_card_file(name)

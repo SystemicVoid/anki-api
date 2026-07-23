@@ -6,7 +6,6 @@ window is serialised per file (FastAPI runs these ``def`` handlers in a
 threadpool), and they map review-state errors to HTTP status codes.
 """
 
-import os
 import re
 from datetime import UTC, datetime
 from pathlib import Path
@@ -33,6 +32,27 @@ router = APIRouter()
 
 # Cards directory relative to project root
 CARDS_DIR = Path(__file__).parent.parent.parent.parent / "cards"
+REVIEW_ACTIVITY_DIRNAME = ".review-activity"
+
+
+def _activity_path(filename: str) -> Path:
+    return CARDS_DIR / REVIEW_ACTIVITY_DIRNAME / filename
+
+
+def _last_activity_at(filename: str, card_mtime: float) -> datetime:
+    """Return review activity without changing the Card File's mtime."""
+    try:
+        activity_mtime = _activity_path(filename).stat().st_mtime
+    except OSError:
+        activity_mtime = card_mtime
+    return datetime.fromtimestamp(max(card_mtime, activity_mtime), tz=UTC)
+
+
+def _record_file_activity(filename: str) -> None:
+    """Record an open separately from mtimes used for generation discovery."""
+    activity_path = _activity_path(filename)
+    activity_path.parent.mkdir(exist_ok=True)
+    activity_path.touch()
 
 
 def validate_filename(filename: str) -> bool:
@@ -107,7 +127,7 @@ def list_card_files():
         if not S_ISREG(metadata.st_mode):
             continue
 
-        last_activity_at = datetime.fromtimestamp(metadata.st_mtime, tz=UTC)
+        last_activity_at = _last_activity_at(file_path.name, metadata.st_mtime)
         try:
             counts = ReviewSession.load(str(file_path)).counts()
             files.append(
@@ -155,7 +175,7 @@ def open_card_file(filename: str) -> CardsFileResponse:
                 total=len(cards),
             )
             try:
-                os.utime(file_path, None)
+                _record_file_activity(filename)
             except OSError as e:
                 raise HTTPException(
                     status_code=500,
