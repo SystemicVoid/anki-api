@@ -86,14 +86,21 @@ def test_skip_route_end_to_end(web):
     assert resp.json()["card"]["status"] == "skipped"
 
 
-def test_get_cards_route_end_to_end(web):
+def test_open_card_file_route_end_to_end(web):
     client, _fake, tmp_path = web
     name = _seed(tmp_path, [Flashcard(front="Q?", back="A")])
 
-    resp = client.get(f"/api/cards/{name}")
+    resp = client.post(f"/api/cards/{name}/open")
 
     assert resp.status_code == 200
     assert resp.json()["total"] == 1
+
+    listing_resp = client.get("/api/cards/files")
+    assert listing_resp.status_code == 200
+    listed_file = next(
+        file for file in listing_resp.json()["files"] if file["filename"] == name
+    )
+    assert listed_file["last_activity_at"]
 
 
 def test_anki_add_route_end_to_end(web):

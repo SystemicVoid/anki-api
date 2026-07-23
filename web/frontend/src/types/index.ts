@@ -41,6 +41,7 @@ export interface FileStat {
   added_cards: number;
   skipped_cards: number;
   pending_cards: number;
+  last_activity_at: string;
 }
 
 export interface FileListResponse {

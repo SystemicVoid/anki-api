@@ -25,8 +25,10 @@ export async function listCardFiles(): Promise<FileStat[]> {
   return data.files;
 }
 
-export async function loadCards(filename: string): Promise<CardsFileResponse> {
-  const response = await fetch(`${API_BASE}/cards/${encodeURIComponent(filename)}`);
+export async function openCardFile(filename: string): Promise<CardsFileResponse> {
+  const response = await fetch(`${API_BASE}/cards/${encodeURIComponent(filename)}/open`, {
+    method: 'POST',
+  });
   return handleResponse<CardsFileResponse>(response);
 }
 

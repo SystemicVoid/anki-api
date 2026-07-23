@@ -6,8 +6,11 @@ window is serialised per file (FastAPI runs these ``def`` handlers in a
 threadpool), and they map review-state errors to HTTP status codes.
 """
 
+import os
 import re
+from datetime import UTC, datetime
 from pathlib import Path
+from stat import S_ISREG
 
 from fastapi import APIRouter, HTTPException
 
@@ -92,59 +95,77 @@ def list_card_files():
     if not CARDS_DIR.exists():
         return FileListResponse(files=[])
 
-    files = []
-    for f in CARDS_DIR.iterdir():
-        if f.is_file() and f.suffix == ".json":
-            try:
-                counts = ReviewSession.load(str(f)).counts()
-                files.append(
-                    FileStat(
-                        filename=f.name,
-                        total_cards=counts.added + counts.skipped + counts.pending,
-                        added_cards=counts.added,
-                        skipped_cards=counts.skipped,
-                        pending_cards=counts.pending,
-                    )
-                )
-            except Exception:
-                files.append(
-                    FileStat(
-                        filename=f.name,
-                        total_cards=0,
-                        added_cards=0,
-                        skipped_cards=0,
-                        pending_cards=0,
-                    )
-                )
+    files: list[FileStat] = []
+    for file_path in CARDS_DIR.iterdir():
+        if file_path.suffix != ".json":
+            continue
 
-    # Sort by modification time (most recent first)
-    files.sort(
-        key=lambda item: (CARDS_DIR / item.filename).stat().st_mtime, reverse=True
-    )
+        try:
+            metadata = file_path.stat()
+        except OSError:
+            continue
+        if not S_ISREG(metadata.st_mode):
+            continue
+
+        last_activity_at = datetime.fromtimestamp(metadata.st_mtime, tz=UTC)
+        try:
+            counts = ReviewSession.load(str(file_path)).counts()
+            files.append(
+                FileStat(
+                    filename=file_path.name,
+                    total_cards=counts.added + counts.skipped + counts.pending,
+                    added_cards=counts.added,
+                    skipped_cards=counts.skipped,
+                    pending_cards=counts.pending,
+                    last_activity_at=last_activity_at,
+                )
+            )
+        except Exception:
+            files.append(
+                FileStat(
+                    filename=file_path.name,
+                    total_cards=0,
+                    added_cards=0,
+                    skipped_cards=0,
+                    pending_cards=0,
+                    last_activity_at=last_activity_at,
+                )
+            )
+
+    files.sort(key=lambda item: (item.filename.casefold(), item.filename))
+    files.sort(key=lambda item: item.last_activity_at, reverse=True)
 
     return FileListResponse(files=files)
 
 
-@router.get("/{filename}", response_model=CardsFileResponse)
-def get_cards(filename: str):
-    """Load all cards from a JSON file with validation warnings."""
+@router.post("/{filename}/open", response_model=CardsFileResponse)
+def open_card_file(filename: str) -> CardsFileResponse:
+    """Load a card file and record the successful open as activity."""
     file_path = _resolve_card_file(filename)
 
     try:
-        session = ReviewSession.load(str(file_path))
+        with locked_session(str(file_path)) as session:
+            cards = session.cards
+            response = CardsFileResponse(
+                filename=filename,
+                cards=[
+                    get_card_with_validation(card, i, len(cards))
+                    for i, card in enumerate(cards)
+                ],
+                total=len(cards),
+            )
+            try:
+                os.utime(file_path, None)
+            except OSError as e:
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Failed to record file activity: {filename}",
+                ) from e
+            return response
+    except HTTPException:
+        raise
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
-
-    cards = session.cards
-    cards_with_validation = [
-        get_card_with_validation(card, i, len(cards)) for i, card in enumerate(cards)
-    ]
-
-    return CardsFileResponse(
-        filename=filename,
-        cards=cards_with_validation,
-        total=len(cards),
-    )
 
 
 @router.put("/{filename}/{index}", response_model=CardWithValidation)

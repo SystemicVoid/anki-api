@@ -1,41 +1,88 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { listCardFiles } from '../api/client';
 import type { FileStat } from '../types';
+import { formatRelativeTime } from '../utils/time';
 import styles from './FileSelector.module.css';
 import { GenerateModal } from './GenerateModal';
 
+type FileStatus = 'new' | 'in-progress' | 'complete';
+
+const COMPLETED_OPEN_STORAGE_KEY = 'ankiReview.completedOpen';
+
+function getFileStatus(file: FileStat): FileStatus {
+  const reviewed = file.added_cards + file.skipped_cards;
+  if (reviewed === 0) return 'new';
+  if (reviewed === file.total_cards) return 'complete';
+  return 'in-progress';
+}
+
 function getReviewedPercentage(file: FileStat): number {
-  if (file.total_cards === 0) return 0;
   const reviewed = file.added_cards + file.skipped_cards;
   return (reviewed / file.total_cards) * 100;
 }
 
-function getStatusBadge(file: FileStat) {
+function getMetadata(file: FileStat, status: FileStatus): string {
   const reviewed = file.added_cards + file.skipped_cards;
-
-  if (reviewed === 0) {
-    return (
-      <span className={styles.statusBadge} data-status="new">
-        <span className={styles.statusIcon}>●</span>
-        New
-      </span>
-    );
-  } else if (reviewed === file.total_cards) {
-    return (
-      <span className={styles.statusBadge} data-status="complete">
-        <span className={styles.statusIcon}>✓</span>
-        Complete
-      </span>
-    );
-  } else {
-    return (
-      <span className={styles.statusBadge} data-status="progress">
-        <span className={styles.statusIcon}>⟳</span>
-        In Progress
-      </span>
-    );
+  if (status === 'new') {
+    return file.total_cards === 0 ? 'No cards found' : `Not started · ${file.total_cards} cards`;
   }
+  if (status === 'complete') {
+    return `All ${file.total_cards} reviewed · ${file.added_cards} added · ${file.skipped_cards} skipped`;
+  }
+  return `${reviewed} of ${file.total_cards} reviewed · ${file.added_cards} added · ${file.skipped_cards} skipped`;
+}
+
+function readStoredCompletedOpen(): boolean {
+  try {
+    return window.localStorage.getItem(COMPLETED_OPEN_STORAGE_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function storeCompletedOpen(open: boolean): void {
+  try {
+    window.localStorage.setItem(COMPLETED_OPEN_STORAGE_KEY, String(open));
+  } catch {
+    // The native disclosure still works when storage is unavailable.
+  }
+}
+
+function FileRow({ file }: { file: FileStat }) {
+  const status = getFileStatus(file);
+  const absoluteActivity = new Date(file.last_activity_at).toLocaleString();
+
+  return (
+    <li className={styles.fileItem} data-status={status}>
+      <Link to={`/review?file=${encodeURIComponent(file.filename)}`} className={styles.fileLink}>
+        <span className={styles.filenameRow}>
+          <span className={styles.filename} title={file.filename}>
+            {file.filename.replace(/\.json$/i, '')}
+          </span>
+          {status === 'new' && <span className={styles.newBadge}>NEW</span>}
+        </span>
+        <span className={styles.metadataRow}>
+          <span className={styles.metadata}>{getMetadata(file, status)}</span>
+          <time
+            className={styles.recency}
+            dateTime={file.last_activity_at}
+            title={absoluteActivity}
+          >
+            {formatRelativeTime(file.last_activity_at)}
+          </time>
+        </span>
+        {status === 'in-progress' && (
+          <span className={styles.progressTrack} aria-hidden="true">
+            <span
+              className={styles.progressFill}
+              style={{ width: `${getReviewedPercentage(file)}%` }}
+            />
+          </span>
+        )}
+      </Link>
+    </li>
+  );
 }
 
 export function FileSelector() {
@@ -43,7 +90,18 @@ export function FileSelector() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
-  const navigate = useNavigate();
+  const activeFiles = files.filter((file) => getFileStatus(file) !== 'complete');
+  const completedFiles = files.filter((file) => getFileStatus(file) === 'complete');
+  const completedDetailsRef = useRef<HTMLDetailsElement | null>(null);
+  const setCompletedDetailsRef = useCallback(
+    (element: HTMLDetailsElement | null) => {
+      if (element !== null && completedDetailsRef.current === null) {
+        element.open = activeFiles.length === 0 || readStoredCompletedOpen();
+      }
+      completedDetailsRef.current = element;
+    },
+    [activeFiles.length]
+  );
 
   useEffect(() => {
     async function fetchFiles() {
@@ -59,26 +117,22 @@ export function FileSelector() {
     fetchFiles();
   }, []);
 
-  const handleSelect = (filename: string) => {
-    navigate(`/review?file=${encodeURIComponent(filename)}`);
-  };
-
   if (isLoading) {
     return (
-      <div className={styles.container}>
+      <main className={styles.container}>
         <div className={styles.loading}>
           <div className={styles.spinner} />
           <p>Loading files...</p>
         </div>
-      </div>
+      </main>
     );
   }
 
   if (error) {
     return (
-      <div className={styles.container}>
+      <main className={styles.container}>
         <div className={styles.error}>
-          <span className={styles.errorIcon}></span>
+          <span className={styles.errorIcon} />
           <h2>Connection Error</h2>
           <p>{error}</p>
           <button
@@ -89,17 +143,16 @@ export function FileSelector() {
             Try Again
           </button>
         </div>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className={styles.container}>
+    <main className={styles.container}>
       <div className={styles.content}>
         <header className={styles.header}>
           <h1 className={styles.title}>Anki Review</h1>
           <p className={styles.subtitle}>Select a card file to review</p>
-
           <button
             type="button"
             onClick={() => setShowGenerateModal(true)}
@@ -111,57 +164,56 @@ export function FileSelector() {
 
         {files.length === 0 ? (
           <div className={styles.empty}>
-            <span className={styles.emptyIcon}></span>
-            <h3>No card files found</h3>
-            <p>
-              Generate cards first using the <code>/create-anki-cards</code> command.
-            </p>
+            <h2>No card files yet</h2>
+            <p>Generate a set to start reviewing.</p>
           </div>
         ) : (
-          <ul className={styles.fileList}>
-            {files.map((file, index) => {
-              return (
-                <li
-                  key={file.filename}
-                  className={styles.fileItem}
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => handleSelect(file.filename)}
-                    className={styles.fileButton}
-                  >
-                    <div className={styles.fileInfo}>
-                      <div className={styles.fileHeader}>
-                        <span className={styles.filename}>{file.filename}</span>
-                        {getStatusBadge(file)}
-                      </div>
+          <div className={styles.sections}>
+            <section className={styles.section} aria-labelledby="active-heading">
+              <header className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle} id="active-heading">
+                  Active <span className={styles.sectionCount}>{activeFiles.length}</span>
+                </h2>
+                <p className={styles.sectionSubtitle}>New and unfinished card files</p>
+              </header>
+              {activeFiles.length > 0 ? (
+                <ul className={styles.fileList}>
+                  {activeFiles.map((file) => (
+                    <FileRow key={file.filename} file={file} />
+                  ))}
+                </ul>
+              ) : (
+                <p className={styles.sectionEmpty}>Nothing in progress — everything is reviewed.</p>
+              )}
+            </section>
 
-                      <div className={styles.stats}>
-                        <span className={styles.statLabel}>
-                          {file.added_cards} added · {file.skipped_cards} skipped ·{' '}
-                          {file.pending_cards} pending
-                        </span>
-                      </div>
-
-                      <div className={styles.progressBarContainer}>
-                        <div
-                          className={styles.progressBar}
-                          style={{ width: `${getReviewedPercentage(file)}%` }}
-                        />
-                      </div>
-                    </div>
-
-                    <span className={styles.fileArrow}></span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+            {completedFiles.length > 0 && (
+              <details
+                className={styles.completed}
+                ref={setCompletedDetailsRef}
+                onToggle={(event) => storeCompletedOpen(event.currentTarget.open)}
+              >
+                <summary className={styles.completedSummary}>
+                  <h2 className={styles.sectionTitle}>
+                    Completed <span className={styles.sectionCount}>{completedFiles.length}</span>
+                  </h2>
+                  <span className={styles.chevron} aria-hidden="true" />
+                </summary>
+                <div className={styles.completedContent}>
+                  <p className={styles.sectionSubtitle}>Fully reviewed</p>
+                  <ul className={styles.fileList}>
+                    {completedFiles.map((file) => (
+                      <FileRow key={file.filename} file={file} />
+                    ))}
+                  </ul>
+                </div>
+              </details>
+            )}
+          </div>
         )}
       </div>
 
       <GenerateModal isOpen={showGenerateModal} onClose={() => setShowGenerateModal(false)} />
-    </div>
+    </main>
   );
 }

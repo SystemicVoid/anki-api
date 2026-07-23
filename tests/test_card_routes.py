@@ -5,6 +5,9 @@ monkeypatched CARDS_DIR and a FakeAnkiClient — no TestClient, no running Anki.
 They verify the adapter maps ReviewSession outcomes to the right HTTP codes.
 """
 
+import os
+from datetime import UTC, datetime
+
 import pytest
 from fastapi import HTTPException
 
@@ -86,10 +89,10 @@ def test_skip_route_marks_skipped(tmp_path, monkeypatch):
     assert result.card.status == "skipped"
 
 
-def test_get_cards_route_returns_validation(tmp_path, monkeypatch):
+def test_open_card_file_returns_validation(tmp_path, monkeypatch):
     name = _seed(tmp_path, monkeypatch, [Flashcard(front="Q?", back="A")])
 
-    resp = cards_route.get_cards(name)
+    resp = cards_route.open_card_file(name)
 
     assert resp.total == 1
     assert resp.cards[0].card.front == "Q?"
@@ -111,10 +114,65 @@ def test_list_files_route_reports_counts(tmp_path, monkeypatch, fake_client):
     assert stat.pending_cards == 1
 
 
-def test_invalid_filename_is_400(tmp_path, monkeypatch):
+def test_list_files_orders_by_activity_and_open_moves_file_first(tmp_path, monkeypatch):
+    older_name = _seed(
+        tmp_path,
+        monkeypatch,
+        [Flashcard(front="Older?", back="A")],
+        name="older.json",
+    )
+    newer_name = _seed(
+        tmp_path,
+        monkeypatch,
+        [Flashcard(front="Newer?", back="A")],
+        name="newer.json",
+    )
+    older_mtime = 1_700_000_000
+    newer_mtime = older_mtime + 60
+    os.utime(tmp_path / older_name, (older_mtime, older_mtime))
+    os.utime(tmp_path / newer_name, (newer_mtime, newer_mtime))
+
+    listing = cards_route.list_card_files()
+
+    assert [file.filename for file in listing.files] == [newer_name, older_name]
+    assert listing.files[0].last_activity_at == datetime.fromtimestamp(
+        newer_mtime, tz=UTC
+    )
+
+    response = cards_route.open_card_file(older_name)
+    touched_mtime = (tmp_path / older_name).stat().st_mtime
+
+    assert response.filename == older_name
+    assert touched_mtime > newer_mtime
+    refreshed_listing = cards_route.list_card_files()
+    assert [file.filename for file in refreshed_listing.files] == [
+        older_name,
+        newer_name,
+    ]
+    assert refreshed_listing.files[0].last_activity_at == datetime.fromtimestamp(
+        touched_mtime, tz=UTC
+    )
+
+
+def test_open_card_file_activity_failure_is_500(tmp_path, monkeypatch):
+    name = _seed(tmp_path, monkeypatch, [Flashcard(front="Q?", back="A")])
+
+    def fail_activity_update(*_args):
+        raise OSError("read-only filesystem")
+
+    monkeypatch.setattr(cards_route.os, "utime", fail_activity_update)
+
+    with pytest.raises(HTTPException) as exc:
+        cards_route.open_card_file(name)
+
+    assert exc.value.status_code == 500
+    assert exc.value.detail == f"Failed to record file activity: {name}"
+
+
+def test_open_card_file_invalid_filename_is_400(tmp_path, monkeypatch):
     monkeypatch.setattr(cards_route, "CARDS_DIR", tmp_path)
 
     with pytest.raises(HTTPException) as exc:
-        cards_route.get_cards("../etc/passwd")
+        cards_route.open_card_file("../etc/passwd")
 
     assert exc.value.status_code == 400

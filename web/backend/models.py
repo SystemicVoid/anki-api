@@ -92,6 +92,7 @@ class FileStat(BaseModel):
     added_cards: int
     skipped_cards: int
     pending_cards: int
+    last_activity_at: datetime
 
 
 class FileListResponse(BaseModel):

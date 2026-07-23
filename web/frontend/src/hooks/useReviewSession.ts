@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { approveCard, loadCards, pingAnki, skipCard, updateCard } from '../api/client';
+import { approveCard, openCardFile, pingAnki, skipCard, updateCard } from '../api/client';
 import type { AnkiStatus, Card, CardWithValidation } from '../types';
 
 export interface ReviewSessionState {
@@ -43,7 +43,7 @@ export function useReviewSession(filename: string | null) {
     async function initialize() {
       try {
         const [cardsResponse, ankiResponse] = await Promise.all([
-          loadCards(currentFilename),
+          openCardFile(currentFilename),
           pingAnki(),
         ]);
 
