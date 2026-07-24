@@ -21,13 +21,12 @@ env/
 
 # Project specific
 scraped/
+# Card JSON and media belong to Anki once a card is added -- never versioned here.
 cards/*
-!cards/media/
-!cards/media/**
 notes/
 .archive/
 # Image-generation working artifacts (prompts, palette studies, render
-# experiments). Final diagrams live tracked under cards/media/.
+# experiments).
 codesignal-image-prompts/
 
 # Documents
