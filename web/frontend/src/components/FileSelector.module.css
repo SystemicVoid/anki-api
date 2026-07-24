@@ -212,7 +212,7 @@
   outline-offset: -2px;
 }
 
-/* Elapsed time — the value the whole page is sorted by */
+/* Elapsed time since last activity — the value the whole page is sorted by */
 
 .elapsed {
   display: inline-flex;
@@ -291,8 +291,8 @@
 
 .body {
   display: flex;
-  align-items: baseline;
-  gap: 0.625rem;
+  flex-direction: column;
+  gap: 0.1875rem;
   min-width: 0;
 }
 
@@ -314,6 +314,23 @@
   color: var(--text-tertiary);
   font-family: var(--font-mono);
   font-size: 0.625rem;
+}
+
+.identity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.revision {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .row[data-status="complete"] .title {

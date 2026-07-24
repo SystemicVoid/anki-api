@@ -90,14 +90,14 @@ function describeQueue(
       tail: `${reviewedCount} sets sit in the archive.`,
     };
   }
-  // The list arrives newest-first, so the last waiting row is the one that has sat longest.
-  const oldest = spellElapsed(waiting[waiting.length - 1].last_activity_at);
+  // The list arrives most-recently-active first, so the last waiting row has waited longest.
+  const oldestActivity = spellElapsed(waiting[waiting.length - 1].last_activity_at);
   if (waiting.length === 1) {
-    return { lead: 'One set is waiting.', tail: `It landed ${oldest}.` };
+    return { lead: 'One set is waiting.', tail: `It was last active ${oldestActivity}.` };
   }
   return {
     lead: `${countWord(waiting.length)} sets are waiting.`,
-    tail: `The oldest landed ${oldest}.`,
+    tail: `The longest-waiting set was last active ${oldestActivity}.`,
   };
 }
 
@@ -119,8 +119,10 @@ function storeCompletedOpen(open: boolean): void {
 
 function FileRow({ file }: { file: FileStat }) {
   const status = getFileStatus(file);
-  const { title, source } = parseSetName(file.filename);
+  const { title, source, revision } = parseSetName(file.filename);
   const { value, unit } = splitRelativeTime(file.last_activity_at);
+  const activityLabel = spellElapsed(file.last_activity_at);
+  const activityDate = new Date(file.last_activity_at).toLocaleString();
 
   return (
     <li
@@ -136,17 +138,34 @@ function FileRow({ file }: { file: FileStat }) {
         <time
           className={styles.elapsed}
           dateTime={file.last_activity_at}
-          title={new Date(file.last_activity_at).toLocaleString()}
+          title={`Last activity: ${activityDate}`}
         >
-          <span className={styles.elapsedValue}>{value}</span>
-          {unit && <span className={styles.elapsedUnit}>{unit}</span>}
+          <span className="sr-only">Last activity: {activityLabel}</span>
+          <span className={styles.elapsedValue} aria-hidden="true">
+            {value}
+          </span>
+          {unit && (
+            <span className={styles.elapsedUnit} aria-hidden="true">
+              {unit}
+            </span>
+          )}
         </time>
 
         <span className={styles.marker} aria-hidden="true" />
 
         <span className={styles.body}>
           <span className={styles.title}>{title}</span>
-          {source && <span className={styles.source}>{source}</span>}
+          {(source || revision) && (
+            <span className={styles.identity}>
+              {source && <span className={styles.source}>{source}</span>}
+              {revision && (
+                <time className={styles.revision} dateTime={revision.dateTime}>
+                  <span className="sr-only">Revision: </span>
+                  {revision.label}
+                </time>
+              )}
+            </span>
+          )}
         </span>
 
         <span className={styles.meta}>
