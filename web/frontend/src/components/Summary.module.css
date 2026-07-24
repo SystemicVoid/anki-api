@@ -14,7 +14,7 @@
   border-radius: var(--radius-lg);
   background: var(--bg-secondary);
   box-shadow: var(--edge), var(--shadow-lg);
-  animation: riseIn var(--transition-base) ease-out;
+  animation: var(--keyframe-rise-in) var(--transition-base) ease-out;
 }
 
 .eyebrow {

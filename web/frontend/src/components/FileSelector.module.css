@@ -16,7 +16,7 @@
   width: 100%;
   min-width: 0;
   max-width: 760px;
-  animation: riseIn var(--transition-slow) ease-out both;
+  animation: var(--keyframe-rise-in) var(--transition-slow) ease-out both;
 }
 
 /* Masthead */

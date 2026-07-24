@@ -14,7 +14,7 @@
   margin-bottom: var(--space-lg);
   padding-bottom: var(--space-md);
   border-bottom: 1px solid var(--rule);
-  animation: fadeIn var(--transition-base) ease-out;
+  animation: var(--keyframe-fade-in) var(--transition-base) ease-out;
 }
 
 .title {
@@ -50,7 +50,7 @@
   border-radius: var(--radius-lg);
   background: var(--bg-secondary);
   box-shadow: var(--edge);
-  animation: fadeIn var(--transition-base) ease-out;
+  animation: var(--keyframe-fade-in) var(--transition-base) ease-out;
 }
 
 .connecting {
@@ -86,7 +86,7 @@
   margin-bottom: 2px;
   border-left: 2px solid transparent;
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  animation: riseIn var(--transition-fast) ease-out;
+  animation: var(--keyframe-rise-in) var(--transition-fast) ease-out;
 }
 
 .messageIcon {
@@ -180,7 +180,7 @@
   background: var(--bg-secondary);
   box-shadow: var(--edge);
   text-align: center;
-  animation: riseIn var(--transition-base) ease-out;
+  animation: var(--keyframe-rise-in) var(--transition-base) ease-out;
 }
 
 .error h2 {

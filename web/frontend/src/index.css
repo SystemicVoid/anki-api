@@ -80,6 +80,11 @@
   --transition-fast: 150ms ease;
   --transition-base: 250ms ease;
   --transition-slow: 400ms ease;
+
+  /* Global names stay behind variables so CSS Modules cannot scope them locally. */
+  --keyframe-fade-in: fadeIn;
+  --keyframe-rise-in: riseIn;
+  --keyframe-pulse: pulse;
 }
 
 *,

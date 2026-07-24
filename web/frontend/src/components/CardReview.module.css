@@ -15,7 +15,7 @@
   align-items: center;
   gap: var(--space-lg);
   margin-bottom: var(--space-xl);
-  animation: fadeIn var(--transition-base) ease-out;
+  animation: var(--keyframe-fade-in) var(--transition-base) ease-out;
 }
 
 .setName {
@@ -124,7 +124,7 @@
 
 .disconnected .ankiDot {
   background: var(--signal);
-  animation: pulse 1.5s ease-in-out infinite;
+  animation: var(--keyframe-pulse) 1.5s ease-in-out infinite;
 }
 
 .ankiText {
@@ -147,7 +147,7 @@
   margin-top: auto;
   padding: var(--space-lg) 0 var(--space-sm);
   background: linear-gradient(to top, var(--bg-primary) 55%, transparent);
-  animation: fadeIn var(--transition-base) ease-out;
+  animation: var(--keyframe-fade-in) var(--transition-base) ease-out;
 }
 
 .actions {
@@ -242,7 +242,7 @@
   background: var(--bg-secondary);
   box-shadow: var(--edge);
   text-align: center;
-  animation: riseIn var(--transition-base) ease-out;
+  animation: var(--keyframe-rise-in) var(--transition-base) ease-out;
 }
 
 .eyebrow {
@@ -288,7 +288,7 @@
   background: var(--signal-soft);
   color: var(--text-primary);
   font-size: 0.875rem;
-  animation: riseIn var(--transition-fast) ease-out;
+  animation: var(--keyframe-rise-in) var(--transition-fast) ease-out;
 }
 
 .dismissButton {
