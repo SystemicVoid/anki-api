@@ -1,51 +1,56 @@
 .container {
   display: flex;
-  align-items: center;
   justify-content: center;
   min-height: 100vh;
-  padding: var(--space-xl);
+  padding: var(--space-2xl) var(--space-xl);
 }
 
 .content {
-  max-width: 700px;
   width: 100%;
+  max-width: 760px;
 }
 
 .header {
-  text-align: center;
-  margin-bottom: var(--space-xl);
-  animation: slideDown 0.6s ease-out;
+  margin-bottom: var(--space-lg);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--rule);
+  animation: fadeIn var(--transition-base) ease-out;
 }
 
 .title {
-  font-family: var(--font-display);
-  font-size: 2.5rem;
-  font-weight: 500;
+  margin: 0 0 var(--space-xs);
   color: var(--text-primary);
-  margin: 0 0 var(--space-sm);
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 500;
 }
 
 .subtitle {
-  font-size: 0.95rem;
-  color: var(--text-tertiary);
   margin: 0;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
   word-break: break-word;
 }
 
 .tags {
-  font-size: 0.85rem;
-  color: var(--text-muted);
   margin: var(--space-xs) 0 0;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
 }
 
+/* The console */
+
 .messagesContainer {
-  background: var(--bg-secondary);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  padding: var(--space-xl);
-  max-height: 500px;
+  max-height: 560px;
+  padding: var(--space-lg);
   overflow-y: auto;
-  animation: fadeIn 0.4s ease-out;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+  box-shadow: var(--edge);
+  animation: fadeIn var(--transition-base) ease-out;
 }
 
 .connecting {
@@ -55,13 +60,15 @@
   gap: var(--space-md);
   padding: var(--space-2xl);
   color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
 }
 
 .spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--bg-tertiary);
-  border-top-color: var(--accent-primary);
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--rule);
+  border-top-color: var(--text-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -75,17 +82,18 @@
 .message {
   display: flex;
   gap: var(--space-md);
-  padding: var(--space-md);
-  margin-bottom: var(--space-md);
-  border-radius: var(--radius-md);
-  animation: slideUp 0.3s ease-out;
-  border-left: 3px solid transparent;
+  padding: var(--space-sm) var(--space-md);
+  margin-bottom: 2px;
+  border-left: 2px solid transparent;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  animation: riseIn var(--transition-fast) ease-out;
 }
 
 .messageIcon {
-  font-size: 1.25rem;
   flex-shrink: 0;
-  line-height: 1.5;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  opacity: 0.8;
 }
 
 .messageContent {
@@ -95,19 +103,23 @@
 
 .messageContent p {
   margin: 0;
-  color: var(--text-primary);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
   line-height: 1.6;
   word-wrap: break-word;
 }
 
 .messageStatus {
   background: var(--color-info-bg);
-  border-left-color: var(--color-info);
+  border-left-color: var(--rule-strong);
 }
 
 .messageText {
-  background: var(--bg-tertiary);
-  border-left-color: var(--accent-secondary);
+  border-left-color: var(--rule);
+}
+
+.messageText p {
+  color: var(--text-tertiary);
 }
 
 .messageTool {
@@ -116,132 +128,109 @@
 }
 
 .toolName {
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: var(--space-xs);
+  color: var(--text-primary) !important;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem !important;
 }
 
 .toolInput {
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  background: var(--bg-secondary);
-  padding: var(--space-sm);
-  border-radius: var(--radius-sm);
-  overflow-x: auto;
   margin: var(--space-sm) 0 0;
+  padding: var(--space-sm);
+  overflow-x: auto;
+  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
 }
 
 .messageComplete {
   background: var(--color-success-bg);
-  border-left-color: var(--color-success);
+  border-left-color: var(--text-primary);
+}
+
+.messageComplete .messageContent p {
+  color: var(--text-primary);
 }
 
 .redirectMessage {
-  font-size: 0.9rem;
-  color: var(--text-tertiary);
-  margin-top: var(--space-xs);
-  font-style: italic;
+  margin-top: var(--space-xs) !important;
+  color: var(--text-tertiary) !important;
+  font-family: var(--font-mono);
+  font-size: 0.75rem !important;
 }
 
 .messageError {
-  background: var(--color-error-bg);
-  border-left-color: var(--color-error);
+  background: var(--signal-soft);
+  border-left-color: var(--signal);
 }
 
+.messageError .messageContent p {
+  color: var(--text-primary);
+}
+
+/* Missing-source error card */
+
 .error {
-  text-align: center;
+  max-width: 440px;
+  margin: auto;
   padding: var(--space-2xl);
-  background: var(--bg-secondary);
+  border: 1px solid var(--rule);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  animation: fadeIn 0.4s ease-out;
+  background: var(--bg-secondary);
+  box-shadow: var(--edge);
+  text-align: center;
+  animation: riseIn var(--transition-base) ease-out;
 }
 
 .error h2 {
-  font-family: var(--font-display);
-  font-size: 1.75rem;
-  color: var(--color-error);
   margin: 0 0 var(--space-md);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 500;
 }
 
 .error p {
-  color: var(--text-secondary);
   margin: 0 0 var(--space-xl);
+  color: var(--text-tertiary);
 }
 
 .errorFooter {
+  margin-top: var(--space-lg);
   text-align: center;
-  margin-top: var(--space-xl);
 }
 
 .backButton {
-  padding: var(--space-sm) var(--space-xl);
-  background: var(--accent-primary);
-  color: white;
+  padding: 0.625rem var(--space-xl);
   border: none;
   border-radius: var(--radius-md);
-  font-size: 1rem;
-  font-weight: 500;
+  background: var(--accent-primary);
+  color: var(--bg-primary);
   cursor: pointer;
-  transition: background 0.2s ease;
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  transition: background var(--transition-fast);
 }
 
 .backButton:hover {
   background: var(--accent-primary-hover);
 }
 
-.backButton:active {
-  transform: scale(0.98);
-}
-
-/* Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
+@media (prefers-reduced-motion: reduce) {
+  .header,
+  .messagesContainer,
+  .message,
+  .error {
+    animation: none;
   }
-  to {
-    opacity: 1;
+
+  .spinner {
+    animation: none;
   }
-}
 
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
+  .backButton {
+    transition: none;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Scrollbar styling */
-.messagesContainer::-webkit-scrollbar {
-  width: 8px;
-}
-
-.messagesContainer::-webkit-scrollbar-track {
-  background: var(--bg-tertiary);
-  border-radius: var(--radius-sm);
-}
-
-.messagesContainer::-webkit-scrollbar-thumb {
-  background: var(--text-tertiary);
-  border-radius: var(--radius-sm);
-}
-
-.messagesContainer::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
 }

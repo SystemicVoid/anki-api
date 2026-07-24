@@ -1,81 +1,203 @@
+/*
+ * The plate is the same colour as the panels inside the diagrams (#08202c), so
+ * a diagram set on it as a full-bleed band sits flush — its own frame becomes
+ * the card's. Depth reads as a lit top edge, never a cast shadow.
+ */
+
 .card {
-  background: var(--bg-secondary);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
-  padding: var(--space-2xl);
-  animation: scaleIn var(--transition-slow) ease-out;
+  --plate-pad: var(--space-2xl);
+
   position: relative;
-  overflow: hidden;
+  padding: var(--plate-pad);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+  box-shadow: var(--edge), var(--shadow-md);
+  animation: riseIn var(--transition-base) ease-out;
 }
 
-/* Subtle decorative corner accent */
-.card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 120px;
-  height: 120px;
-  background: linear-gradient(135deg, transparent 50%, var(--bg-tertiary) 50%);
-  opacity: 0.5;
-}
+/* Eyebrows: mono, quiet, the machine voice naming each region */
 
-/* Copy button */
-.copyButton {
-  position: absolute;
-  bottom: var(--space-lg);
-  right: var(--space-lg);
+.labelRow {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.label {
+  display: block;
+  margin-bottom: var(--space-md);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.labelRow .label {
+  margin-bottom: 0;
+}
+
+.addedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.addedBadge::before {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  content: "";
+}
+
+/* Question — the content voice */
+
+.question {
+  margin: 0;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 1.1rem + 1vw, 1.9rem);
+  font-weight: 500;
+  line-height: 1.24;
+}
+
+.divider {
+  height: 1px;
+  margin: var(--space-xl) 0;
+  background: var(--rule);
+}
+
+/* Answer — prose voice, held to a readable measure */
+
+.answer {
+  max-width: 68ch;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.72;
+}
+
+/* Diagrams — full-bleed bands, transparent so dark plates sit flush */
+
+.mediaSection {
+  display: grid;
+  gap: var(--space-md);
+  margin: var(--space-xl) calc(-1 * var(--plate-pad)) 0;
+}
+
+.cardImage {
+  display: block;
+  width: 100%;
+  max-height: 32rem;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  object-fit: contain;
+}
+
+/* Context — set apart by a left rule, wheat-tertiary, not italic */
+
+.contextSection {
+  margin-top: var(--space-xl);
+  padding: var(--space-xs) 0 var(--space-xs) var(--space-lg);
+  border-left: 2px solid var(--rule);
+}
+
+.context {
+  max-width: 68ch;
+  color: var(--text-tertiary);
+  font-size: 0.9375rem;
+  line-height: 1.7;
+}
+
+/* Footer */
+
+.footer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-top: var(--space-xl);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--rule);
+}
+
+.tags {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+/* Tags carry a namespace; colour by hierarchy, not by position */
+
+.tag {
+  display: inline-flex;
+  align-items: baseline;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+}
+
+.tagNamespace {
+  color: var(--text-tertiary);
+}
+
+.tagSep {
+  color: var(--text-muted);
+}
+
+.tagLeaf {
+  color: var(--text-primary);
+}
+
+/* Copy — a ghost control */
+
+.copyButton {
+  display: flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
   width: 32px;
   height: 32px;
   padding: 0;
-  background: transparent;
-  border: 1px solid var(--bg-tertiary);
+  border: 1px solid var(--rule);
   border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-tertiary);
   cursor: pointer;
-  color: var(--text-muted);
-  opacity: 0.6;
   transition:
-    background var(--transition-fast),
-    color var(--transition-fast),
     border-color var(--transition-fast),
-    transform var(--transition-fast),
-    opacity var(--transition-fast);
+    color var(--transition-fast);
 }
 
 .copyButton:hover {
-  background: var(--bg-tertiary);
-  border-color: var(--accent-secondary);
-  color: var(--accent-primary);
-  opacity: 1;
-  transform: translateY(-1px);
-}
-
-.copyButton:active {
-  transform: translateY(0) scale(0.95);
+  border-color: var(--rule-strong);
+  color: var(--text-primary);
 }
 
 .copyButton.copied {
-  background: var(--color-success-bg);
-  border-color: var(--color-success);
-  color: var(--color-success);
-  opacity: 1;
+  border-color: var(--rule-strong);
+  color: var(--text-primary);
 }
 
 .copyIcon {
   width: 16px;
   height: 16px;
-  transition: transform var(--transition-fast);
-}
-
-.copyButton:hover .copyIcon {
-  transform: scale(1.08);
-}
-
-.copyButton.copied .copyIcon {
-  animation: copySuccess 0.4s ease-out;
 }
 
 .checkPath {
@@ -84,250 +206,31 @@
   animation: drawCheck 0.3s ease-out forwards;
 }
 
-@keyframes copySuccess {
-  0% {
-    transform: scale(0.8);
-    opacity: 0;
-  }
-  50% {
-    transform: scale(1.15);
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
 @keyframes drawCheck {
   to {
     stroke-dashoffset: 0;
   }
 }
 
-.questionSection {
-  position: relative;
-  z-index: 1;
-}
-
-.label {
-  display: block;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-muted);
-  margin-bottom: var(--space-sm);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.addedBadge {
-  color: var(--color-success);
-  font-size: 0.625rem;
-  padding: 2px 6px;
-  background: rgba(var(--color-success-rgb), 0.1);
-  border-radius: var(--radius-sm);
-  margin-left: auto;
-}
-
-.question {
-  font-family: var(--font-display);
-  font-size: 1.75rem;
-  font-weight: 500;
-  line-height: 1.3;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.divider {
-  display: flex;
-  align-items: center;
-  margin: var(--space-xl) 0;
-}
-
-.dividerLine {
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(
-    to right,
-    var(--accent-secondary),
-    var(--bg-tertiary) 30%,
-    var(--bg-tertiary) 70%,
-    var(--accent-primary)
-  );
-}
-
-.answerSection {
-  position: relative;
-  z-index: 1;
-}
-
-.answer {
-  font-size: 1rem;
-  line-height: 1.7;
-  color: var(--text-secondary);
-}
-
-.mediaSection {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  gap: var(--space-md);
-  margin-top: var(--space-xl);
-}
-
-.cardImage {
-  display: block;
-  width: 100%;
-  max-height: 34rem;
-  object-fit: contain;
-  background: #fff;
-  border: 1px solid var(--bg-tertiary);
-  border-radius: var(--radius-lg);
-}
-
-/* Context section */
-.contextDivider {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-  margin: var(--space-xl) 0 var(--space-lg);
-}
-
-.contextDividerLine {
-  flex: 1;
-  height: 1px;
-  background: var(--bg-tertiary);
-}
-
-.contextDividerText {
-  font-size: 0.625rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: var(--text-muted);
-}
-
-.contextSection {
-  padding-left: var(--space-lg);
-  border-left: 2px solid var(--bg-tertiary);
-}
-
-.context {
-  font-size: 0.9375rem;
-  line-height: 1.7;
-  color: var(--text-tertiary);
-  font-style: italic;
-}
-
-/* Footer */
-.footer {
-  margin-top: var(--space-xl);
-  padding-top: var(--space-lg);
-  border-top: 1px solid var(--bg-tertiary);
-}
-
-.tags {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--space-xs);
-  margin-bottom: var(--space-md);
-}
-
-.tag {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--space-xs) var(--space-sm);
-  background: var(--bg-tertiary);
-  color: var(--text-secondary);
-  font-size: 0.75rem;
-  font-weight: 500;
-  font-family: var(--font-mono);
-  border-radius: var(--radius-sm);
-  transition:
-    background var(--transition-fast),
-    color var(--transition-fast);
-}
-
-.tag:nth-child(3n + 1) {
-  background: rgba(45, 90, 74, 0.1);
-  color: var(--accent-primary);
-}
-
-.tag:nth-child(3n + 2) {
-  background: rgba(212, 165, 116, 0.15);
-  color: #8b6914;
-}
-
-.tag:nth-child(3n + 3) {
-  background: rgba(30, 78, 140, 0.1);
-  color: var(--color-info);
-}
-
-.meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-lg);
-}
-
-.metaItem {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-xs);
-  font-size: 0.8125rem;
-  color: var(--text-muted);
-}
-
-.metaIcon {
-  font-size: 0.875rem;
-}
-
-.sourceLink {
-  color: var(--text-tertiary);
-  text-decoration: underline;
-  text-decoration-color: transparent;
-  text-underline-offset: 2px;
-  transition:
-    color var(--transition-fast),
-    text-decoration-color var(--transition-fast);
-}
-
-.sourceLink:hover {
-  color: var(--accent-primary);
-  text-decoration-color: currentColor;
-}
-
-.sourceText {
-  color: var(--text-tertiary);
-}
-
-/* Animation */
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.97) translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-/* Responsive */
 @media (max-width: 640px) {
   .card {
-    padding: var(--space-lg);
-    border-radius: var(--radius-lg);
+    --plate-pad: var(--space-lg);
+
+    border-radius: var(--radius-md);
   }
 
   .question {
-    font-size: 1.375rem;
+    font-size: 1.3rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    animation: none;
   }
 
-  .card::before {
-    width: 80px;
-    height: 80px;
+  .checkPath {
+    animation: none;
+    stroke-dashoffset: 0;
   }
 }

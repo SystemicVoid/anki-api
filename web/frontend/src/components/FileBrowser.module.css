@@ -4,169 +4,150 @@
   gap: var(--space-md);
 }
 
-/* Mode Selector */
-.modeSelector {
+/* Segmented controls */
+
+.modeSelector,
+.directoryTypeSelector {
   display: flex;
-  gap: var(--space-xs);
-  padding: var(--space-xs);
-  background: var(--bg-tertiary);
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--rule);
   border-radius: var(--radius-md);
+  background: var(--bg-primary);
 }
 
 .modeButton,
-.modeButtonActive {
-  flex: 1;
-  padding: var(--space-sm) var(--space-md);
-  border: none;
-  border-radius: var(--radius-sm);
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    background 0.2s ease,
-    color 0.2s ease;
-}
-
-.modeButton {
-  background: transparent;
-  color: var(--text-tertiary);
-}
-
-.modeButton:hover {
-  background: var(--bg-primary);
-  color: var(--text-primary);
-}
-
-.modeButtonActive {
-  background: var(--bg-primary);
-  color: var(--accent-primary);
-}
-
-/* Directory Type Selector */
-.directoryTypeSelector {
-  display: flex;
-  gap: var(--space-xs);
-  padding: var(--space-xs);
-  background: var(--bg-tertiary);
-  border-radius: var(--radius-md);
-}
-
+.modeButtonActive,
 .typeButton,
 .typeButtonActive {
   flex: 1;
   padding: var(--space-sm) var(--space-md);
   border: none;
   border-radius: var(--radius-sm);
-  font-size: 0.9rem;
-  font-weight: 500;
   cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   transition:
-    background 0.2s ease,
-    color 0.2s ease;
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
+.modeButton,
 .typeButton {
   background: transparent;
-  color: var(--text-tertiary);
+  color: var(--text-muted);
 }
 
+.modeButton:hover,
 .typeButton:hover {
-  background: var(--bg-primary);
+  color: var(--text-secondary);
+}
+
+.modeButtonActive,
+.typeButtonActive {
+  background: var(--bg-tertiary);
   color: var(--text-primary);
 }
 
-.typeButtonActive {
-  background: var(--bg-primary);
-  color: var(--accent-primary);
-}
+/* Recent files */
 
-/* Recent Files Panel */
 .recentPanel {
   padding: var(--space-md);
-  background: var(--bg-tertiary);
+  border: 1px solid var(--rule);
   border-radius: var(--radius-md);
+  background: var(--bg-primary);
 }
 
 .recentTitle {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--text-tertiary);
-  margin: 0 0 var(--space-sm) 0;
+  margin: 0 0 var(--space-sm);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .recentList {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: 2px;
 }
 
 .recentItem {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   padding: var(--space-sm);
-  background: var(--bg-primary);
   border: none;
   border-radius: var(--radius-sm);
+  background: transparent;
   cursor: pointer;
-  transition: background 0.2s ease;
   text-align: left;
+  transition: background var(--transition-fast);
 }
 
 .recentItem:hover {
-  background: var(--bg-secondary);
+  background: var(--bg-tertiary);
 }
 
 .recentName {
-  font-size: 0.9rem;
-  color: var(--text-primary);
   overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .recentTime {
-  font-size: 0.8rem;
-  color: var(--text-tertiary);
   margin-left: var(--space-sm);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
   white-space: nowrap;
 }
 
-/* Path Display */
+/* Path display */
+
 .pathDisplay {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: var(--space-sm);
   padding: var(--space-sm) var(--space-md);
-  background: var(--bg-tertiary);
+  border: 1px solid var(--rule);
   border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  background: var(--bg-primary);
+  font-size: 0.8125rem;
 }
 
 .pathLabel {
-  color: var(--text-tertiary);
-  font-weight: 500;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .pathValue {
-  color: var(--text-primary);
-  font-family: monospace;
   overflow: hidden;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* Browser Panel */
+/* Browser */
+
 .browserPanel {
   min-height: 200px;
-  max-height: 400px;
+  max-height: 360px;
   overflow-y: auto;
-  padding: var(--space-md);
-  background: var(--bg-tertiary);
+  padding: var(--space-sm);
+  border: 1px solid var(--rule);
   border-radius: var(--radius-md);
-  border: 1px solid var(--bg-primary);
+  background: var(--bg-primary);
 }
 
 .loading,
@@ -177,18 +158,17 @@
   justify-content: center;
   padding: var(--space-xl);
   color: var(--text-tertiary);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
 }
 
 .error {
-  color: var(--color-error);
+  color: var(--text-primary);
 }
 
-/* Node List */
 .nodeList {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: 2px;
 }
 
 .nodeItem {
@@ -196,93 +176,78 @@
   align-items: center;
   gap: var(--space-sm);
   padding: var(--space-sm) var(--space-md);
-  background: var(--bg-primary);
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
+  background: transparent;
   cursor: pointer;
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease;
   text-align: left;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
 }
 
 .nodeItem:hover:not(.nodeItemDisabled) {
-  background: var(--bg-secondary);
-  border-color: var(--bg-tertiary);
+  background: var(--bg-tertiary);
 }
 
 .nodeItemSelected {
-  background: var(--bg-secondary);
-  border-color: var(--accent-primary);
+  border-color: var(--rule-strong);
+  background: var(--bg-tertiary);
 }
 
 .nodeItemDisabled {
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 .nodeIcon {
-  font-size: 1.2rem;
   flex-shrink: 0;
+  font-size: 1rem;
+  opacity: 0.7;
 }
 
 .nodeName {
   flex: 1;
-  font-size: 0.9rem;
-  color: var(--text-primary);
   overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .nodeInfo {
-  font-size: 0.8rem;
-  color: var(--text-tertiary);
-  white-space: nowrap;
   margin-left: auto;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  white-space: nowrap;
 }
 
-/* Selected File Display */
+/* Selected file */
+
 .selectedDisplay {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: var(--space-sm);
   padding: var(--space-sm) var(--space-md);
-  background: var(--bg-tertiary);
+  border: 1px solid var(--rule-strong);
   border-radius: var(--radius-md);
-  border: 1px solid var(--accent-primary);
+  background: var(--signal-soft);
 }
 
 .selectedLabel {
-  color: var(--accent-primary);
-  font-weight: 500;
-  font-size: 0.9rem;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .selectedPath {
-  color: var(--text-primary);
-  font-family: monospace;
-  font-size: 0.85rem;
   overflow: hidden;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-/* Scrollbar Styling */
-.browserPanel::-webkit-scrollbar {
-  width: 8px;
-}
-
-.browserPanel::-webkit-scrollbar-track {
-  background: var(--bg-primary);
-  border-radius: var(--radius-sm);
-}
-
-.browserPanel::-webkit-scrollbar-thumb {
-  background: var(--text-muted);
-  border-radius: var(--radius-sm);
-}
-
-.browserPanel::-webkit-scrollbar-thumb:hover {
-  background: var(--text-tertiary);
 }

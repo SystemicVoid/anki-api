@@ -51,7 +51,7 @@ export function GenerateModal({ isOpen, onClose }: GenerateModalProps) {
     <div className={styles.backdrop} role="presentation" onClick={handleBackdropClick}>
       <div className={styles.modal}>
         <header className={styles.header}>
-          <h2 className={styles.title}>Generate New Cards</h2>
+          <h2 className={styles.title}>Generate cards</h2>
           <button
             type="button"
             onClick={onClose}
@@ -129,7 +129,7 @@ export function GenerateModal({ isOpen, onClose }: GenerateModalProps) {
               Cancel
             </button>
             <button type="submit" disabled={isSubmitDisabled} className={styles.generateButton}>
-              Generate Cards
+              Generate cards
             </button>
           </div>
         </form>

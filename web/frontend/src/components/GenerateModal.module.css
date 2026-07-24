@@ -1,101 +1,101 @@
 .backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(44, 40, 37, 0.5);
+  inset: 0;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--space-xl);
-  z-index: 1000;
+  background: rgba(4, 21, 31, 0.72);
+  backdrop-filter: blur(4px);
   animation: fadeIn 0.2s ease-out;
 }
 
 .modal {
-  background: var(--bg-secondary);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  max-width: 500px;
   width: 100%;
+  max-width: 520px;
   max-height: 90vh;
   overflow-y: auto;
-  animation: slideUp 0.3s ease-out;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+  box-shadow: var(--edge), var(--shadow-lg);
+  animation: riseIn 0.25s ease-out;
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-xl);
-  border-bottom: 1px solid var(--bg-tertiary);
+  padding: var(--space-xl) var(--space-xl) var(--space-lg);
+}
+
+.title {
+  margin: 0;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+  transition:
+    border-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.closeButton:hover {
+  border-color: var(--rule-strong);
+  color: var(--text-primary);
 }
 
 .tabs {
   display: flex;
-  gap: var(--space-xs);
-  padding: var(--space-md) var(--space-xl) 0;
-  border-bottom: 1px solid var(--bg-tertiary);
+  gap: var(--space-lg);
+  padding: 0 var(--space-xl);
+  border-bottom: 1px solid var(--rule);
 }
 
 .tab,
 .tabActive {
-  flex: 1;
-  padding: var(--space-md);
+  padding: var(--space-sm) 0;
   border: none;
+  border-bottom: 1px solid transparent;
   background: none;
-  font-size: 1rem;
-  font-weight: 500;
   cursor: pointer;
-  border-bottom: 2px solid transparent;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   transition:
-    color 0.2s ease,
-    border-color 0.2s ease;
+    color var(--transition-fast),
+    border-color var(--transition-fast);
 }
 
 .tab {
-  color: var(--text-tertiary);
+  color: var(--text-muted);
 }
 
 .tab:hover {
-  color: var(--text-primary);
+  color: var(--text-secondary);
 }
 
 .tabActive {
-  color: var(--accent-primary);
-  border-bottom-color: var(--accent-primary);
-}
-
-.title {
-  font-family: var(--font-display);
-  font-size: 1.75rem;
-  font-weight: 500;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.closeButton {
-  background: none;
-  border: none;
-  font-size: 2rem;
-  line-height: 1;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-sm);
-  transition:
-    background 0.2s ease,
-    color 0.2s ease;
-}
-
-.closeButton:hover {
-  background: var(--bg-tertiary);
+  margin-bottom: -1px;
+  border-bottom-color: var(--text-primary);
   color: var(--text-primary);
 }
 
@@ -113,32 +113,38 @@
 
 .label {
   display: block;
-  font-weight: 500;
-  color: var(--text-primary);
   margin-bottom: var(--space-sm);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .required {
-  color: var(--color-error);
+  color: var(--signal);
 }
 
 .input {
   width: 100%;
   padding: var(--space-md);
-  border: 1px solid var(--bg-tertiary);
+  border: 1px solid var(--rule);
   border-radius: var(--radius-md);
-  font-size: 1rem;
-  color: var(--text-primary);
   background: var(--bg-primary);
+  color: var(--text-primary);
+  caret-color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
   transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .input:focus {
   outline: none;
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(45, 90, 74, 0.1);
+  border-color: var(--rule-strong);
+  box-shadow: var(--focus-ring);
 }
 
 .input::placeholder {
@@ -146,42 +152,48 @@
 }
 
 .hint {
-  font-size: 0.85rem;
-  color: var(--text-tertiary);
   margin: var(--space-xs) 0 0;
+  color: var(--text-tertiary);
+  font-size: 0.8125rem;
 }
 
 .actions {
   display: flex;
-  gap: var(--space-md);
   justify-content: flex-end;
+  gap: var(--space-md);
 }
 
 .cancelButton,
 .generateButton {
-  padding: var(--space-sm) var(--space-xl);
+  padding: 0.625rem var(--space-xl);
+  border: 1px solid transparent;
   border-radius: var(--radius-md);
-  font-size: 1rem;
-  font-weight: 500;
   cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  font-weight: 500;
   transition:
-    background 0.2s ease,
-    transform 0.1s ease;
-  border: none;
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    opacity var(--transition-fast);
 }
 
 .cancelButton {
+  border-color: var(--rule);
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.cancelButton:hover {
+  border-color: var(--rule-strong);
   background: var(--bg-tertiary);
   color: var(--text-primary);
 }
 
-.cancelButton:hover {
-  background: var(--bg-primary);
-}
-
 .generateButton {
   background: var(--accent-primary);
-  color: white;
+  color: var(--bg-primary);
 }
 
 .generateButton:hover {
@@ -189,33 +201,22 @@
 }
 
 .generateButton:disabled {
-  background: var(--text-muted);
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: 0.4;
 }
 
-.cancelButton:active,
-.generateButton:active {
-  transform: scale(0.98);
-}
+@media (prefers-reduced-motion: reduce) {
+  .backdrop,
+  .modal {
+    animation: none;
+  }
 
-/* Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  .tab,
+  .tabActive,
+  .closeButton,
+  .input,
+  .cancelButton,
+  .generateButton {
+    transition: none;
   }
 }

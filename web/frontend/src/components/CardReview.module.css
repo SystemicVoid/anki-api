@@ -1,110 +1,129 @@
 .container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  padding: var(--space-lg);
-  max-width: 800px;
-  margin: 0 auto;
   width: 100%;
+  max-width: 820px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: var(--space-xl) var(--space-lg) var(--space-lg);
 }
 
-/* Header */
+/* Header: set name · deck rail · position · anki */
+
 .header {
   display: flex;
   align-items: center;
   gap: var(--space-lg);
   margin-bottom: var(--space-xl);
-  animation: slideDown var(--transition-base) ease-out;
+  animation: fadeIn var(--transition-base) ease-out;
 }
 
-.progress {
-  flex: 1;
-}
-
-.progressText {
-  display: block;
-  font-size: 0.8125rem;
-  color: var(--text-tertiary);
-  margin-bottom: var(--space-xs);
-}
-
-.progressText strong {
-  color: var(--text-primary);
-  font-weight: 600;
-}
-
-.progressBar {
-  height: 4px;
-  background: var(--bg-tertiary);
-  border-radius: 2px;
+.setName {
+  flex: 0 0 auto;
+  max-width: 34%;
   overflow: hidden;
+  color: var(--text-primary);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.progressFill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
-  border-radius: 2px;
-  transition: width var(--transition-base) ease-out;
-}
+/* The deck rail — one tick per card, driven by status */
 
-.stats {
+.rail {
   display: flex;
+  flex: 1;
+  align-items: flex-end;
+  gap: 2px;
+  height: 16px;
+}
+
+.tick {
+  flex: 1 1 auto;
+  min-width: 2px;
+  max-width: 7px;
+  height: 8px;
+  border-radius: 1px;
+  background: var(--state-neutral);
+  transition:
+    height var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.tick[data-state="added"] {
+  height: 16px;
+  background: var(--state-added);
+}
+
+.tick[data-state="skipped"] {
+  height: 5px;
+  background: var(--state-skipped);
+}
+
+.tick[data-state="current"] {
+  height: 16px;
+  background: var(--signal);
+  box-shadow: 0 0 0 2px var(--signal-soft);
+}
+
+.headerRight {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
   gap: var(--space-md);
 }
 
-.stat {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  font-size: 0.875rem;
+.position {
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.position strong {
+  color: var(--text-primary);
   font-weight: 500;
-  color: var(--text-secondary);
 }
 
-.statIcon {
-  font-size: 0.875rem;
-}
-
-.statIcon[data-type="added"]::before {
-  content: "";
-}
-
-.statIcon[data-type="skipped"]::before {
-  content: "";
+.positionSep {
+  margin: 0 3px;
+  color: var(--text-muted);
 }
 
 .ankiStatus {
   display: flex;
   align-items: center;
-  gap: var(--space-xs);
-  padding: var(--space-xs) var(--space-sm);
-  font-family: var(--font-body);
-  font-size: 0.75rem;
-  font-weight: 500;
-  border: 1px solid var(--bg-tertiary);
-  border-radius: var(--radius-sm);
-  background: var(--bg-secondary);
+  gap: 6px;
+  padding: 5px 9px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: transparent;
   cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   transition: border-color var(--transition-fast);
 }
 
 .ankiStatus:hover {
-  border-color: var(--text-muted);
+  border-color: var(--rule-strong);
 }
 
 .ankiDot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   transition: background var(--transition-fast);
 }
 
 .connected .ankiDot {
-  background: var(--color-success);
+  background: var(--text-primary);
 }
 
 .disconnected .ankiDot {
-  background: var(--color-error);
+  background: var(--signal);
   animation: pulse 1.5s ease-in-out infinite;
 }
 
@@ -112,21 +131,23 @@
   color: var(--text-tertiary);
 }
 
-/* Main content */
+/* Main */
+
 .main {
-  flex: 1;
   display: flex;
+  flex: 1;
   flex-direction: column;
 }
 
-/* Footer with actions */
+/* Footer actions */
+
 .footer {
   position: sticky;
   bottom: 0;
-  padding: var(--space-lg) 0;
-  background: linear-gradient(to top, var(--bg-primary) 60%, transparent);
   margin-top: auto;
-  animation: slideUp var(--transition-base) ease-out;
+  padding: var(--space-lg) 0 var(--space-sm);
+  background: linear-gradient(to top, var(--bg-primary) 55%, transparent);
+  animation: fadeIn var(--transition-base) ease-out;
 }
 
 .actions {
@@ -135,33 +156,26 @@
 }
 
 .actionButton {
-  flex: 1;
   display: flex;
-  flex-direction: column;
+  flex: 1;
   align-items: center;
-  gap: var(--space-xs);
-  padding: var(--space-md) var(--space-sm);
-  font-family: var(--font-body);
-  border: none;
-  border-radius: var(--radius-lg);
+  justify-content: center;
+  gap: 10px;
+  padding: 0.8125rem var(--space-md);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
   cursor: pointer;
+  font-family: var(--font-body);
   transition:
-    transform var(--transition-fast),
-    box-shadow var(--transition-fast),
+    border-color var(--transition-fast),
+    background var(--transition-fast),
+    color var(--transition-fast),
     opacity var(--transition-fast);
 }
 
-.actionButton:hover:not(:disabled) {
-  transform: translateY(-2px);
-}
-
-.actionButton:active:not(:disabled) {
-  transform: translateY(0);
-}
-
 .actionButton:disabled {
-  opacity: 0.5;
   cursor: not-allowed;
+  opacity: 0.4;
 }
 
 .actionLabel {
@@ -170,229 +184,184 @@
 }
 
 .shortcut {
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   font-weight: 500;
-  padding: 2px 6px;
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: var(--radius-sm);
-  opacity: 0.7;
 }
 
-/* Button variants */
+/* Approve — the only filled control */
 .approve {
+  flex: 2;
   background: var(--accent-primary);
-  color: white;
-  box-shadow: 0 4px 12px rgba(45, 90, 74, 0.25);
+  color: var(--bg-primary);
 }
 
 .approve:hover:not(:disabled) {
-  box-shadow: 0 6px 16px rgba(45, 90, 74, 0.35);
+  background: var(--accent-primary-hover);
 }
 
 .approve .shortcut {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(4, 21, 31, 0.16);
+  color: var(--bg-primary);
 }
 
-.edit {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  box-shadow: var(--shadow-md);
-}
-
-.edit:hover:not(:disabled) {
-  box-shadow: var(--shadow-lg);
-}
-
-.skip {
-  background: var(--bg-tertiary);
+/* Edit / Skip / Quit — ghosts */
+.ghost {
+  border-color: var(--rule);
+  background: transparent;
   color: var(--text-secondary);
 }
 
-.quit {
+.ghost:hover:not(:disabled) {
+  border-color: var(--rule-strong);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.ghost .shortcut {
   background: var(--bg-tertiary);
   color: var(--text-tertiary);
 }
 
-/* Loading state */
-.loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
-  gap: var(--space-md);
-}
+/* Status / error */
 
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--bg-tertiary);
-  border-top-color: var(--accent-primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-.loading p {
-  color: var(--text-tertiary);
-  margin: 0;
-}
-
-/* Error states */
-.errorCard {
-  text-align: center;
-  padding: var(--space-3xl);
-  background: var(--bg-secondary);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-md);
-  animation: scaleIn var(--transition-slow) ease-out;
+.status {
   margin: auto;
+  color: var(--text-tertiary);
+  font-size: 0.875rem;
 }
 
-.errorIcon {
-  font-size: 3rem;
+.errorCard {
+  max-width: 440px;
+  margin: auto;
+  padding: var(--space-2xl);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+  box-shadow: var(--edge);
+  text-align: center;
+  animation: riseIn var(--transition-base) ease-out;
+}
+
+.eyebrow {
   display: block;
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-md);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .errorCard h2 {
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  font-weight: 500;
-  color: var(--color-error);
   margin: 0 0 var(--space-sm);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 500;
 }
 
 .errorCard p {
-  font-size: 0.9375rem;
+  margin: 0 0 var(--space-lg);
   color: var(--text-tertiary);
-  margin: 0 0 var(--space-xl);
+  font-size: 0.9375rem;
 }
 
 .backLink {
-  display: inline-block;
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--accent-primary);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--rule-strong);
 }
 
-/* Error toast */
 .errorToast {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-md);
-  padding: var(--space-md) var(--space-lg);
-  background: var(--color-error-bg);
-  color: var(--color-error);
-  border-radius: var(--radius-md);
   margin-bottom: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  border-left: 2px solid var(--signal);
+  border-radius: var(--radius-md);
+  background: var(--signal-soft);
+  color: var(--text-primary);
   font-size: 0.875rem;
-  animation: slideDown var(--transition-fast) ease-out;
+  animation: riseIn var(--transition-fast) ease-out;
 }
 
 .dismissButton {
-  padding: var(--space-xs) var(--space-sm);
-  font-family: var(--font-body);
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--color-error);
-  background: transparent;
-  border: 1px solid currentColor;
+  padding: 4px 10px;
+  border: 1px solid var(--rule-strong);
   border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-primary);
   cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
   transition: background var(--transition-fast);
 }
 
 .dismissButton:hover {
-  background: rgba(155, 44, 44, 0.1);
+  background: var(--wash-faint);
 }
 
-/* Animations */
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.4;
-  }
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* Responsive */
 @media (max-width: 640px) {
   .container {
-    padding: var(--space-md);
+    padding: var(--space-lg) var(--space-md);
   }
 
   .header {
     flex-wrap: wrap;
-    gap: var(--space-md);
+    gap: var(--space-sm) var(--space-md);
   }
 
-  .progress {
+  .setName {
+    max-width: none;
     order: 1;
-    flex-basis: 100%;
+    flex: 1;
   }
 
-  .stats {
+  .headerRight {
     order: 2;
   }
 
-  .ankiStatus {
+  .rail {
     order: 3;
-    margin-left: auto;
+    flex-basis: 100%;
   }
 
   .actions {
     flex-wrap: wrap;
   }
 
-  .actionButton {
-    flex-basis: calc(50% - var(--space-xs));
+  .ghost {
+    flex-basis: calc(33.333% - var(--space-sm));
   }
 
   .approve {
     flex-basis: 100%;
     order: -1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header,
+  .footer,
+  .errorCard,
+  .errorToast {
+    animation: none;
+  }
+
+  .tick,
+  .actionButton,
+  .ankiStatus,
+  .ankiDot {
+    transition: none;
+  }
+
+  .disconnected .ankiDot {
+    animation: none;
   }
 }

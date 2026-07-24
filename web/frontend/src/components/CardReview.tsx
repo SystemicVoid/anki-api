@@ -1,11 +1,28 @@
 import { useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useReviewSession } from '../hooks/useReviewSession';
+import type { CardWithValidation } from '../types';
+import { parseSetName } from '../utils/setName';
 import { CardDisplay } from './CardDisplay';
 import { CardEditor } from './CardEditor';
 import styles from './CardReview.module.css';
 import { FileSelector } from './FileSelector';
 import { Summary } from './Summary';
+
+/** One tick per card in the deck: the whole session read at a glance. */
+function DeckRail({ cards, currentIndex }: { cards: CardWithValidation[]; currentIndex: number }) {
+  return (
+    <div className={styles.rail} aria-hidden="true">
+      {cards.map((entry, i) => (
+        <span
+          key={i}
+          className={styles.tick}
+          data-state={i === currentIndex ? 'current' : entry.card.status}
+        />
+      ))}
+    </div>
+  );
+}
 
 export function CardReview() {
   const [searchParams] = useSearchParams();
@@ -82,10 +99,7 @@ export function CardReview() {
   if (isLoading) {
     return (
       <div className={styles.container}>
-        <div className={styles.loading}>
-          <div className={styles.spinner} />
-          <p>Loading cards...</p>
-        </div>
+        <p className={styles.status}>Loading cards…</p>
       </div>
     );
   }
@@ -95,11 +109,11 @@ export function CardReview() {
     return (
       <div className={styles.container}>
         <div className={styles.errorCard}>
-          <span className={styles.errorIcon}></span>
-          <h2>Unable to Load Cards</h2>
+          <span className={styles.eyebrow}>Not loaded</span>
+          <h2>This set would not open.</h2>
           <p>{error}</p>
           <a href="/review" className={styles.backLink}>
-            Back to File Selection
+            Back to the desk
           </a>
         </div>
       </div>
@@ -118,56 +132,45 @@ export function CardReview() {
     return (
       <div className={styles.container}>
         <div className={styles.errorCard}>
-          <span className={styles.errorIcon}></span>
-          <h2>No Cards Found</h2>
-          <p>This file appears to be empty.</p>
+          <span className={styles.eyebrow}>Empty</span>
+          <h2>This set has no cards.</h2>
           <a href="/review" className={styles.backLink}>
-            Back to File Selection
+            Back to the desk
           </a>
         </div>
       </div>
     );
   }
 
+  const { title } = parseSetName(filename);
+
   return (
     <div className={styles.container}>
-      {/* Header with progress and status */}
       <header className={styles.header}>
-        <div className={styles.progress}>
-          <span className={styles.progressText}>
-            Card <strong>{currentIndex + 1}</strong> of <strong>{cards.length}</strong>
-          </span>
-          <div className={styles.progressBar}>
-            <div
-              className={styles.progressFill}
-              style={{ width: `${((currentIndex + 1) / cards.length) * 100}%` }}
-            />
-          </div>
-        </div>
+        <span className={styles.setName} title={filename}>
+          {title}
+        </span>
 
-        <div className={styles.stats}>
-          <span className={styles.stat}>
-            <span className={styles.statIcon} data-type="added"></span>
-            {addedCount}
-          </span>
-          <span className={styles.stat}>
-            <span className={styles.statIcon} data-type="skipped"></span>
-            {skippedCount}
-          </span>
-        </div>
+        <DeckRail cards={cards} currentIndex={currentIndex} />
 
-        <button
-          type="button"
-          onClick={refreshAnkiStatus}
-          className={`${styles.ankiStatus} ${ankiStatus.connected ? styles.connected : styles.disconnected}`}
-          title={ankiStatus.connected ? 'Anki connected' : 'Anki disconnected - click to retry'}
-        >
-          <span className={styles.ankiDot} />
-          <span className={styles.ankiText}>Anki</span>
-        </button>
+        <div className={styles.headerRight}>
+          <span className={styles.position}>
+            <strong>{currentIndex + 1}</strong>
+            <span className={styles.positionSep}>/</span>
+            {cards.length}
+          </span>
+          <button
+            type="button"
+            onClick={refreshAnkiStatus}
+            className={`${styles.ankiStatus} ${ankiStatus.connected ? styles.connected : styles.disconnected}`}
+            title={ankiStatus.connected ? 'Anki connected' : 'Anki disconnected — click to retry'}
+          >
+            <span className={styles.ankiDot} />
+            <span className={styles.ankiText}>Anki</span>
+          </button>
+        </div>
       </header>
 
-      {/* Error toast */}
       {error && (
         <div className={styles.errorToast}>
           <span>{error}</span>
@@ -177,7 +180,6 @@ export function CardReview() {
         </div>
       )}
 
-      {/* Main content */}
       <main className={styles.main}>
         {isEditing ? (
           <CardEditor
@@ -187,11 +189,10 @@ export function CardReview() {
             isSubmitting={isSubmitting}
           />
         ) : (
-          <CardDisplay card={currentCard} />
+          <CardDisplay key={currentIndex} card={currentCard} />
         )}
       </main>
 
-      {/* Action buttons */}
       {!isEditing && (
         <footer className={styles.footer}>
           <div className={styles.actions}>
@@ -201,7 +202,7 @@ export function CardReview() {
               disabled={isSubmitting || !ankiStatus.connected}
               className={`${styles.actionButton} ${styles.approve}`}
             >
-              <span className={styles.actionLabel}>{isSubmitting ? 'Adding...' : 'Approve'}</span>
+              <span className={styles.actionLabel}>{isSubmitting ? 'Adding…' : 'Approve'}</span>
               <kbd className={styles.shortcut}>A</kbd>
             </button>
 
@@ -209,7 +210,7 @@ export function CardReview() {
               type="button"
               onClick={startEditing}
               disabled={isSubmitting}
-              className={`${styles.actionButton} ${styles.edit}`}
+              className={`${styles.actionButton} ${styles.ghost}`}
             >
               <span className={styles.actionLabel}>Edit</span>
               <kbd className={styles.shortcut}>E</kbd>
@@ -219,7 +220,7 @@ export function CardReview() {
               type="button"
               onClick={skip}
               disabled={isSubmitting}
-              className={`${styles.actionButton} ${styles.skip}`}
+              className={`${styles.actionButton} ${styles.ghost}`}
             >
               <span className={styles.actionLabel}>Skip</span>
               <kbd className={styles.shortcut}>S</kbd>
@@ -229,7 +230,7 @@ export function CardReview() {
               type="button"
               onClick={quit}
               disabled={isSubmitting}
-              className={`${styles.actionButton} ${styles.quit}`}
+              className={`${styles.actionButton} ${styles.ghost}`}
             >
               <span className={styles.actionLabel}>Quit</span>
               <kbd className={styles.shortcut}>Q</kbd>

@@ -9,6 +9,23 @@ interface Props {
   card: CardWithValidation;
 }
 
+/** Render `domain::topic::leaf` with the namespace dim and the leaf at full ink. */
+function Tag({ tag }: { tag: string }) {
+  const segments = tag.split('::');
+  const leaf = segments.pop() ?? tag;
+  return (
+    <span className={styles.tag}>
+      {segments.map((segment, i) => (
+        <span key={i} className={styles.tagNamespace}>
+          {segment}
+          <span className={styles.tagSep}>::</span>
+        </span>
+      ))}
+      <span className={styles.tagLeaf}>{leaf}</span>
+    </span>
+  );
+}
+
 export function CardDisplay({ card }: Props) {
   const { card: cardData } = card;
   const hasContext = cardData.context.trim().length > 0;
@@ -41,28 +58,23 @@ export function CardDisplay({ card }: Props) {
   return (
     <MathJaxContext config={ankiMathJaxConfig}>
       <article className={styles.card}>
-        {/* Question */}
-        <section className={styles.questionSection}>
-          <span className={styles.label}>
-            Question
+        <section>
+          <div className={styles.labelRow}>
+            <span className={styles.label}>Question</span>
             {cardData.anki_id && (
               <span className={styles.addedBadge} title="Already added to Anki">
-                ✓ Added
+                In Anki
               </span>
             )}
-          </span>
+          </div>
           <h2 className={styles.question}>
             <MathJaxContent text={cardData.front} />
           </h2>
         </section>
 
-        {/* Divider */}
-        <div className={styles.divider}>
-          <span className={styles.dividerLine} />
-        </div>
+        <div className={styles.divider} />
 
-        {/* Answer */}
-        <section className={styles.answerSection}>
+        <section>
           <span className={styles.label}>Answer</span>
           <div className={styles.answer}>
             <MathJaxContent text={cardData.back} />
@@ -83,42 +95,30 @@ export function CardDisplay({ card }: Props) {
           </section>
         )}
 
-        {/* Context */}
         {hasContext && (
-          <>
-            <div className={styles.contextDivider}>
-              <span className={styles.contextDividerLine} />
-              <span className={styles.contextDividerText}>Context</span>
-              <span className={styles.contextDividerLine} />
+          <section className={styles.contextSection}>
+            <span className={styles.label}>Context</span>
+            <div className={styles.context}>
+              <MathJaxContent text={cardData.context} />
             </div>
-            <section className={styles.contextSection}>
-              <div className={styles.context}>
-                <MathJaxContent text={cardData.context} />
-              </div>
-            </section>
-          </>
+          </section>
         )}
 
-        {/* Metadata */}
         <footer className={styles.footer}>
-          {/* Tags */}
           {cardData.tags.length > 0 && (
             <div className={styles.tags}>
-              {cardData.tags.map((tag, i) => (
-                <span key={i} className={styles.tag}>
-                  {tag}
-                </span>
+              {cardData.tags.map((tag) => (
+                <Tag key={tag} tag={tag} />
               ))}
             </div>
           )}
 
-          {/* Copy button */}
           <button
             type="button"
             onClick={copyCardText}
             className={`${styles.copyButton} ${copied ? styles.copied : ''}`}
             title="Copy card text"
-            aria-label={copied ? 'Copied!' : 'Copy card text'}
+            aria-label={copied ? 'Copied' : 'Copy card text'}
           >
             <svg
               className={styles.copyIcon}
